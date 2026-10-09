@@ -149,7 +149,7 @@ This repository includes a continuous integration workflow configured in `.githu
   - Configures AIR SDK 51.1.
   - Injects Picture-in-Picture template attributes into the SDK.
   - Builds `Game.swf` and compiles `Loader.swf`.
-  - Packages signed ARM64 (`armv8`) APKs and attaches them to GitHub Releases.
+  - Packages signed ARM64 (`armv8`) APKs and macOS (`.app`) bundles, and attaches them to GitHub Releases.
 
 ---
 
