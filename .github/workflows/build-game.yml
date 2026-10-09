@@ -1,0 +1,52 @@
+name: Build Patched Game.swf
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'patches/**'
+      - 'src/Patcher.java'
+    branches:
+      - master
+      - main
+
+jobs:
+  build-game:
+    name: Build & Patch Game.swf
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Dlang compiler
+        uses: dlang-community/setup-dlang@v1
+
+      - name: Build and Install RABCDAsm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip git curl liblzma-dev
+          git clone --depth 1 https://github.com/CyberShadow/RABCDAsm.git
+          cd RABCDAsm
+          dmd -run build_rabcdasm.d
+          sudo cp abcexport rabcdasm rabcasm abcreplace /usr/local/bin/
+
+      - name: Run Game.swf Patcher
+        run: |
+          chmod +x scripts/build-game.sh
+          ./scripts/build-game.sh
+
+      - name: Upload Patched Game.swf Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Patched-Game-SWF
+          path: loader/gamefiles/Game.swf
+          if-no-files-found: error

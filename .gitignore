@@ -1,0 +1,15 @@
+/target
+/assets
+.vscode/settings.json
+.DS_Store
+**/.DS_Store
+keystore.jks
+mac_cert.p12
+*.app/
+/dist
+temp_package.air
+adl_output.log
+/bin
+/scratch
+/references
+ane-src/build/

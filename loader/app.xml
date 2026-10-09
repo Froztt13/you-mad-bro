@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<application xmlns="http://ns.adobe.com/air/application/51.0">
+  <id>com.aqw.mobile.mod</id>
+  <versionNumber>1.0.0</versionNumber>
+  <versionLabel>1.0.0</versionLabel>
+  <filename>YouMadBro</filename>
+  <description>AdventureQuest Worlds Launcher+</description>
+  <name>YouMadBro</name>
+  <copyright>None</copyright>
+  <initialWindow>
+    <content>Loader.swf</content>
+    <systemChrome>standard</systemChrome>
+    <transparent>false</transparent>
+    <visible>true</visible>
+    <fullScreen>true</fullScreen>
+    <aspectRatio>landscape</aspectRatio>
+    <renderMode>auto</renderMode>
+    <autoOrients>true</autoOrients>
+    <width>960</width>
+    <height>550</height>
+    <maximizable>true</maximizable>
+    <minimizable>true</minimizable>
+    <resizable>true</resizable>
+    <requestedDisplayResolution>standard</requestedDisplayResolution>
+  </initialWindow>
+  <icon>
+    <image36x36>icons/android-icon-36x36.png</image36x36>
+    <image48x48>icons/android-icon-48x48.png</image48x48>
+    <image72x72>icons/android-icon-72x72.png</image72x72>
+    <image96x96>icons/android-icon-96x96.png</image96x96>
+    <image144x144>icons/android-icon-144x144.png</image144x144>
+    <image192x192>icons/android-icon-192x192.png</image192x192>
+    <image512x512>icons/icon-512x512.png</image512x512>
+  </icon>
+  <customUpdateUI>false</customUpdateUI>
+  <allowBrowserInvocation>false</allowBrowserInvocation>
+  <android>
+    <manifestAdditions><![CDATA[<manifest>
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.WAKE_LOCK"/>
+<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+<application android:hardwareAccelerated="true" android:requestLegacyExternalStorage="true">
+    <meta-data android:name="android.max_aspect" android:value="2.5"/>
+    <meta-data android:name="android.notch_support" android:value="true"/>
+    <service android:name="com.aqw.battery.KeepAliveService" android:exported="false" android:foregroundServiceType="specialUse|dataSync">
+        <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="botting_keepalive"/>
+    </service>
+</application>
+</manifest>]]></manifestAdditions>
+  </android>
+  <extensions>
+    <extensionID>com.aqw.battery</extensionID>
+  </extensions>
+  <supportedLanguages>en</supportedLanguages>
+</application>

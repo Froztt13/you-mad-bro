@@ -1,0 +1,23 @@
+<extension xmlns="http://ns.adobe.com/air/extension/51.0">
+    <id>com.aqw.battery</id>
+    <versionNumber>1.0.0</versionNumber>
+    <platforms>
+        <platform name="Android-ARM64">
+            <applicationDeployment>
+                <nativeLibrary>battery-ane.jar</nativeLibrary>
+                <initializer>com.aqw.battery.BatteryExtension</initializer>
+                <finalizer>com.aqw.battery.BatteryExtension</finalizer>
+            </applicationDeployment>
+        </platform>
+        <platform name="Android-ARM">
+            <applicationDeployment>
+                <nativeLibrary>battery-ane.jar</nativeLibrary>
+                <initializer>com.aqw.battery.BatteryExtension</initializer>
+                <finalizer>com.aqw.battery.BatteryExtension</finalizer>
+            </applicationDeployment>
+        </platform>
+        <platform name="default">
+            <applicationDeployment/>
+        </platform>
+    </platforms>
+</extension>

@@ -1,0 +1,128 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_prefix:
+        description: 'Version prefix (e.g. 1.0, 1.1, 1.2, 2.0, 2.1)'
+        required: false
+        default: '2.1'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        arch: [armv8]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: version
+        run: |
+          PREFIX="${{ github.event.inputs.version_prefix || '2.1' }}"
+          RUN="${{ github.run_number }}"
+          echo "VERSION=v${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
+          echo "NUM_VERSION=${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Dlang
+        uses: dlang-community/setup-dlang@v1
+
+      - name: Build RABCDAsm from Source
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip git curl liblzma-dev
+          git clone --depth 1 https://github.com/CyberShadow/RABCDAsm.git
+          cd RABCDAsm
+          dmd -run build_rabcdasm.d
+          sudo cp abcexport rabcdasm rabcasm abcreplace /usr/local/bin/
+
+      - name: Build & Patch Game.swf
+        run: |
+          chmod +x scripts/build-game.sh
+          ./scripts/build-game.sh
+
+      - name: Setup AIR SDK
+        uses: joshtynjala/setup-adobe-air-action@v2
+        with:
+          air-version: "51.1"
+          accept-license: yes
+
+      - name: Enable Picture-in-Picture in AIR SDK
+        run: |
+          python3 scripts/patch-air-pip.py
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > release.jks
+
+      - name: Build APK (${{ matrix.arch }})
+        run: |
+          sed -i "s/APP_VERSION:String = \".*\"/APP_VERSION:String = \"${{ steps.version.outputs.VERSION }}\"/" loader/src/Config.as
+          sed -i "s/<versionNumber>.*<\/versionNumber>/<versionNumber>${{ steps.version.outputs.NUM_VERSION }}<\/versionNumber>/" loader/app.xml
+          sed -i "s/<versionLabel>.*<\/versionLabel>/<versionLabel>${{ steps.version.outputs.NUM_VERSION }}<\/versionLabel>/" loader/app.xml
+          sed -i "s/<fullScreen>.*<\/fullScreen>/<fullScreen>true<\/fullScreen>/" loader/app.xml
+          sed -i "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
+          
+          amxmlc \
+            -optimize=true \
+            -inline=true \
+            -omit-trace-statements=true \
+            -library-path+=ane/BatteryOptimizer.swc \
+            -output loader/Loader.swf \
+            loader/src/Main.as
+          
+          adt -package -target apk-captive-runtime -arch ${{ matrix.arch }} \
+            -storetype JKS \
+            -keystore release.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            YouMadBro-${{ matrix.arch }}.apk loader/app.xml \
+            -extdir ane \
+            -C loader Loader.swf icons gamefiles
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouMadBro-${{ matrix.arch }}
+          path: YouMadBro-${{ matrix.arch }}.apk
+
+      - name: Upload Game.swf Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Patched-Game-SWF
+          path: loader/gamefiles/Game.swf
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Set version
+        id: version
+        run: echo "VERSION=v${{ github.event.inputs.version_prefix || '2.1' }}.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: ${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+          files: |
+            YouMadBro-armv8/YouMadBro-armv8.apk
+            Patched-Game-SWF/Game.swf
