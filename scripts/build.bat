@@ -24,6 +24,9 @@ if exist "loader\gamefiles\world-map.swf" (
 if exist "assets\spiderbook3.swf" (
     copy /y assets\spiderbook3.swf loader\gamefiles\spiderbook3.swf >nul 2>&1
 )
+if exist "assets\charselect.swf" (
+    copy /y assets\charselect.swf loader\gamefiles\charselect.swf >nul 2>&1
+)
 
 echo [3/5] Compiling the loader...
 call amxmlc -optimize=true -inline=true -omit-trace-statements=true -library-path+=ane/BatteryOptimizer.swc -output loader/Loader.swf loader/src/Main.as

@@ -11,6 +11,7 @@ public class Patcher {
     private static final String GAME_FILES_URL = "https://game.aq.com/game/gamefiles/";
     private static final String SPIDERBOOK_URL = "https://game.aq.com/game/gamefiles/news/spiderbook3.swf";
     private static final String MAP_URL = "https://game.aq.com/game/gamefiles/news/Map-UI_r38.swf";
+    private static final String CHARSELECT_URL = "https://game.aq.com/game/gamefiles/interface/CharSelect/charselect.swf";
 
     public static void main(String[] args) throws Exception {
         clearAssetDir();
@@ -26,6 +27,7 @@ public class Patcher {
 
         patchSpiderbook();
         patchWorldMap();
+        patchCharSelect();
     }
 
     private static void clearAssetDir() throws IOException {
@@ -40,7 +42,8 @@ public class Patcher {
                           // Preserve local SWF asset dependencies like Map-UI_r38.swf
                           return first.startsWith("Game-") || first.equals("Game.swf") || first.endsWith(".tmp")
                               || first.startsWith("spiderbook3-") || first.equals("spiderbook3.swf") || first.equals("book-of-lore.swf")
-                              || first.startsWith("Map-UI_r38-") || first.equals("Map-UI_r38.swf") || first.equals("world-map.swf");
+                              || first.startsWith("Map-UI_r38-") || first.equals("Map-UI_r38.swf") || first.equals("world-map.swf")
+                              || first.startsWith("charselect-") || first.equals("charselect.swf");
                       })
                       .map(Path::toFile)
                       .forEach(File::delete);
@@ -824,6 +827,45 @@ public class Patcher {
                 }
             }
 
+            // 8g. frame43: character select loading via queueLoadViaBytes (fixes SecurityError #2193)
+            int frame43Idx = gameContent.indexOf("refid \"Game/instance/frame43\"");
+            if (frame43Idx != -1) {
+                int endFrame43Idx = gameContent.indexOf("end ; trait", frame43Idx);
+                String frame43Sub = gameContent.substring(frame43Idx, endFrame43Idx);
+                Pattern pFrame43 = Pattern.compile("(?s)getlocal0\\s+getproperty\\s+Multiname\\(\"csLoader\", [^\\]]+\\]\\)\\s+findpropstrict\\s+Multiname\\(\"URLRequest\", [^\\]]+\\]\\)\\s+getlocal0\\s+getproperty\\s+Multiname\\(\"fileUrl\", [^\\]]+\\]\\)\\s+constructprop\\s+Multiname\\(\"URLRequest\", [^\\]]+\\]\\), 1\\s+callpropvoid\\s+Multiname\\(\"load\", [^\\]]+\\]\\), 1");
+                Matcher mFrame43 = pFrame43.matcher(frame43Sub);
+                if (mFrame43.find()) {
+                    String nsGame = "[PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")]";
+                    String nsGameSys = "[PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\"), PackageNamespace(\"flash.system\")]";
+                    String replFrame43 =
+                          "getlocal0\n"
+                        + "      getproperty         QName(PackageNamespace(\"\"), \"failedServers\")\n"
+                        + "      getproperty         QName(PackageNamespace(\"\"), \"mobile\")\n"
+                        + "      getlocal0\n"
+                        + "      getproperty         Multiname(\"csLoader\", " + nsGame + ")\n"
+                        + "      pushstring          \"app:/gamefiles/charselect.swf\"\n"
+                        + "      findpropstrict      Multiname(\"LoaderContext\", " + nsGameSys + ")\n"
+                        + "      pushfalse\n"
+                        + "      getlex              Multiname(\"ApplicationDomain\", " + nsGameSys + ")\n"
+                        + "      getproperty         Multiname(\"currentDomain\", " + nsGameSys + ")\n"
+                        + "      constructprop       Multiname(\"LoaderContext\", " + nsGameSys + "), 2\n"
+                        + "      dup\n"
+                        + "      pushtrue\n"
+                        + "      setproperty         QName(PackageNamespace(\"\"), \"allowCodeImport\")\n"
+                        + "      callpropvoid        QName(PackageNamespace(\"\"), \"queueLoadViaBytes\"), 3";
+                    frame43Sub = mFrame43.replaceFirst(Matcher.quoteReplacement(replFrame43));
+
+                    // Raise maxstack for frame43 to 10
+                    frame43Sub = Pattern.compile("(?s)(body\\s+maxstack )\\d+").matcher(frame43Sub).replaceFirst("$110");
+
+                    gameContent = gameContent.substring(0, frame43Idx) + frame43Sub + gameContent.substring(endFrame43Idx);
+                    System.out.println("  -> Game.frame43 patched to queueLoadViaBytes for Character Select (fixes Error #2193)");
+                    gameModified = true;
+                } else {
+                    System.err.println("  -> WARNING: frame43 csLoader load pattern not found!");
+                }
+            }
+
             if (gameModified) {
                 Files.writeString(gameAsasm, gameContent);
             }
@@ -1334,5 +1376,137 @@ public class Patcher {
         runCommand("rabcasm", "assets/Map-UI_r38-0/Map-UI_r38-0.main.asasm");
         runCommand("abcreplace", "assets/Map-UI_r38.swf", "0", "assets/Map-UI_r38-0/Map-UI_r38-0.main.abc");
         System.out.println("Map-UI_r38.swf built and patched successfully!");
+    }
+
+    private static void patchCharSelect() throws Exception {
+        System.out.println("Downloading latest remote charselect.swf...");
+        Path csSwf = Paths.get("assets/charselect.swf");
+        try (InputStream in = URI.create(CHARSELECT_URL).toURL().openStream()) {
+            Files.copy(in, csSwf, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        System.out.println("Disassembling charselect.swf...");
+        runCommand("abcexport", "assets/charselect.swf");
+        runCommand("rabcdasm", "assets/charselect-0.abc");
+
+        Path csDir = Paths.get("assets/charselect-0");
+        sanitizeSecurity(csDir);
+
+        // 1. In main.class.asasm: replace stage.getChildAt(0) with parent (fixes Error #2193)
+        // and replace any getlex parent with getlocal0 / getproperty parent
+        Path mainAsasm = csDir.resolve("main.class.asasm");
+        if (Files.exists(mainAsasm)) {
+            System.out.println("Patching root reference in main.class.asasm...");
+            String content = Files.readString(mainAsasm).replace("\r\n", "\n");
+            Pattern pStage = Pattern.compile("(?s)getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"stage\"\\)\\s+pushbyte\\s+0\\s+callproperty\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"getChildAt\"\\),\\s*1");
+            String replParent = "getlocal0\n      getproperty         QName(PackageNamespace(\"\"), \"parent\")";
+            content = pStage.matcher(content).replaceAll(replParent);
+            content = content.replace("getlex              QName(PackageNamespace(\"\"), \"parent\")", replParent);
+            Files.writeString(mainAsasm, content);
+            System.out.println("  -> main.class.asasm root patched to parent (fixed Error #2193)");
+        }
+
+        // 2. In manager.class.asasm & main.class.asasm: replace SharedObject.getLocal("AQWChars", "/", true)
+        // with SharedObject.getLocal("AQWChars") to fix Error #2134 in Adobe AIR
+        Pattern pSO = Pattern.compile("(?s)pushstring\\s+\"AQWChars\"\\s+pushstring\\s+\"/\"\\s+pushtrue\\s+callproperty\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"getLocal\"\\),\\s*3");
+        String replSO = "pushstring          \"AQWChars\"\n      callproperty        QName(PackageNamespace(\"\"), \"getLocal\"), 1";
+        for (String fileToPatch : List.of("manager.class.asasm", "main.class.asasm")) {
+            Path p = csDir.resolve(fileToPatch);
+            if (Files.exists(p)) {
+                String content = Files.readString(p).replace("\r\n", "\n");
+                Matcher mSO = pSO.matcher(content);
+                if (mSO.find()) {
+                    content = mSO.replaceAll(replSO);
+                    Files.writeString(p, content);
+                    System.out.println("  -> " + fileToPatch + " SharedObject.getLocal patched (fixed Error #2134)");
+                } else {
+                    System.err.println("  -> WARNING: target SharedObject pattern not found in " + fileToPatch + "!");
+                }
+            }
+        }
+
+        // 3. In manager.class.asasm:
+        // a. Initialize characters.data.users = {} if null/undefined
+        // b. Guard displayAvts[0].loginInfo.bAsk check so Error #1010 doesn't occur when displayAvts is empty
+        Path mgrAsasm = csDir.resolve("manager.class.asasm");
+        if (Files.exists(mgrAsasm)) {
+            System.out.println("Patching manager.class.asasm for empty character list...");
+            String content = Files.readString(mgrAsasm).replace("\r\n", "\n");
+
+            // a. Initialize characters.data.users if null
+            Pattern pInitSO = Pattern.compile("(?s)(initproperty\\s+QName\\(PrivateNamespace\\(null,\\s*\"manager/instance#0\"\\),\\s*\"characters\"\\))");
+            Matcher mInitSO = pInitSO.matcher(content);
+            if (mInitSO.find()) {
+                String matched = mInitSO.group(1);
+                String replInitSO = matched + "\n\n"
+                    + "      getlex              QName(PrivateNamespace(null, \"manager/instance#0\"), \"characters\")\n"
+                    + "      getproperty         QName(PackageNamespace(\"\"), \"data\")\n"
+                    + "      getproperty         Multiname(\"users\", [PrivateNamespace(null, \"manager/instance#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"manager/instance#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), ProtectedNamespace(\"manager\"), StaticProtectedNs(\"manager\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n"
+                    + "      pushnull\n"
+                    + "      ifne                L_HAS_USERS\n"
+                    + "      getlex              QName(PrivateNamespace(null, \"manager/instance#0\"), \"characters\")\n"
+                    + "      getproperty         QName(PackageNamespace(\"\"), \"data\")\n"
+                    + "      findpropstrict      QName(PackageNamespace(\"\"), \"Object\")\n"
+                    + "      constructprop       QName(PackageNamespace(\"\"), \"Object\"), 0\n"
+                    + "      setproperty         Multiname(\"users\", [PrivateNamespace(null, \"manager/instance#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"manager/instance#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), ProtectedNamespace(\"manager\"), StaticProtectedNs(\"manager\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n"
+                    + "L_HAS_USERS:";
+                content = mInitSO.replaceFirst(Matcher.quoteReplacement(replInitSO));
+                System.out.println("  -> manager.class.asasm characters.data.users initialization patched");
+            }
+
+            // b. Guard displayAvts[0].loginInfo.bAsk check
+            Pattern pCharOpt = Pattern.compile("(?s)getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"displayAvts\"\\)\\s+pushbyte\\s+0\\s+getproperty\\s+MultinameL\\([^\\]]+\\]\\)\\s+getproperty\\s+Multiname\\(\"loginInfo\", [^\\]]+\\]\\)\\s+getproperty\\s+Multiname\\(\"bAsk\", [^\\]]+\\]\\)\\s+getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"Boolean\"\\)\\s+astypelate");
+            Matcher mCharOpt = pCharOpt.matcher(content);
+            if (mCharOpt.find()) {
+                String replCharOpt =
+                      "getlex              QName(PackageNamespace(\"\"), \"displayAvts\")\n"
+                    + "      getproperty         QName(PackageNamespace(\"\"), \"length\")\n"
+                    + "      pushbyte            0\n"
+                    + "      ifngt               L_EMPTY_AVTS\n"
+                    + "      getlex              QName(PackageNamespace(\"\"), \"displayAvts\")\n"
+                    + "      pushbyte            0\n"
+                    + "      getproperty         MultinameL([PrivateNamespace(null, \"manager/instance#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"manager/instance#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), ProtectedNamespace(\"manager\"), StaticProtectedNs(\"manager\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n"
+                    + "      getproperty         Multiname(\"loginInfo\", [PrivateNamespace(null, \"manager/instance#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"manager/instance#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), ProtectedNamespace(\"manager\"), StaticProtectedNs(\"manager\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n"
+                    + "      getproperty         Multiname(\"bAsk\", [PrivateNamespace(null, \"manager/instance#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"manager/instance#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), ProtectedNamespace(\"manager\"), StaticProtectedNs(\"manager\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n"
+                    + "      getlex              QName(PackageNamespace(\"\"), \"Boolean\")\n"
+                    + "      astypelate\n"
+                    + "      jump                L_INIT_AVTS\n"
+                    + "L_EMPTY_AVTS:\n"
+                    + "      pushfalse\n"
+                    + "L_INIT_AVTS:";
+                content = mCharOpt.replaceFirst(Matcher.quoteReplacement(replCharOpt));
+                System.out.println("  -> manager.class.asasm displayAvts empty guard patched (fixed Error #1010)");
+            } else {
+                System.err.println("  -> WARNING: displayAvts[0].loginInfo pattern not found in manager.class.asasm!");
+            }
+            Files.writeString(mgrAsasm, content);
+        }
+
+        // 4. In selAvatarMC.class.asasm: add allowCodeImport = true to all LoaderContext instances
+        Path selAvAsasm = csDir.resolve("selAvatarMC.class.asasm");
+        if (Files.exists(selAvAsasm)) {
+            System.out.println("Patching LoaderContext in selAvatarMC.class.asasm...");
+            String content = Files.readString(selAvAsasm).replace("\r\n", "\n");
+            String targetLC = "constructprop       QName(PackageNamespace(\"flash.system\"), \"LoaderContext\"), 2";
+            String replLC = targetLC + "\n      dup\n      pushtrue\n      setproperty         QName(PackageNamespace(\"\"), \"allowCodeImport\")";
+            if (content.contains(targetLC)) {
+                content = content.replace(targetLC, replLC);
+                Files.writeString(selAvAsasm, content);
+                System.out.println("  -> selAvatarMC.class.asasm LoaderContext allowCodeImport patched");
+            } else {
+                System.err.println("  -> WARNING: LoaderContext pattern not found in selAvatarMC.class.asasm!");
+            }
+        }
+
+        System.out.println("Reassembling charselect.swf...");
+        runCommand("rabcasm", "assets/charselect-0/charselect-0.main.asasm");
+        runCommand("abcreplace", "assets/charselect.swf", "0", "assets/charselect-0/charselect-0.main.abc");
+        System.out.println("charselect.swf built and patched successfully!");
+
+        Path loaderGamefiles = Paths.get("loader/gamefiles");
+        if (Files.exists(loaderGamefiles)) {
+            Files.copy(csSwf, loaderGamefiles.resolve("charselect.swf"), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("  -> Copied charselect.swf to loader/gamefiles/charselect.swf");
+        }
     }
 }

@@ -18,13 +18,17 @@ rm -f loader/gamefiles/world-map.swf
 if [ -f "assets/spiderbook3.swf" ]; then
     cp assets/spiderbook3.swf loader/gamefiles/spiderbook3.swf
 fi
+if [ -f "assets/charselect.swf" ]; then
+    cp assets/charselect.swf loader/gamefiles/charselect.swf
+fi
 
 echo ""
 echo "========================================================"
-echo "GAME.SWF, SPIDERBOOK3.SWF & MAP-UI_R38.SWF BUILD SUCCESSFUL!"
+echo "GAME.SWF, SPIDERBOOK3.SWF, MAP-UI_R38.SWF & CHARSELECT.SWF BUILD SUCCESSFUL!"
 echo "Output files:"
 echo "  - assets/Game.swf"
 echo "  - loader/gamefiles/Game.swf"
 echo "  - loader/gamefiles/Map-UI_r38.swf"
 echo "  - loader/gamefiles/spiderbook3.swf"
+echo "  - loader/gamefiles/charselect.swf"
 echo "========================================================"

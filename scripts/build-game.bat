@@ -33,15 +33,19 @@ if exist "loader\gamefiles\world-map.swf" (
 if exist "assets\spiderbook3.swf" (
     copy /y assets\spiderbook3.swf loader\gamefiles\spiderbook3.swf >nul 2>&1
 )
+if exist "assets\charselect.swf" (
+    copy /y assets\charselect.swf loader\gamefiles\charselect.swf >nul 2>&1
+)
 
 echo.
 echo ========================================================
-echo GAME.SWF, SPIDERBOOK3.SWF & MAP-UI_R38.SWF BUILD SUCCESSFUL!
+echo GAME.SWF, SPIDERBOOK3.SWF, MAP-UI_R38.SWF & CHARSELECT.SWF BUILD SUCCESSFUL!
 echo Output files:
 echo   - assets\Game.swf
 echo   - loader\gamefiles\Game.swf
 echo   - loader\gamefiles\Map-UI_r38.swf
 echo   - loader\gamefiles\spiderbook3.swf
+echo   - loader\gamefiles\charselect.swf
 echo ========================================================
 pause
 exit /b 0

@@ -22,6 +22,9 @@ rm -f loader/gamefiles/world-map.swf
 if [ -f "assets/spiderbook3.swf" ]; then
     cp assets/spiderbook3.swf loader/gamefiles/spiderbook3.swf
 fi
+if [ -f "assets/charselect.swf" ]; then
+    cp assets/charselect.swf loader/gamefiles/charselect.swf
+fi
 
 echo "[3/5] Compiling the loader..."
 if [ ! -f "ane/com.aqw.battery.ane" ] || [ ! -f "ane/BatteryOptimizer.swc" ]; then
