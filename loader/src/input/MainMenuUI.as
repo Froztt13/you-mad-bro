@@ -6,13 +6,17 @@ package input {
 	import flash.utils.*;
 	import flash.system.System;
 	import flash.ui.Keyboard;
+	import flash.filters.DropShadowFilter;
+	import flash.filters.GlowFilter;
 
 	import ui.Layout;
 	import ui.Joystick;
 	import ui.InfoMessage;
 	import ui.MyButton;
+	import ui.UIUtils;
 	import engine.AutoBattle;
 	import engine.AutoQuest;
+	import engine.BotEngine;
 	import engine.MapCommands;
 	import input.BotManagerUI;
 	import input.CellJumpUI;
@@ -21,15 +25,22 @@ package input {
 	import Config;
 	import com.aqw.battery.BatteryOptimizer;
 
-	public class GamePad extends Sprite {
+	public class MainMenuUI extends Sprite {
 
-		private static const MENU_W:Number = 110;
-		private static const MENU_ITH:Number = 26;
-		private static const GEAR_SIZE:Number = 28;
-		private static const EDIT_BAR_W:Number = 200;
-		private static const EDIT_BAR_H:Number = 36;
+		private static const BTN_SIZE:Number = 32;
+		private static const BTN_GAP:Number = 4;
+		private static const BTN_POS_X:Number = 8;
+		private static const BTN_POS_Y:Number = 8;
+		private static const BTN_RADIUS:Number = 8;
 
-		public function GamePad(game:MovieClip) {
+		private static const MENU_W:Number = 145;
+		private static const MENU_ITH:Number = 28;
+		private static const MENU_RADIUS:Number = 8;
+
+		private static const EDIT_BAR_W:Number = 216;
+		private static const EDIT_BAR_H:Number = 40;
+
+		public function MainMenuUI(game:MovieClip) {
 			this.game = game;
 			addEventListener(Event.ADDED_TO_STAGE, onAdded);
 		}
@@ -42,10 +53,15 @@ package input {
 		private var walkCtrl:WalkController;
 		private var layout:Layout;
 		private var gearBtn:Sprite;
+		private var gearIcon:Shape;
 		private var bankBtn:Sprite;
+		private var bankIcon:Shape;
 		private var actionMenuBtn:Sprite;
+		private var actionIcon:Shape;
+		private var botState:int = BotEngine.STATE_IDLE;
 		private var autoBattleBtn:Sprite;
-		private var autoBattleLabel:TextField;
+		private var autoBattleIcon:Shape;
+		private var autoBattleState:int = AutoBattle.STATE_IDLE;
 		private var dropdown:Sprite;
 		private var actionDropdown:Sprite;
 		private var dropdownOpen:Boolean = false;
@@ -69,29 +85,31 @@ package input {
 
 		private function buildGearMenu():void {
 			gearBtn = new Sprite();
+			gearIcon = new Shape();
+			gearBtn.addChild(gearIcon);
 
-			drawPill(gearBtn.graphics, GEAR_SIZE, GEAR_SIZE);
-
-			const gl:TextField = makeLabel("⚙", 0xffffff, 14, true);
-
-			gl.width = GEAR_SIZE;
-			gl.height = GEAR_SIZE;
-			gl.y = 4.5;
-			gl.alpha = 0.7;
-
-			gearBtn.addChild(gl);
-			gearBtn.x = 5;
-			gearBtn.y = 5;
+			gearBtn.x = BTN_POS_X;
+			gearBtn.y = BTN_POS_Y;
 			gearBtn.buttonMode = true;
 			gearBtn.useHandCursor = true;
+
+			updateMenuBtnVisual(gearBtn, gearIcon, false, false);
+
+			gearBtn.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void {
+					updateMenuBtnVisual(gearBtn, gearIcon, true, dropdownOpen);
+				});
+			gearBtn.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void {
+					updateMenuBtnVisual(gearBtn, gearIcon, false, dropdownOpen);
+				});
 			gearBtn.addEventListener(MouseEvent.CLICK, onGearClick);
 
 			addChild(gearBtn);
 
 			dropdown = new Sprite();
 			dropdown.visible = false;
+			dropdown.filters = [new DropShadowFilter(4, 90, 0x000000, 0.55, 12, 12, 1, 1)];
 
-			dropdown.x = gearBtn.x + GEAR_SIZE + 2;
+			dropdown.x = gearBtn.x + BTN_SIZE + 6;
 			dropdown.y = gearBtn.y;
 			addChild(dropdown);
 
@@ -144,7 +162,7 @@ package input {
 						fn: openLogger
 					});
 
-			const panelH:Number = items.length * MENU_ITH + 6;
+			const panelH:Number = items.length * MENU_ITH + 8;
 
 			drawPill(dropdown.graphics, MENU_W, panelH, true);
 
@@ -169,21 +187,36 @@ package input {
 
 		private function buildActionButton():void {
 			actionMenuBtn = new Sprite();
+			actionIcon = new Shape();
+			actionMenuBtn.addChild(actionIcon);
 
-			drawPill(actionMenuBtn.graphics, GEAR_SIZE, GEAR_SIZE);
-
-			const al:TextField = makeLabel("⚡", 0xffffff, 14, true);
-
-			al.width = GEAR_SIZE;
-			al.height = GEAR_SIZE;
-			al.y = 4.5;
-			al.alpha = 0.7;
-
-			actionMenuBtn.addChild(al);
-			actionMenuBtn.x = 5;
-			actionMenuBtn.y = gearBtn.y + GEAR_SIZE + 2;
+			actionMenuBtn.x = BTN_POS_X;
+			actionMenuBtn.y = gearBtn.y + BTN_SIZE + BTN_GAP;
 			actionMenuBtn.buttonMode = true;
 			actionMenuBtn.useHandCursor = true;
+
+			updateMenuBtnVisual(actionMenuBtn, actionIcon, false, false);
+
+			actionMenuBtn.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void {
+					var accent:uint = 0;
+					if (botState == BotEngine.STATE_RUNNING) {
+						accent = 0x10b981;
+					}
+					else if (botState == BotEngine.STATE_PAUSED) {
+						accent = 0xf59e0b;
+					}
+					updateMenuBtnVisual(actionMenuBtn, actionIcon, true, actionDropdownOpen || botState != BotEngine.STATE_IDLE, accent);
+				});
+			actionMenuBtn.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void {
+					var accent:uint = 0;
+					if (botState == BotEngine.STATE_RUNNING) {
+						accent = 0x10b981;
+					}
+					else if (botState == BotEngine.STATE_PAUSED) {
+						accent = 0xf59e0b;
+					}
+					updateMenuBtnVisual(actionMenuBtn, actionIcon, false, actionDropdownOpen || botState != BotEngine.STATE_IDLE, accent);
+				});
 			actionMenuBtn.addEventListener(MouseEvent.CLICK, onActionClick);
 
 			addChild(actionMenuBtn);
@@ -226,6 +259,10 @@ package input {
 							autoQuestUI.visible = false;
 						}
 					});
+				if (botManagerUI.botEngine != null) {
+					botManagerUI.botEngine.addStateListener(onBotStateChange);
+					onBotStateChange(botManagerUI.botEngine.state);
+				}
 			}
 
 			// Initialize Custom Char UI
@@ -237,6 +274,7 @@ package input {
 
 			actionDropdown = new Sprite();
 			actionDropdown.visible = false;
+			actionDropdown.filters = [new DropShadowFilter(4, 90, 0x000000, 0.55, 12, 12, 1, 1)];
 
 			const items:Array = [
 					{
@@ -273,7 +311,7 @@ package input {
 					}
 				];
 
-			const panelH:Number = items.length * MENU_ITH + 6;
+			const panelH:Number = items.length * MENU_ITH + 8;
 
 			drawPill(actionDropdown.graphics, MENU_W, panelH, true);
 
@@ -282,28 +320,29 @@ package input {
 				actionDropdown.addChild(row);
 			}
 
-			actionDropdown.x = actionMenuBtn.x + GEAR_SIZE + 2;
+			actionDropdown.x = actionMenuBtn.x + BTN_SIZE + 6;
 			actionDropdown.y = actionMenuBtn.y;
 			addChild(actionDropdown);
 		}
 
 		private function buildBankButton():void {
 			bankBtn = new Sprite();
+			bankIcon = new Shape();
+			bankBtn.addChild(bankIcon);
 
-			drawPill(bankBtn.graphics, GEAR_SIZE, GEAR_SIZE);
-
-			const bl:TextField = makeLabel("🏛️", 0xffffff, 14, true);
-
-			bl.width = GEAR_SIZE;
-			bl.height = GEAR_SIZE;
-			bl.y = 4.5;
-			bl.alpha = 0.7;
-
-			bankBtn.addChild(bl);
-			bankBtn.x = 5;
-			bankBtn.y = autoBattleBtn.y + GEAR_SIZE + 2;
+			bankBtn.x = BTN_POS_X;
+			bankBtn.y = autoBattleBtn.y + BTN_SIZE + BTN_GAP;
 			bankBtn.buttonMode = true;
 			bankBtn.useHandCursor = true;
+
+			updateMenuBtnVisual(bankBtn, bankIcon, false, false);
+
+			bankBtn.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void {
+					updateMenuBtnVisual(bankBtn, bankIcon, true, false);
+				});
+			bankBtn.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void {
+					updateMenuBtnVisual(bankBtn, bankIcon, false, false);
+				});
 			bankBtn.addEventListener(MouseEvent.CLICK, onBankClick);
 
 			addChild(bankBtn);
@@ -311,21 +350,36 @@ package input {
 
 		private function buildAutoBattleButton():void {
 			autoBattleBtn = new Sprite();
+			autoBattleIcon = new Shape();
+			autoBattleBtn.addChild(autoBattleIcon);
 
-			drawPill(autoBattleBtn.graphics, GEAR_SIZE, GEAR_SIZE);
-
-			autoBattleLabel = makeLabel("🔥", 0xffffff, 14, true);
-
-			autoBattleLabel.width = GEAR_SIZE;
-			autoBattleLabel.height = GEAR_SIZE;
-			autoBattleLabel.y = 4.5;
-			autoBattleLabel.alpha = 0.7;
-
-			autoBattleBtn.addChild(autoBattleLabel);
-			autoBattleBtn.x = 5;
-			autoBattleBtn.y = actionMenuBtn.y + GEAR_SIZE + 2;
+			autoBattleBtn.x = BTN_POS_X;
+			autoBattleBtn.y = actionMenuBtn.y + BTN_SIZE + BTN_GAP;
 			autoBattleBtn.buttonMode = true;
 			autoBattleBtn.useHandCursor = true;
+
+			updateMenuBtnVisual(autoBattleBtn, autoBattleIcon, false, false);
+
+			autoBattleBtn.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void {
+					var accent:uint = 0;
+					if (autoBattleState == AutoBattle.STATE_RUNNING) {
+						accent = 0xef4444;
+					}
+					else if (autoBattleState == AutoBattle.STATE_PAUSED) {
+						accent = 0xf59e0b;
+					}
+					updateMenuBtnVisual(autoBattleBtn, autoBattleIcon, true, autoBattleState != AutoBattle.STATE_IDLE, accent);
+				});
+			autoBattleBtn.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void {
+					var accent:uint = 0;
+					if (autoBattleState == AutoBattle.STATE_RUNNING) {
+						accent = 0xef4444;
+					}
+					else if (autoBattleState == AutoBattle.STATE_PAUSED) {
+						accent = 0xf59e0b;
+					}
+					updateMenuBtnVisual(autoBattleBtn, autoBattleIcon, false, autoBattleState != AutoBattle.STATE_IDLE, accent);
+				});
 			autoBattleBtn.addEventListener(MouseEvent.CLICK, onAutoBattleClick);
 
 			addChild(autoBattleBtn);
@@ -335,21 +389,25 @@ package input {
 			const row:Sprite = new Sprite();
 
 			const hoverBg:Shape = new Shape();
-			hoverBg.graphics.beginFill(0xffffff, 0.08);
-			hoverBg.graphics.drawRoundRect(3, 0, MENU_W - 6, MENU_ITH, 4);
+			hoverBg.graphics.beginFill(0x1e293b, 1.0);
+			hoverBg.graphics.drawRoundRect(4, 2, MENU_W - 8, MENU_ITH - 4, 5);
+			hoverBg.graphics.endFill();
+			// Sleek left accent indicator
+			hoverBg.graphics.beginFill(0x38bdf8, 1.0);
+			hoverBg.graphics.drawRoundRect(4, 5, 2.5, MENU_ITH - 10, 1.5);
 			hoverBg.graphics.endFill();
 			hoverBg.visible = false;
 
 			row.addChild(hoverBg);
 
-			const tf:TextField = makeLabel(lbl, 0xffffff, 10, false);
-			tf.width = MENU_W - 10;
+			const tf:TextField = makeLabel(lbl, 0xf1f5f9, 11, false);
+			tf.width = MENU_W - 18;
 			tf.height = MENU_ITH;
-			tf.x = 5;
-			tf.y = 6;
-			tf.alpha = 0.7;
+			tf.x = 12;
+			tf.y = Math.round((MENU_ITH - 16) / 2);
+			tf.alpha = 0.85;
 
-			const fmt:TextFormat = new TextFormat("_sans", 10, 0xffffff, false, null, null, null, null, TextFormatAlign.LEFT);
+			const fmt:TextFormat = new TextFormat("_sans", 11, 0xf1f5f9, false, null, null, null, null, TextFormatAlign.LEFT);
 			tf.defaultTextFormat = fmt;
 			tf.text = lbl;
 
@@ -368,16 +426,20 @@ package input {
 				editLayoutTf = tf;
 			}
 
-			row.y = 3 + idx * MENU_ITH;
+			row.y = 4 + idx * MENU_ITH;
 			row.buttonMode = true;
 			row.useHandCursor = true;
 
 			row.addEventListener(MouseEvent.ROLL_OVER, function(e:MouseEvent):void {
 					hoverBg.visible = true;
+					tf.textColor = 0xffffff;
+					tf.alpha = 1.0;
 				});
 
 			row.addEventListener(MouseEvent.ROLL_OUT, function(e:MouseEvent):void {
 					hoverBg.visible = false;
+					tf.textColor = 0xf1f5f9;
+					tf.alpha = 0.85;
 				});
 
 			row.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
@@ -394,19 +456,392 @@ package input {
 			return row;
 		}
 
+		private function updateMenuBtnVisual(
+				btn:Sprite,
+				icon:DisplayObject,
+				isHover:Boolean = false,
+				isActive:Boolean = false,
+				accentColor:uint = 0
+			):void {
+			if (btn == null)
+				return;
+			const g:Graphics = btn.graphics;
+			g.clear();
+
+			var bgColor:uint = 0x0f172a;
+			var bgAlpha:Number = 0.85;
+			var borderColor:uint = 0x334155;
+			var borderAlpha:Number = 0.7;
+			var borderThick:Number = 1.0;
+
+			if (accentColor > 0) {
+				borderColor = accentColor;
+				borderAlpha = 0.95;
+				borderThick = 1.5;
+				if (accentColor == 0xef4444) {
+					bgColor = 0x2e1214;
+					bgAlpha = 0.92;
+				}
+				else if (accentColor == 0xf59e0b) {
+					bgColor = 0x2d2212;
+					bgAlpha = 0.92;
+				}
+				else if (accentColor == 0x10b981) {
+					bgColor = 0x062e20;
+					bgAlpha = 0.92;
+				}
+			}
+			else if (isActive) {
+				bgColor = 0x1e293b;
+				bgAlpha = 0.96;
+				borderColor = 0x38bdf8;
+				borderAlpha = 0.95;
+				borderThick = 1.5;
+			}
+			else if (isHover) {
+				bgColor = 0x1e293b;
+				bgAlpha = 0.92;
+				borderColor = 0x64748b;
+				borderAlpha = 0.9;
+				borderThick = 1.2;
+			}
+
+			g.beginFill(bgColor, bgAlpha);
+			g.lineStyle(borderThick, borderColor, borderAlpha, true);
+			g.drawRoundRect(0, 0, BTN_SIZE, BTN_SIZE, BTN_RADIUS);
+			g.endFill();
+
+			// Redraw vector icon with dynamic theme colors
+			if (icon is Shape) {
+				var iconShape:Shape = Shape(icon);
+				if (iconShape == gearIcon) {
+					var gearColor:uint = isActive ? 0x38bdf8 : (isHover ? 0xffffff : 0x94a3b8);
+					drawGearIcon(gearIcon, gearColor, bgColor);
+				}
+				else if (iconShape == actionIcon) {
+					drawActionIcon(actionIcon, botState, isHover, isActive);
+				}
+				else if (iconShape == autoBattleIcon) {
+					drawAutoBattleIcon(autoBattleIcon, autoBattleState, isHover, isActive);
+				}
+				else if (iconShape == bankIcon) {
+					var bankColor:uint = isHover ? 0xfbbf24 : (isActive ? 0x38bdf8 : 0x94a3b8);
+					drawBankIcon(bankIcon, bankColor);
+				}
+			}
+			else if (icon is TextField) {
+				TextField(icon).alpha = (isHover || isActive || accentColor > 0) ? 1.0 : 0.75;
+			}
+
+			if (accentColor > 0) {
+				btn.filters = [
+						new DropShadowFilter(2, 90, 0x000000, 0.45, 4, 4, 1, 1),
+						new GlowFilter(accentColor, 0.5, 6, 6, 1.2, 1)
+					];
+			}
+			else if (isActive) {
+				btn.filters = [
+						new DropShadowFilter(2, 90, 0x000000, 0.45, 4, 4, 1, 1),
+						new GlowFilter(0x38bdf8, 0.45, 6, 6, 1.2, 1)
+					];
+			}
+			else if (isHover) {
+				btn.filters = [
+						new DropShadowFilter(2, 90, 0x000000, 0.45, 5, 5, 1, 1),
+						new GlowFilter(0x64748b, 0.25, 4, 4, 1, 1)
+					];
+			}
+			else {
+				btn.filters = [
+						new DropShadowFilter(2, 90, 0x000000, 0.4, 4, 4, 1, 1)
+					];
+			}
+		}
+
+		private function drawGearIcon(s:Shape, color:uint, bgColor:uint):void {
+			if (s == null)
+				return;
+			const g:Graphics = s.graphics;
+			g.clear();
+
+			const cx:Number = 16.0;
+			const cy:Number = 16.0;
+			const teeth:int = 6;
+			const rOuter:Number = 7.5;
+			const rInner:Number = 5.2;
+			const rHole:Number = 2.4;
+
+			g.beginFill(color, 1.0);
+			const totalPoints:int = teeth * 4;
+			for (var i:int = 0; i < totalPoints; i++) {
+				var toothIndex:int = i / 4;
+				var step:int = i % 4;
+				var baseAng:Number = (toothIndex * 2 * Math.PI) / teeth;
+				var halfTooth:Number = 0.18;
+				var halfValley:Number = 0.34;
+
+				var ang:Number;
+				var r:Number;
+				if (step == 0) {
+					ang = baseAng - halfTooth;
+					r = rOuter;
+				}
+				else if (step == 1) {
+					ang = baseAng + halfTooth;
+					r = rOuter;
+				}
+				else if (step == 2) {
+					ang = baseAng + halfValley;
+					r = rInner;
+				}
+				else {
+					ang = baseAng + (2 * Math.PI / teeth) - halfValley;
+					r = rInner;
+				}
+
+				var px:Number = cx + Math.cos(ang) * r;
+				var py:Number = cy + Math.sin(ang) * r;
+				if (i == 0) {
+					g.moveTo(px, py);
+				}
+				else {
+					g.lineTo(px, py);
+				}
+			}
+			g.endFill();
+
+			// Center hole knockout
+			g.beginFill(bgColor, 1.0);
+			g.drawCircle(cx, cy, rHole);
+			g.endFill();
+		}
+
+		private function drawActionIcon(
+				s:Shape,
+				botState:int,
+				isHover:Boolean = false,
+				isActive:Boolean = false
+			):void {
+			if (s == null)
+				return;
+			const g:Graphics = s.graphics;
+			g.clear();
+
+			if (botState == BotEngine.STATE_RUNNING) {
+				// Modern Cybernetic Bot / Robot icon in glowing emerald green
+				const botColor:uint = isHover ? 0x6ee7b7 : 0x34d399;
+				const eyeColor:uint = 0xffffff;
+
+				// Antenna stem
+				g.lineStyle(1.8, botColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+				g.moveTo(16.0, 6.2);
+				g.lineTo(16.0, 9.5);
+				// Antenna tip orb
+				g.lineStyle(0, 0, 0);
+				g.beginFill(botColor, 1.0);
+				g.drawCircle(16.0, 5.0, 1.8);
+				g.endFill();
+
+				// Head Chassis
+				g.beginFill(0x064e3b, 0.95);
+				g.lineStyle(1.8, botColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND, JointStyle.ROUND);
+				g.drawRoundRect(9.0, 9.5, 14.0, 12.5, 4, 4);
+				g.endFill();
+
+				// Side Bolts / Ears
+				g.lineStyle(0, 0, 0);
+				g.beginFill(botColor, 1.0);
+				g.drawRoundRect(6.8, 13.0, 2.2, 5.5, 1, 1);
+				g.drawRoundRect(23.0, 13.0, 2.2, 5.5, 1, 1);
+				g.endFill();
+
+				// Glowing Visor / Eyes
+				g.beginFill(eyeColor, 1.0);
+				g.drawRoundRect(11.5, 13.0, 3.2, 2.8, 1, 1);
+				g.drawRoundRect(17.3, 13.0, 3.2, 2.8, 1, 1);
+				g.endFill();
+
+				// Audio-grille / Mouth
+				g.lineStyle(1.5, botColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+				g.moveTo(12.5, 18.2);
+				g.lineTo(19.5, 18.2);
+				return;
+			}
+
+			if (botState == BotEngine.STATE_PAUSED) {
+				// Clean amber dual pause bars
+				const pauseColor:uint = isHover ? 0xfcd34d : 0xf59e0b;
+				g.lineStyle(0, 0, 0);
+				g.beginFill(pauseColor, 1.0);
+				g.drawRoundRect(10.5, 9.5, 3.5, 13.0, 2, 2);
+				g.drawRoundRect(18.0, 9.5, 3.5, 13.0, 2, 2);
+				g.endFill();
+				return;
+			}
+
+			// STATE_IDLE: Sharp faceted lightning bolt
+			var boltColor:uint = (isActive || isHover) ? 0x38bdf8 : 0x94a3b8;
+			g.lineStyle(0, 0, 0);
+			g.beginFill(boltColor, 1.0);
+			g.moveTo(17.5, 7.5);
+			g.lineTo(11.0, 15.5);
+			g.lineTo(15.2, 15.5);
+			g.lineTo(13.0, 24.5);
+			g.lineTo(21.0, 14.5);
+			g.lineTo(16.5, 14.5);
+			g.lineTo(17.5, 7.5);
+			g.endFill();
+		}
+
+		private function drawBankIcon(s:Shape, color:uint):void {
+			if (s == null)
+				return;
+			const g:Graphics = s.graphics;
+			g.clear();
+
+			g.beginFill(color, 1.0);
+
+			// Triangular Roof (Pediment)
+			g.moveTo(16.0, 7.0);
+			g.lineTo(24.5, 12.0);
+			g.lineTo(7.5, 12.0);
+			g.lineTo(16.0, 7.0);
+
+			// Architrave (beam)
+			g.drawRoundRect(7.5, 13.0, 17.0, 1.8, 0.5, 0.5);
+
+			// 3 Classical Columns
+			g.drawRoundRect(9.0, 15.8, 2.6, 6.8, 0.5, 0.5);
+			g.drawRoundRect(14.7, 15.8, 2.6, 6.8, 0.5, 0.5);
+			g.drawRoundRect(20.4, 15.8, 2.6, 6.8, 0.5, 0.5);
+
+			// Base Steps (Stylobate)
+			g.drawRoundRect(8.0, 23.4, 16.0, 1.6, 0.5, 0.5);
+			g.drawRoundRect(6.5, 25.4, 19.0, 1.8, 0.6, 0.6);
+
+			g.endFill();
+		}
+
+		private function drawAutoBattleIcon(
+				s:Shape,
+				state:int,
+				isHover:Boolean = false,
+				isActive:Boolean = false
+			):void {
+			if (s == null)
+				return;
+			const g:Graphics = s.graphics;
+			g.clear();
+
+			if (state == AutoBattle.STATE_PAUSED) {
+				// Clean amber dual pause bars
+				const pauseColor:uint = isHover ? 0xfcd34d : 0xf59e0b;
+				g.lineStyle(0, 0, 0);
+				g.beginFill(pauseColor, 1.0);
+				g.drawRoundRect(10.5, 9.5, 3.5, 13.0, 2, 2);
+				g.drawRoundRect(18.0, 9.5, 3.5, 13.0, 2, 2);
+				g.endFill();
+				return;
+			}
+
+			if (state == AutoBattle.STATE_RUNNING) {
+				// Active combat: fiery crimson crossed swords with flame core
+				const runBlade:uint = isHover ? 0xff6b6b : 0xef4444;
+				const runHilt:uint = 0xfca5a5;
+
+				// Sword 1 (bottom-left to top-right)
+				g.lineStyle(1.8, runBlade, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND, JointStyle.ROUND);
+				g.moveTo(11.5, 20.5);
+				g.lineTo(22.0, 10.0);
+				// Guard 1
+				g.lineStyle(2.0, runBlade, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+				g.moveTo(10.5, 16.5);
+				g.lineTo(15.5, 21.5);
+				// Pommel 1
+				g.lineStyle(1.8, runHilt, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+				g.moveTo(11.5, 20.5);
+				g.lineTo(9.5, 22.5);
+
+				// Sword 2 (bottom-right to top-left)
+				g.lineStyle(1.8, runBlade, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND, JointStyle.ROUND);
+				g.moveTo(20.5, 20.5);
+				g.lineTo(10.0, 10.0);
+				// Guard 2
+				g.lineStyle(2.0, runBlade, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+				g.moveTo(21.5, 16.5);
+				g.lineTo(16.5, 21.5);
+				// Pommel 2
+				g.lineStyle(1.8, runHilt, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+				g.moveTo(20.5, 20.5);
+				g.lineTo(22.5, 22.5);
+
+				// Center blazing flame
+				g.lineStyle(0, 0, 0);
+				g.beginFill(0xfbbf24, 0.95);
+				g.moveTo(16.0, 7.0);
+				g.curveTo(18.0, 10.5, 18.5, 13.0);
+				g.curveTo(19.0, 16.0, 17.5, 17.5);
+				g.curveTo(16.0, 18.5, 14.5, 17.5);
+				g.curveTo(13.0, 16.0, 13.5, 13.0);
+				g.curveTo(14.0, 10.5, 16.0, 7.0);
+				g.endFill();
+
+				// Inner flame white core
+				g.beginFill(0xffffff, 0.9);
+				g.drawEllipse(15.0, 13.0, 2.0, 3.2);
+				g.endFill();
+				return;
+			}
+
+			// STATE_IDLE: Elegant Crossed Swords
+			const bladeColor:uint = isHover ? 0xffffff : 0x94a3b8;
+			const guardColor:uint = isHover ? 0xe2e8f0 : 0x64748b;
+			const hiltColor:uint = isHover ? 0xcbd5e1 : 0x475569;
+
+			// Sword 1 (bottom-left to top-right)
+			g.lineStyle(1.8, bladeColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND, JointStyle.ROUND);
+			g.moveTo(11.5, 20.5);
+			g.lineTo(22.0, 10.0);
+			// Guard 1
+			g.lineStyle(2.0, guardColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+			g.moveTo(10.5, 16.5);
+			g.lineTo(15.5, 21.5);
+			// Pommel 1
+			g.lineStyle(1.8, hiltColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+			g.moveTo(11.5, 20.5);
+			g.lineTo(9.5, 22.5);
+
+			// Sword 2 (bottom-right to top-left)
+			g.lineStyle(1.8, bladeColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND, JointStyle.ROUND);
+			g.moveTo(20.5, 20.5);
+			g.lineTo(10.0, 10.0);
+			// Guard 2
+			g.lineStyle(2.0, guardColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+			g.moveTo(21.5, 16.5);
+			g.lineTo(16.5, 21.5);
+			// Pommel 2
+			g.lineStyle(1.8, hiltColor, 1.0, false, LineScaleMode.NORMAL, CapsStyle.ROUND);
+			g.moveTo(20.5, 20.5);
+			g.lineTo(22.5, 22.5);
+		}
+
 		private function drawPill(g:Graphics, w:Number, h:Number, panel:Boolean = false):void {
 			g.clear();
-			g.beginFill(0x111111, 0.75);
-			g.drawRoundRect(0, 0, w, h, panel ? 6 : 8);
+			g.beginFill(0x0f172a, panel ? 0.94 : 0.85);
+			g.drawRoundRect(0, 0, w, h, panel ? MENU_RADIUS : BTN_RADIUS);
 			g.endFill();
-			g.lineStyle(1, 0x888888, 0.4);
-			g.drawRoundRect(0, 0, w, h, panel ? 6 : 8);
+			g.lineStyle(1, 0x334155, 0.75, true);
+			g.drawRoundRect(0, 0, w, h, panel ? MENU_RADIUS : BTN_RADIUS);
 		}
 
 		private function openDropdown():void {
+			if (actionDropdownOpen) {
+				closeActionDropdown();
+			}
 			rebuildGearDropdown();
 			dropdownOpen = true;
 			dropdown.visible = true;
+			updateMenuBtnVisual(gearBtn, gearIcon, false, true);
 
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, onStageClickClose, false, 0, true);
 		}
@@ -414,13 +849,19 @@ package input {
 		private function closeDropdown():void {
 			dropdownOpen = false;
 			dropdown.visible = false;
+			updateMenuBtnVisual(gearBtn, gearIcon, false, false);
 
 			stage.removeEventListener(MouseEvent.MOUSE_DOWN, onStageClickClose);
 		}
 
 		private function openActionDropdown():void {
+			if (dropdownOpen) {
+				closeDropdown();
+			}
 			actionDropdownOpen = true;
 			actionDropdown.visible = true;
+			var accent:uint = (botState == BotEngine.STATE_RUNNING) ? 0x10b981 : ((botState == BotEngine.STATE_PAUSED) ? 0xf59e0b : 0);
+			updateMenuBtnVisual(actionMenuBtn, actionIcon, false, true, accent);
 
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, onStageClickClose, false, 0, true);
 		}
@@ -428,6 +869,8 @@ package input {
 		private function closeActionDropdown():void {
 			actionDropdownOpen = false;
 			actionDropdown.visible = false;
+			var accent:uint = (botState == BotEngine.STATE_RUNNING) ? 0x10b981 : ((botState == BotEngine.STATE_PAUSED) ? 0xf59e0b : 0);
+			updateMenuBtnVisual(actionMenuBtn, actionIcon, false, botState != BotEngine.STATE_IDLE, accent);
 
 			stage.removeEventListener(MouseEvent.MOUSE_DOWN, onStageClickClose);
 		}
@@ -525,21 +968,22 @@ package input {
 			editLayoutBar = new Sprite();
 
 			drawPill(editLayoutBar.graphics, EDIT_BAR_W, EDIT_BAR_H, true);
+			editLayoutBar.filters = [new DropShadowFilter(4, 90, 0x000000, 0.5, 10, 10, 1, 1)];
 
-			const btnW:Number = 88;
-			const btnH:Number = 24;
+			const btnW:Number = 96;
+			const btnH:Number = 26;
 			const btnY:Number = (EDIT_BAR_H - btnH) / 2;
 
 			const resetBtn:MyButton = new MyButton("Reset Layout", btnW, btnH, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
 					doResetLayout();
-				});
+				}, 11, 6);
 			resetBtn.x = 8;
 			resetBtn.y = btnY;
 			editLayoutBar.addChild(resetBtn);
 
 			const saveBtn:MyButton = new MyButton("Save Layout", btnW, btnH, MyButton.TYPE_SUCCESS, function(e:MouseEvent):void {
 					doEditLayout();
-				});
+				}, 11, 6);
 			saveBtn.x = resetBtn.x + btnW + 8;
 			saveBtn.y = btnY;
 			editLayoutBar.addChild(saveBtn);
@@ -801,16 +1245,34 @@ package input {
 		}
 
 		private function onAutoBattleStateChange(state:int):void {
-			if (autoBattleLabel != null) {
+			autoBattleState = state;
+			if (autoBattleIcon != null) {
 				switch (state) {
 					case AutoBattle.STATE_IDLE:
-						autoBattleLabel.text = "🔥";
+						updateMenuBtnVisual(autoBattleBtn, autoBattleIcon, false, false, 0);
 						break;
 					case AutoBattle.STATE_RUNNING:
-						autoBattleLabel.text = "🚫";
+						updateMenuBtnVisual(autoBattleBtn, autoBattleIcon, false, true, 0xef4444);
 						break;
 					case AutoBattle.STATE_PAUSED:
-						autoBattleLabel.text = "⏸️";
+						updateMenuBtnVisual(autoBattleBtn, autoBattleIcon, false, true, 0xf59e0b);
+						break;
+				}
+			}
+		}
+
+		private function onBotStateChange(state:int):void {
+			botState = state;
+			if (actionIcon != null) {
+				switch (state) {
+					case BotEngine.STATE_IDLE:
+						updateMenuBtnVisual(actionMenuBtn, actionIcon, false, actionDropdownOpen, 0);
+						break;
+					case BotEngine.STATE_RUNNING:
+						updateMenuBtnVisual(actionMenuBtn, actionIcon, false, true, 0x10b981);
+						break;
+					case BotEngine.STATE_PAUSED:
+						updateMenuBtnVisual(actionMenuBtn, actionIcon, false, true, 0xf59e0b);
 						break;
 				}
 			}

@@ -1225,6 +1225,7 @@ package input {
 
 			updateBotStats();
 			refreshCommandList();
+			dispatchEvent(new Event("botStateChange"));
 		}
 
 		private function onEngineStepChange(step:int, cmd:BotCommand):void {

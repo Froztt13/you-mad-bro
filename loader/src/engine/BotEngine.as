@@ -57,6 +57,20 @@ package engine {
 		public var onStepChange:Function;
 		public var onLog:Function;
 		public var itemDropsHandler:ItemDropsHandler;
+		private var _stateListeners:Array = [];
+
+		public function addStateListener(fn:Function):void {
+			if (fn != null && _stateListeners.indexOf(fn) == -1) {
+				_stateListeners.push(fn);
+			}
+		}
+
+		public function removeStateListener(fn:Function):void {
+			var idx:int = _stateListeners.indexOf(fn);
+			if (idx != -1) {
+				_stateListeners.splice(idx, 1);
+			}
+		}
 
 		public function BotEngine(game:Object = null) {
 			this.game = game;
@@ -776,6 +790,12 @@ package engine {
 		private function dispatchState():void {
 			if (onStateChange != null) {
 				onStateChange(_state);
+			}
+			for (var i:int = 0; i < _stateListeners.length; i++) {
+				var fn:Function = _stateListeners[i] as Function;
+				if (fn != null) {
+					fn(_state);
+				}
 			}
 		}
 

@@ -49,7 +49,7 @@ package {
 	import ui.ChatPreviewUI;
 	import input.AccountManagerUI;
 	import input.BotManagerUI;
-	import input.GamePad;
+	import input.MainMenuUI;
 	import input.PacketLoggerUI;
 	import input.AppLogUI;
 	import handler.PacketHandler;
@@ -564,7 +564,7 @@ package {
 				}
 
 				gameMovieClip.addChild(container);
-				gameMovieClip.addChild(new GamePad(gameMovieClip));
+				gameMovieClip.addChild(new MainMenuUI(gameMovieClip));
 				gameMovieClip.addChild(new ChatPreviewUI(gameMovieClip));
 
 				accountManagerUI.setGame(gameMovieClip);

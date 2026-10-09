@@ -89,7 +89,7 @@ aqw-mobile-dev/
 │   ├── src/
 │   │   ├── Main.as               # Client entry point
 │   │   ├── engine/               # Bot engine, combat logic, quest handler, socket hooks
-│   │   ├── input/                # GamePad, BotManager, AccountManager, UI modals
+│   │   ├── input/                # MainMenuUI, BotManager, AccountManager, UI modals
 │   │   └── ui/                   # Layout components, modals, buttons, theme tokens
 │   └── gamefiles/                # Patched Game.swf target directory
 ├── patcher/                      # Automated Game.swf bytecode patcher (Patcher.java & patches)
