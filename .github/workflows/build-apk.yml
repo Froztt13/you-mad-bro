@@ -7,9 +7,50 @@ on:
         description: 'Version prefix (e.g. 1.0, 1.1, 1.2, 2.0)'
         required: false
         default: '1.1'
+      patch_number:
+        description: 'Patch number (kosongkan untuk auto: reset ke 0 jika prefix baru, atau naik +1 jika prefix sama)'
+        required: false
+        default: ''
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.calc.outputs.VERSION }}
+      NUM_VERSION: ${{ steps.calc.outputs.NUM_VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Version
+        id: calc
+        run: |
+          PREFIX="${{ github.event.inputs.version_prefix || '1.1' }}"
+          MANUAL_PATCH="${{ github.event.inputs.patch_number }}"
+
+          if [ -n "$MANUAL_PATCH" ]; then
+            PATCH="$MANUAL_PATCH"
+            echo "Menggunakan patch_number manual: $PATCH"
+          else
+            git fetch --tags --force 2>/dev/null || true
+            LATEST_PATCH=$(git tag -l "v${PREFIX}.*" | sed "s/^v${PREFIX}\.//" | grep -E '^[0-9]+$' | sort -n | tail -n 1)
+            if [ -z "$LATEST_PATCH" ]; then
+              PATCH="0"
+              echo "Prefix baru terdeteksi (v${PREFIX}), counter digit ke-3 di-reset ke 0."
+            else
+              PATCH=$((LATEST_PATCH + 1))
+              echo "Tag terakhir terdeteksi: v${PREFIX}.${LATEST_PATCH}, patch dinaikkan ke $PATCH."
+            fi
+          fi
+
+          echo "VERSION=v${PREFIX}.${PATCH}" >> $GITHUB_OUTPUT
+          echo "NUM_VERSION=${PREFIX}.${PATCH}" >> $GITHUB_OUTPUT
+          echo "Final Resolved Version: v${PREFIX}.${PATCH}"
+
   build-apk:
+    needs: version
     strategy:
       matrix:
         arch: [armv8]
@@ -20,14 +61,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set version
-        id: version
-        run: |
-          PREFIX="${{ github.event.inputs.version_prefix || '1.1' }}"
-          RUN="${{ github.run_number }}"
-          echo "VERSION=v${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
-          echo "NUM_VERSION=${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
 
       - name: Setup Java (JDK 17)
         uses: actions/setup-java@v4
@@ -68,9 +101,9 @@ jobs:
 
       - name: Build APK (${{ matrix.arch }})
         run: |
-          sed -i "s/APP_VERSION:String = \".*\"/APP_VERSION:String = \"${{ steps.version.outputs.VERSION }}\"/" loader/src/Config.as
-          sed -i "s/<versionNumber>.*<\/versionNumber>/<versionNumber>${{ steps.version.outputs.NUM_VERSION }}<\/versionNumber>/" loader/app.xml
-          sed -i "s/<versionLabel>.*<\/versionLabel>/<versionLabel>${{ steps.version.outputs.NUM_VERSION }}<\/versionLabel>/" loader/app.xml
+          sed -i "s/APP_VERSION:String = \".*\"/APP_VERSION:String = \"${{ needs.version.outputs.VERSION }}\"/" loader/src/Config.as
+          sed -i "s/<versionNumber>.*<\/versionNumber>/<versionNumber>${{ needs.version.outputs.NUM_VERSION }}<\/versionNumber>/" loader/app.xml
+          sed -i "s/<versionLabel>.*<\/versionLabel>/<versionLabel>${{ needs.version.outputs.NUM_VERSION }}<\/versionLabel>/" loader/app.xml
           sed -i "s/<fullScreen>.*<\/fullScreen>/<fullScreen>true<\/fullScreen>/" loader/app.xml
           sed -i "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
           
@@ -105,7 +138,7 @@ jobs:
           path: loader/gamefiles/Game.swf
 
   build-mac:
-    needs: build-apk
+    needs: [version, build-apk]
     runs-on: macos-latest
     permissions:
       contents: write
@@ -113,14 +146,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set version
-        id: version
-        run: |
-          PREFIX="${{ github.event.inputs.version_prefix || '1.1' }}"
-          RUN="${{ github.run_number }}"
-          echo "VERSION=v${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
-          echo "NUM_VERSION=${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
 
       - name: Download Patched Game.swf
         uses: actions/download-artifact@v4
@@ -142,8 +167,8 @@ jobs:
 
       - name: Build macOS Application (.app)
         run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          NUM_VERSION="${{ steps.version.outputs.NUM_VERSION }}"
+          VERSION="${{ needs.version.outputs.VERSION }}"
+          NUM_VERSION="${{ needs.version.outputs.NUM_VERSION }}"
 
           sed -i '' "s/APP_VERSION:String = \".*\"/APP_VERSION:String = \"$VERSION\"/" loader/src/Config.as
           sed -i '' "s/<versionNumber>.*<\/versionNumber>/<versionNumber>$NUM_VERSION<\/versionNumber>/" loader/app.xml
@@ -223,7 +248,7 @@ jobs:
           path: YouMadBro-macOS*.zip
 
   release:
-    needs: [build-apk, build-mac]
+    needs: [version, build-apk, build-mac]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -231,15 +256,11 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
-      - name: Set version
-        id: version
-        run: echo "VERSION=v${{ github.event.inputs.version_prefix || '1.0' }}.${{ github.run_number }}" >> $GITHUB_OUTPUT
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.VERSION }}
-          name: ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ needs.version.outputs.VERSION }}
+          name: ${{ needs.version.outputs.VERSION }}
           generate_release_notes: true
           files: |
             YouMadBro-armv8/YouMadBro-armv8.apk
