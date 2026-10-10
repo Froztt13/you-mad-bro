@@ -574,6 +574,7 @@ package {
 				var hookSFC:Function = function():void {
 					if (!isSfcHooked && gameMovieClip != null && "sfc" in gameMovieClip && gameMovieClip.sfc != null) {
 						isSfcHooked = true;
+						gameMovieClip.sfc.debug = true;
 						gameMovieClip.sfc.addEventListener(SFSEvent.onDebugMessage, onPacketReceived);
 						gameMovieClip.sfc.addEventListener(SFSEvent.onConnectionLost, onConnectionLost);
 						log("SmartFoxServer debug hook attached.");
