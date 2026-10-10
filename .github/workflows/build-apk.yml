@@ -6,7 +6,7 @@ on:
       version_prefix:
         description: 'Version prefix (e.g. 1.0, 1.1, 1.2, 2.0)'
         required: false
-        default: '1.0'
+        default: '1.1'
 
 jobs:
   build-apk:
@@ -24,7 +24,7 @@ jobs:
       - name: Set version
         id: version
         run: |
-          PREFIX="${{ github.event.inputs.version_prefix || '1.0' }}"
+          PREFIX="${{ github.event.inputs.version_prefix || '1.1' }}"
           RUN="${{ github.run_number }}"
           echo "VERSION=v${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
           echo "NUM_VERSION=${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
@@ -117,7 +117,7 @@ jobs:
       - name: Set version
         id: version
         run: |
-          PREFIX="${{ github.event.inputs.version_prefix || '1.0' }}"
+          PREFIX="${{ github.event.inputs.version_prefix || '1.1' }}"
           RUN="${{ github.run_number }}"
           echo "VERSION=v${PREFIX}.${RUN}" >> $GITHUB_OUTPUT
           echo "NUM_VERSION=${PREFIX}.${RUN}" >> $GITHUB_OUTPUT

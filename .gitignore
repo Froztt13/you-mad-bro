@@ -13,3 +13,5 @@ adl_output.log
 /scratch
 /references
 ane-src/build/
+loader/Loader.swf
+loader/gamefiles/*.swf

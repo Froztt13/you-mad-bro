@@ -11,7 +11,7 @@ package {
 
 		public static const GAME_SWF_PATH:String = "app:/gamefiles/Game.swf";
 
-		public static const APP_VERSION:String = "v1.0.0";
+		public static const APP_VERSION:String = "v1.1.0";
 
 		public static function get isAndroid():Boolean {
 			return Capabilities.version.indexOf("AND") == 0;

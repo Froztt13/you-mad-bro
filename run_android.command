@@ -49,7 +49,7 @@ echo "Device terdeteksi: $DEVICE_MODEL ($DEVICE_COUNT device aktif)"
 
 # 3. Konfigurasi Path & Info
 AIR_SDK_PATH="$HOME/AIRSDK_51.3.1"
-VERSION_PREFIX="1.0"
+VERSION_PREFIX="1.1"
 RUN_NUMBER="0"
 VERSION="v${VERSION_PREFIX}.${RUN_NUMBER}"
 ARCH="armv8"
