@@ -57,8 +57,5 @@
 </application>
 </manifest>]]></manifestAdditions>
   </android>
-  <extensions>
-    <extensionID>com.aqw.battery</extensionID>
-  </extensions>
   <supportedLanguages>en</supportedLanguages>
 </application>

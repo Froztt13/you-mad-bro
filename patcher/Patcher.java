@@ -631,14 +631,17 @@ public class Patcher {
             if (bolProgIdx != -1) {
                 int endProgIdx = gameContent.indexOf("end ; trait", bolProgIdx);
                 String progSub = gameContent.substring(bolProgIdx, endProgIdx);
-                if (!progSub.contains("pushnull\n      ifeq                L69")) {
+                if (!progSub.contains("travelLoaderMC") || !progSub.contains("pushnull\n      ifeq")) {
+                    Matcher labelMatcher = Pattern.compile("(?m)^\\s*(L\\d+):\\s*\\n\\s*returnvoid").matcher(progSub);
+                    String returnLabel = labelMatcher.find() ? labelMatcher.group(1) : "L79";
+
                     Pattern pProg = Pattern.compile("(?s)(convert_d\\s+setlocal3\\s+)(getlocal0\\s+getproperty\\s+Multiname\\(\"travelLoaderMC\")");
                     Matcher mProg = pProg.matcher(progSub);
                     if (mProg.find()) {
-                        String nullCheck = "$1getlocal0\n      getproperty         Multiname(\"travelLoaderMC\", [PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n      pushnull\n      ifeq                L69\n\n      $2";
+                        String nullCheck = "$1getlocal0\n      getproperty         Multiname(\"travelLoaderMC\", [PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n      pushnull\n      ifeq                " + returnLabel + "\n\n      $2";
                         progSub = mProg.replaceFirst(nullCheck);
                         gameContent = gameContent.substring(0, bolProgIdx) + progSub + gameContent.substring(endProgIdx);
-                        System.out.println("  -> Game.onBoLProgress patched with null check for travelLoaderMC");
+                        System.out.println("  -> Game.onBoLProgress patched with null check for travelLoaderMC (label: " + returnLabel + ")");
                         gameModified = true;
                     }
                 }
