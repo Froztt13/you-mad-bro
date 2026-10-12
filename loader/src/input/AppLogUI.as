@@ -38,11 +38,13 @@ package input {
 		private var thumbHeight:Number = 30;
 
 		private var errBtn:Sprite;
-		private var logBtn:Sprite;
+		private var botBtn:Sprite;
 		private var gameBtn:Sprite;
+		private var logBtn:Sprite;
 		private var showErr:Boolean = true;
-		private var showLog:Boolean = true;
+		private var showBot:Boolean = true;
 		private var showGame:Boolean = true;
+		private var showLog:Boolean = true;
 
 		public static function log(msg:String, type:String = "log"):void {
 			if (msg == null)
@@ -95,6 +97,10 @@ package input {
 
 		public static function warn(msg:String):void {
 			log(msg, "warn");
+		}
+
+		public static function bot(msg:String):void {
+			log(msg, "bot");
 		}
 
 		private static function pad2(n:int):String {
@@ -180,19 +186,25 @@ package input {
 			headerBar.addChild(titleTf);
 
 			// Filter Buttons in Header
-			errBtn = createToggleButton("Error", 82, 7, 50, 22, 0xef4444, 0xdc2626, 0xfca5a5, function(val:Boolean):void {
+			errBtn = createToggleButton("Error", 82, 7, 48, 22, 0xef4444, 0xdc2626, 0xfca5a5, function(val:Boolean):void {
 					showErr = val;
 					refresh();
 				}, true);
 			headerBar.addChild(errBtn);
 
-			gameBtn = createToggleButton("Game", 138, 7, 50, 22, 0x7c3aed, 0x6d28d9, 0xc4b5fd, function(val:Boolean):void {
+			botBtn = createToggleButton("Bot", 136, 7, 44, 22, 0x2563eb, 0x1d4ed8, 0x93c5fd, function(val:Boolean):void {
+					showBot = val;
+					refresh();
+				}, true);
+			headerBar.addChild(botBtn);
+
+			gameBtn = createToggleButton("Game", 186, 7, 48, 22, 0x7c3aed, 0x6d28d9, 0xc4b5fd, function(val:Boolean):void {
 					showGame = val;
 					refresh();
 				}, true);
 			headerBar.addChild(gameBtn);
 
-			logBtn = createToggleButton("Log", 194, 7, 44, 22, 0x059669, 0x047857, 0x34d399, function(val:Boolean):void {
+			logBtn = createToggleButton("Log", 240, 7, 42, 22, 0x059669, 0x047857, 0x34d399, function(val:Boolean):void {
 					showLog = val;
 					refresh();
 				}, true);
@@ -249,7 +261,7 @@ package input {
 			listContainer.addChild(scrollContent);
 
 			// Empty label
-			emptyLabel = createLabel("No logs captured yet.\nErrors, game events, and output will appear here.", 0x64748b, 10.5, false, TextFormatAlign.CENTER);
+			emptyLabel = createLabel("No logs captured yet.\nErrors, bot actions, game events, and output will appear here.", 0x64748b, 10.5, false, TextFormatAlign.CENTER);
 			emptyLabel.x = PADDING;
 			emptyLabel.y = LIST_Y + int(LIST_HEIGHT / 2) - 16;
 			emptyLabel.width = UI_WIDTH - PADDING * 2;
@@ -306,6 +318,8 @@ package input {
 			for each (var entry:Object in logBuffer) {
 				if (entry.type == "error" && !showErr)
 					continue;
+				if (entry.type == "bot" && !showBot)
+					continue;
 				if (entry.type == "game" && !showGame)
 					continue;
 				if ((entry.type == "log" || entry.type == "warn") && !showLog)
@@ -347,6 +361,12 @@ package input {
 					badgeTextColor = 0xfcd34d;
 					badgeText = "WARN";
 					textColor = 0xfef08a;
+				}
+				else if (itemData.type == "bot") {
+					badgeColor = 0x2563eb;
+					badgeTextColor = 0x93c5fd;
+					badgeText = "BOT";
+					textColor = 0xbfdbfe;
 				}
 				else if (itemData.type == "game") {
 					badgeColor = 0x7c3aed;

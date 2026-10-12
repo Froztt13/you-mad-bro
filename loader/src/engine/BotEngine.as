@@ -5,7 +5,7 @@ package engine {
 	import flash.net.SharedObject;
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
-	import input.PacketLoggerUI;
+	import input.AppLogUI;
 	import commands.BotCommand;
 	import commands.KillCommand;
 	import commands.HuntCommand;
@@ -999,7 +999,7 @@ package engine {
 
 		public function log(msg:String):void {
 			trace("[BotEngine] " + msg);
-			PacketLoggerUI.logBot(msg);
+			AppLogUI.bot(msg);
 			if (onLog != null) {
 				onLog(msg);
 			}

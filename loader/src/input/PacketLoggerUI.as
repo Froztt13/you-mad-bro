@@ -38,10 +38,8 @@ package input {
 
 		private var clientBtn:Sprite;
 		private var serverBtn:Sprite;
-		private var botBtn:Sprite;
 		private var showClient:Boolean = false;
 		private var showServer:Boolean = false;
-		private var showBot:Boolean = true;
 
 		private var packets:Array = [];
 		private static var pendingLogs:Array = [];
@@ -117,11 +115,6 @@ package input {
 				}, false);
 			headerBar.addChild(serverBtn);
 
-			botBtn = createToggleButton("Bot", 226, 7, 46, 22, 0x7c3aed, 0x6d28d9, 0xc4b5fd, function(val:Boolean):void {
-					showBot = val;
-				}, true);
-			headerBar.addChild(botBtn);
-
 			// Clear Button
 			const clearBtn:Sprite = createHeaderButton("Clear", 46, 22);
 			clearBtn.x = UI_WIDTH - PADDING - 22 - 6 - 46; // 414
@@ -164,7 +157,7 @@ package input {
 			listContainer.addChild(scrollContent);
 
 			// Empty label
-			emptyLabel = createLabel("No logs captured yet.\nEnable 'Client', 'Server', or 'Bot' above to start logging.", 0x64748b, 10.5, false, TextFormatAlign.CENTER);
+			emptyLabel = createLabel("No packets captured yet.\nEnable 'Client' or 'Server' above to start logging.", 0x64748b, 10.5, false, TextFormatAlign.CENTER);
 			emptyLabel.x = PADDING;
 			emptyLabel.y = LIST_Y + int(LIST_HEIGHT / 2) - 16;
 			emptyLabel.width = UI_WIDTH - PADDING * 2;
@@ -303,24 +296,11 @@ package input {
 		}
 
 		public function logBot(msg:String):void {
-			if (!showBot)
-				return;
-
-			packets.push({msg: msg, isClient: false, type: "bot", time: new Date().toTimeString().substr(0, 8)});
-			if (packets.length > 100)
-				packets.shift();
-			refresh();
+			AppLogUI.bot(msg);
 		}
 
 		public static function logBot(msg:String):void {
-			if (instance != null) {
-				instance.logBot(msg);
-			}
-			else {
-				pendingLogs.push({msg: msg, isClient: false, type: "bot", time: new Date().toTimeString().substr(0, 8)});
-				if (pendingLogs.length > 100)
-					pendingLogs.shift();
-			}
+			AppLogUI.bot(msg);
 		}
 
 		private function refresh():void {
@@ -350,13 +330,7 @@ package input {
 				var badgeText:String = "SRV";
 				var textColor:uint = 0x86efac;
 
-				if (p.type == "bot") {
-					badgeColor = 0x7c3aed;
-					badgeTextColor = 0xc4b5fd;
-					badgeText = "BOT";
-					textColor = 0xe9d5ff;
-				}
-				else if (p.isClient || p.type == "client") {
+				if (p.isClient || p.type == "client") {
 					badgeColor = 0x0284c7;
 					badgeTextColor = 0x38bdf8;
 					badgeText = "CLI";

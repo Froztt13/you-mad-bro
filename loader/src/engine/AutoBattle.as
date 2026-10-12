@@ -70,7 +70,6 @@ package engine {
 				if (onStateChange != null) {
 					onStateChange(_state);
 				}
-				game.chatF.pushMsg("server", "Auto battling started", "SERVER", "", 0);
 				botTimer.addEventListener(TimerEvent.TIMER, onTick);
 				botTimer.start();
 				return true;
@@ -80,7 +79,6 @@ package engine {
 				if (onStateChange != null) {
 					onStateChange(_state);
 				}
-				game.chatF.pushMsg("server", "Auto battling stopped", "SERVER", "", 0);
 				botTimer.removeEventListener(TimerEvent.TIMER, onTick);
 				botTimer.stop();
 				return false;
@@ -402,7 +400,6 @@ package engine {
 									if (anim.msg != null && anim.msg.indexOf("prepares a counter attack") > -1) {
 										if (state == STATE_RUNNING) {
 											this.paused = true;
-											game.chatF.pushMsg("server", "Auto battling paused", "SERVER", "", 0);
 											break;
 										}
 									}
@@ -413,7 +410,6 @@ package engine {
 									if (action.cmd.indexOf("aura-") > -1 && action.aura.nam.indexOf("Counter Attack") > -1) {
 										if (state == STATE_PAUSED) {
 											this.paused = false;
-											game.chatF.pushMsg("server", "Auto battling resumed", "SERVER", "", 0);
 											break;
 										}
 									}
