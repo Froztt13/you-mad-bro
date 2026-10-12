@@ -1,0 +1,50 @@
+{
+  "leaveCombatOnStop": true,
+  "whitelist": [
+    "Mana Energy for Nulgath",
+    "Gem of Nulgath",
+    "Diamond of Nulgath",
+    "Voucher of Nulgath",
+    "Voucher of Nulgath (non-mem)",
+    "Dark Crystal Shard",
+    "Totem of Nulgath",
+    "Blood Gem of the Archfiend",
+    "Unidentified 13",
+    "Tainted Gem",
+    "Unidentified 10"
+  ],
+  "quests": [
+    "2566"
+  ],
+  "name": "Bot Script",
+  "commands": [
+    {
+      "cell": "r5",
+      "map": "elemental-9099",
+      "type": "join",
+      "pad": "Left"
+    },
+    {
+      "itemName": "Mana Energy for Nulgath",
+      "killMode": "item",
+      "itemQty": 1,
+      "killCount": 1,
+      "monster": "*",
+      "type": "kill"
+    },
+    {
+      "cell": "r3",
+      "type": "jump",
+      "pad": "Left"
+    },
+    {
+      "itemName": "Charged Mana Energy for Nulgath",
+      "killMode": "item",
+      "itemQty": 5,
+      "killCount": 1,
+      "monster": "*",
+      "type": "kill"
+    }
+  ],
+  "loop": true
+}

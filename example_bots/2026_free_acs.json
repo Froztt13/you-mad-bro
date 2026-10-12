@@ -1,0 +1,38 @@
+{
+  "notifyItemDrops": true,
+  "leaveCombatOnStop": true,
+  "quests": [],
+  "whitelist": [],
+  "name": "Bot Script",
+  "commands": [
+    {
+      "cell": "Enter",
+      "map": "eventhub-99999",
+      "type": "join",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 10894
+    },
+    {
+      "monster": "Agitated Orb",
+      "itemName": "Free ACs...",
+      "itemQty": 1,
+      "killCount": 1,
+      "killMode": "item",
+      "type": "hunt"
+    },
+    {
+      "itemId": -1,
+      "type": "quest_complete",
+      "questId": 10894
+    },
+    {
+      "message": "Bot completed! cihuyy...",
+      "type": "notif",
+      "title": "Bot Alert"
+    }
+  ],
+  "loop": false
+}

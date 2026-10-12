@@ -1,0 +1,176 @@
+{
+  "name": "Retrieving Void Auras",
+  "loop": true,
+  "leaveCombatOnStop": true,
+  "quests": [
+    "4432"
+  ],
+  "whitelist": [
+    "Astral Ephemerite Essence",
+    "Belrot the Fiend Essence",
+    "Black Knight Essence",
+    "Tiger Leech Essence",
+    "Carnax Essence",
+    "Chaos Vordred Essence",
+    "Dai Tengu Essence",
+    "Unending Avatar Essence",
+    "Void Dragon Essence",
+    "Creature Creation Essence",
+    "Void Aura"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 4432
+    },
+    {
+      "type": "join",
+      "map": "timespace-9099",
+      "cell": "Frame1",
+      "pad": "Spawn"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Astral Ephemerite Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "citadel-9099",
+      "cell": "m13",
+      "pad": "Left"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Belrot the Fiend Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "greenguardwest",
+      "cell": "BKWest15",
+      "pad": "Left"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Black Knight Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "mudluk",
+      "cell": "Boss",
+      "pad": "Down"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Tiger Leech Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "aqlesson",
+      "cell": "Frame9",
+      "pad": "Right"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Carnax Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "necrocavern",
+      "cell": "r16",
+      "pad": "Down"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Chaos Vordred Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "hachiko-9099",
+      "cell": "Roof",
+      "pad": "Left"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Dai Tengu Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "timevoid",
+      "cell": "Frame8",
+      "pad": "Left"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Unending Avatar Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "dragonchallenge",
+      "cell": "r4",
+      "pad": "Left"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Void Dragon Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "join",
+      "map": "maul",
+      "cell": "r3",
+      "pad": "Down"
+    },
+    {
+      "type": "kill",
+      "monster": "*",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Creature Creation Essence",
+      "itemQty": 20
+    },
+    {
+      "type": "quest_complete",
+      "questId": 4432,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 2
+    }
+  ]
+}
