@@ -5,6 +5,7 @@ package commands {
 	public class BotCommand {
 
 		public static const TYPE_KILL:String = "kill";
+		public static const TYPE_HUNT:String = "hunt";
 		public static const TYPE_JOIN:String = "join";
 		public static const TYPE_JUMP:String = "jump";
 		public static const TYPE_QUEST_ACCEPT:String = "quest_accept";
@@ -30,6 +31,8 @@ package commands {
 			switch (String(data.type)) {
 				case TYPE_KILL:
 					return KillCommand.fromJSON(data);
+				case TYPE_HUNT:
+					return HuntCommand.fromJSON(data);
 				case TYPE_JOIN:
 					return JoinCommand.fromJSON(data);
 				case TYPE_JUMP:
@@ -59,6 +62,16 @@ package commands {
 				itemQty:int = 1
 			):KillCommand {
 			return new KillCommand(monster, killMode, killCount, itemName, itemQty);
+		}
+
+		public static function createHunt(
+				monster:String = "*",
+				killMode:String = "none",
+				killCount:int = 1,
+				itemName:String = "",
+				itemQty:int = 1
+			):HuntCommand {
+			return new HuntCommand(monster, killMode, killCount, itemName, itemQty);
 		}
 
 		public static function createJoin(map:String, cell:String = "Enter", pad:String = "Spawn"):JoinCommand {

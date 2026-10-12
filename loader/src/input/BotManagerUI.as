@@ -31,6 +31,7 @@ package input {
 	import com.aqw.battery.BatteryOptimizer;
 	import Utils;
 	import commands.KillCommand;
+	import commands.HuntCommand;
 	import commands.JoinCommand;
 	import commands.JumpCommand;
 	import commands.QuestAcceptCommand;
@@ -102,6 +103,7 @@ package input {
 		private var killItemContainer:Sprite;
 		private var killItemNameInput:MyTextField;
 		private var killItemQtyInput:MyTextField;
+		private var huntModeCheckbox:MyCheckbox;
 
 		// Misc Tab Fields
 		private var botRepeatCheckbox:MyCheckbox;
@@ -131,6 +133,7 @@ package input {
 		private var editKillItemBox:Sprite;
 		private var editKillItemNameInput:MyTextField;
 		private var editKillItemQtyInput:MyTextField;
+		private var editHuntCheckbox:MyCheckbox;
 
 		private var editMapInput:MyTextField;
 		private var editCellInput:MyTextField;
@@ -439,8 +442,13 @@ package input {
 
 			setKillMode(KillCommand.MODE_NONE);
 
+			huntModeCheckbox = new MyCheckbox("Hunt (Auto-jump to alive monster cell)", false, null, 11);
+			huntModeCheckbox.x = 0;
+			huntModeCheckbox.y = 175;
+			combatTab.addChild(huntModeCheckbox);
+
 			const addCombatBtn:MyButton = new MyButton("Add Combat Command", 154, 26, MyButton.TYPE_PRIMARY, onAddCombatCommandClick);
-			addCombatBtn.y = 200;
+			addCombatBtn.y = 205;
 			combatTab.addChild(addCombatBtn);
 
 			tabContentContainer.addChild(combatTab);
@@ -863,6 +871,11 @@ package input {
 		// Script Actions
 		// =========================================================================
 		private function onAddCombatCommandClick(e:MouseEvent):void {
+			var isHunt:Boolean = (huntModeCheckbox != null && huntModeCheckbox.checked);
+			createAndAddCombatCommand(isHunt);
+		}
+
+		private function createAndAddCombatCommand(isHunt:Boolean):void {
 			var mon:String = monsterTargetInput.trimmedText;
 			if (mon.length == 0)
 				mon = "*";
@@ -873,14 +886,20 @@ package input {
 				var itemQty:int = parseInt(killItemQtyInput.text);
 				if (itemName.length == 0)
 					return;
-				cmd = BotCommand.createKill(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty);
+				cmd = isHunt
+					? BotCommand.createHunt(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty)
+					: BotCommand.createKill(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty);
 			}
 			else if (currentKillMode == KillCommand.MODE_COUNT) {
 				var kCount:int = parseInt(killCountInput.text);
-				cmd = BotCommand.createKill(mon, KillCommand.MODE_COUNT, kCount);
+				cmd = isHunt
+					? BotCommand.createHunt(mon, KillCommand.MODE_COUNT, kCount)
+					: BotCommand.createKill(mon, KillCommand.MODE_COUNT, kCount);
 			}
 			else {
-				cmd = BotCommand.createKill(mon, KillCommand.MODE_NONE);
+				cmd = isHunt
+					? BotCommand.createHunt(mon, KillCommand.MODE_NONE)
+					: BotCommand.createKill(mon, KillCommand.MODE_NONE);
 			}
 
 			addBotCommand(cmd);
@@ -1461,6 +1480,11 @@ package input {
 				editKillItemBox.addChild(editKillItemQtyInput);
 				editModalFormContainer.addChild(editKillItemBox);
 
+				editHuntCheckbox = new MyCheckbox("Hunt (Auto-jump to alive monster cell)", (kcmd is HuntCommand), null, 11);
+				editHuntCheckbox.x = 0;
+				editHuntCheckbox.y = 150;
+				editModalFormContainer.addChild(editHuntCheckbox);
+
 				setEditKillMode(kcmd.killMode);
 			}
 			else if (cmd is JoinCommand) {
@@ -1645,17 +1669,21 @@ package input {
 			}
 
 			if (editingCmd is KillCommand) {
-				var kcmd:KillCommand = editingCmd as KillCommand;
 				var mon:String = editMonInput.trimmedText;
-				kcmd.monster = (mon.length > 0) ? mon : "*";
-				kcmd.killMode = editKillMode;
-				if (editKillMode == KillCommand.MODE_COUNT) {
-					kcmd.killCount = Math.max(1, parseInt(editKillCountInput.text));
+				var finalMon:String = (mon.length > 0) ? mon : "*";
+				var finalCount:int = (editKillMode == KillCommand.MODE_COUNT) ? Math.max(1, parseInt(editKillCountInput.text)) : 1;
+				var finalItem:String = (editKillMode == KillCommand.MODE_ITEM) ? editKillItemNameInput.trimmedText : "";
+				var finalQty:int = (editKillMode == KillCommand.MODE_ITEM) ? Math.max(1, parseInt(editKillItemQtyInput.text)) : 1;
+				var isHuntEdit:Boolean = (editHuntCheckbox != null && editHuntCheckbox.checked);
+
+				var newCmd:BotCommand;
+				if (isHuntEdit) {
+					newCmd = BotCommand.createHunt(finalMon, editKillMode, finalCount, finalItem, finalQty);
 				}
-				else if (editKillMode == KillCommand.MODE_ITEM) {
-					kcmd.itemName = editKillItemNameInput.trimmedText;
-					kcmd.itemQty = Math.max(1, parseInt(editKillItemQtyInput.text));
+				else {
+					newCmd = BotCommand.createKill(finalMon, editKillMode, finalCount, finalItem, finalQty);
 				}
+				botEngine.commandList[editingIndex] = newCmd;
 			}
 			else if (editingCmd is JoinCommand) {
 				var jcmd:JoinCommand = editingCmd as JoinCommand;

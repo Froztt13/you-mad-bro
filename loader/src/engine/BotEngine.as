@@ -8,6 +8,7 @@ package engine {
 	import input.PacketLoggerUI;
 	import commands.BotCommand;
 	import commands.KillCommand;
+	import commands.HuntCommand;
 	import commands.JoinCommand;
 	import commands.JumpCommand;
 	import commands.DelayCommand;
