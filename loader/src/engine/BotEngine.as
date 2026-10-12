@@ -186,6 +186,20 @@ package engine {
 			}
 		}
 
+		public function insertCommand(index:int, cmd:BotCommand):void {
+			if (cmd == null)
+				return;
+			if (index >= 0 && index <= _commands.length) {
+				_commands.splice(index, 0, cmd);
+				if (_state != STATE_IDLE && index <= _currentStep) {
+					_currentStep++;
+				}
+			}
+			else {
+				_commands.push(cmd);
+			}
+		}
+
 		public function clearCommands():void {
 			stop();
 			_commands = [];

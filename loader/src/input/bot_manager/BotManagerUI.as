@@ -418,9 +418,20 @@ package input.bot_manager {
 		public function addBotCommand(cmd:BotCommand):void {
 			if (cmd == null)
 				return;
-			botEngine.addCommand(cmd);
-			refreshCommandList();
-			commandScroll.scrollToBottom();
+
+			var hasSelection:Boolean = (selectedCommandIndex >= 0 && selectedCommandIndex < botEngine.commandList.length);
+			if (hasSelection) {
+				var targetIndex:int = selectedCommandIndex + 1;
+				botEngine.insertCommand(targetIndex, cmd);
+				selectedCommandIndex = targetIndex;
+				refreshCommandList();
+				commandScroll.ensureVisible(targetIndex * (24 + 3), 24);
+			}
+			else {
+				botEngine.addCommand(cmd);
+				refreshCommandList();
+				commandScroll.scrollToBottom();
+			}
 		}
 
 		public function refreshCommandList(resetScroll:Boolean = false):void {
