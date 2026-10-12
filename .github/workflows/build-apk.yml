@@ -49,15 +49,8 @@ jobs:
           echo "NUM_VERSION=${PREFIX}.${PATCH}" >> $GITHUB_OUTPUT
           echo "Final Resolved Version: v${PREFIX}.${PATCH}"
 
-  build-apk:
-    needs: version
-    strategy:
-      matrix:
-        arch: [armv8]
+  patch-game:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,6 +77,37 @@ jobs:
         run: |
           chmod +x scripts/build-game.sh
           ./scripts/build-game.sh
+
+      - name: Upload Gamefiles Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gamefiles
+          path: loader/gamefiles/
+
+  build-apk:
+    needs: [version, patch-game]
+    strategy:
+      matrix:
+        arch: [armv8]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download Patched Gamefiles
+        uses: actions/download-artifact@v4
+        with:
+          name: gamefiles
+          path: loader/gamefiles
 
       - name: Setup AIR SDK
         uses: joshtynjala/setup-adobe-air-action@v2
@@ -132,7 +156,7 @@ jobs:
           path: YouMadBro-${{ matrix.arch }}.apk
 
   build-mac:
-    needs: version
+    needs: [version, patch-game]
     runs-on: macos-latest
     permissions:
       contents: write
@@ -147,20 +171,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Dlang
-        uses: dlang-community/setup-dlang@v1
-
-      - name: Build RABCDAsm from Source
-        run: |
-          git clone --depth 1 https://github.com/CyberShadow/RABCDAsm.git
-          cd RABCDAsm
-          dmd -run build_rabcdasm.d
-          sudo cp abcexport rabcdasm rabcasm abcreplace /usr/local/bin/
-
-      - name: Build & Patch Game.swf
-        run: |
-          chmod +x scripts/build-game.sh
-          ./scripts/build-game.sh
+      - name: Download Patched Gamefiles
+        uses: actions/download-artifact@v4
+        with:
+          name: gamefiles
+          path: loader/gamefiles
 
       - name: Setup AIR SDK
         uses: joshtynjala/setup-adobe-air-action@v2
