@@ -17,6 +17,7 @@ package input.bot_manager.tabs {
 
 		private var manager:BotManagerUI;
 		private var mapItemIdInput:MyTextField;
+		private var mapItemQtyInput:MyTextField;
 
 		public function BotQuestTab(manager:BotManagerUI) {
 			super();
@@ -100,19 +101,33 @@ package input.bot_manager.tabs {
 			mapItemIdLbl.y = 110;
 			addChild(mapItemIdLbl);
 
-			mapItemIdInput = new MyTextField(190, 24);
+			mapItemIdInput = new MyTextField(110, 24);
 			mapItemIdInput.restrict = "0-9";
 			mapItemIdInput.x = 0;
 			mapItemIdInput.y = 128;
 			addChild(mapItemIdInput);
 
-			const addMapItemBtn:MyButton = new MyButton("Get Map Item", contentW - 198, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+			const mapItemQtyLbl:TextField = UIUtils.createLabel("Qty:", UIUtils.TEXT_MUTED, 10.5);
+			mapItemQtyLbl.x = 118;
+			mapItemQtyLbl.y = 110;
+			addChild(mapItemQtyLbl);
+
+			mapItemQtyInput = new MyTextField(60, 24);
+			mapItemQtyInput.restrict = "0-9";
+			mapItemQtyInput.text = "1";
+			mapItemQtyInput.x = 118;
+			mapItemQtyInput.y = 128;
+			addChild(mapItemQtyInput);
+
+			const addMapItemBtn:MyButton = new MyButton("Get Map Item", contentW - 186, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 				var id:int = parseInt(mapItemIdInput.trimmedText);
+				var qVal:int = parseInt(mapItemQtyInput.trimmedText);
+				var qty:int = (!isNaN(qVal) && qVal > 0) ? qVal : 1;
 				if (!isNaN(id) && id > 0) {
-					manager.addBotCommand(new GetMapItemCommand(id));
+					manager.addBotCommand(new GetMapItemCommand(id, qty));
 				}
 			});
-			addMapItemBtn.x = 198;
+			addMapItemBtn.x = 186;
 			addMapItemBtn.y = 128;
 			addChild(addMapItemBtn);
 		}

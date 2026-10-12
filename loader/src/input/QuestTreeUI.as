@@ -7,6 +7,7 @@ package input {
 	import flash.system.System;
 	import flash.text.*;
 	import flash.ui.Keyboard;
+	import flash.utils.setTimeout;
 
 	import engine.AutoQuest;
 	import ui.CloseButton;
@@ -15,21 +16,29 @@ package input {
 
 	public class QuestTreeUI extends Sprite {
 
+		public static const MODE_QUEST:String = "quest";
+		public static const MODE_SHOP:String = "shop";
+
 		private static const UI_WIDTH:Number = 350;
-		private static const UI_HEIGHT:Number = 440;
+		private static const UI_HEIGHT:Number = 448;
 		private static const PADDING:Number = 12;
 		private static const HEADER_HEIGHT:Number = 36;
 		private static const ITEM_HEIGHT:Number = 24;
 		private static const ITEM_SPACING:Number = 3;
 		private static const SCROLLBAR_WIDTH:Number = 8;
-		private static const LIST_Y:Number = 64;
-		private static const LIST_HEIGHT:Number = 286;
-		private static const LIST_VISIBLE_HEIGHT:Number = LIST_HEIGHT - 12; // 274
+		private static const LIST_Y:Number = 68;
+		private static const LIST_HEIGHT:Number = 288;
+		private static const LIST_VISIBLE_HEIGHT:Number = LIST_HEIGHT - 12; // 276
 		private static const INNER_CONTENT_WIDTH:Number = UI_WIDTH - PADDING * 2 - 12 - SCROLLBAR_WIDTH - 4; // 302
 
 		public static var instance:QuestTreeUI;
+		public static var loadedShops:Array = [];
+
 		private var game:Object;
 		private var autoQuest:AutoQuest;
+
+		private var currentMode:String = MODE_QUEST;
+		private var selectedShop:Object = null;
 
 		private var modalBg:Shape;
 		private var listContainer:Sprite;
@@ -44,12 +53,36 @@ package input {
 		private var maxScrollY:Number = 0;
 		private var thumbHeight:Number = 30;
 
+		// Radio button components
+		private var questRadioBtn:Sprite;
+		private var shopRadioBtn:Sprite;
+		private var questRadioDot:Shape;
+		private var shopRadioDot:Shape;
+		private var questRadioLabel:TextField;
+		private var shopRadioLabel:TextField;
+		private var modeCountLabel:TextField;
+
+		// Quest Load Controls
+		private var questLoadContainer:Sprite;
 		private var questIdInput:MyTextField;
 		private var countInput:MyTextField;
 		private var loadQuestBtn:MyButton;
 
+		// Shop Load Controls
+		private var shopLoadContainer:Sprite;
+		private var shopIdInput:MyTextField;
+		private var loadShopBtn:MyButton;
+
+		// Options Menu
 		private var optionsMenu:Sprite;
-		private var currentQuestID:int;
+
+		// Confirmation Modal Components
+		private var confirmModal:Sprite;
+		private var confirmTitle:TextField;
+		private var confirmMessage:TextField;
+		private var confirmOkBtn:MyButton;
+		private var confirmCancelBtn:MyButton;
+		private var onConfirmAction:Function;
 
 		public function QuestTreeUI(game:Object, autoQuest:AutoQuest) {
 			instance = this;
@@ -66,6 +99,8 @@ package input {
 		}
 
 		private function onPanelMouseDown(e:MouseEvent):void {
+			if (confirmModal != null && confirmModal.visible)
+				return;
 			if (e.target == this || e.target == modalBg) {
 				this.startDrag();
 				stage.addEventListener(MouseEvent.MOUSE_UP, onPanelMouseUp);
@@ -97,20 +132,22 @@ package input {
 			addChild(headerBar);
 
 			headerBar.addEventListener(MouseEvent.MOUSE_DOWN, function(e:MouseEvent):void {
+					if (confirmModal != null && confirmModal.visible)
+						return;
 					startDrag();
 					stage.addEventListener(MouseEvent.MOUSE_UP, onPanelMouseUp);
 				});
 
-			const titleTf:TextField = createLabel("Quest Tree", 0xf8fafc, 12, true);
+			const titleTf:TextField = createLabel("Loader / Grabber", 0xf8fafc, 12, true);
 			titleTf.x = PADDING;
 			titleTf.y = 9;
-			titleTf.width = 80;
+			titleTf.width = 110;
 			headerBar.addChild(titleTf);
 
-			const subTf:TextField = createLabel("Browser", 0x64748b, 9.5, false);
-			subTf.x = 88;
+			const subTf:TextField = createLabel("Quest & Shop", 0x64748b, 9.5, false);
+			subTf.x = 118;
 			subTf.y = 11;
-			subTf.width = 60;
+			subTf.width = 75;
 			headerBar.addChild(subTf);
 
 			// Refresh button
@@ -126,14 +163,10 @@ package input {
 			closeBtn.addEventListener(MouseEvent.CLICK, onCloseClick, false, 0, true);
 			headerBar.addChild(closeBtn);
 
-			// Section 1 Header: Available Quests
-			const listHeader:TextField = createLabel("AVAILABLE QUESTS", 0x64748b, 9.5, true);
-			listHeader.x = PADDING;
-			listHeader.y = 46;
-			listHeader.width = 160;
-			addChild(listHeader);
+			// Radio Button Bar (Quest vs Shop)
+			buildRadioBar();
 
-			// Recessed Quest List Box
+			// Recessed List Box
 			const listBox:Shape = new Shape();
 			drawRoundedRect(listBox.graphics, PADDING, LIST_Y, UI_WIDTH - PADDING * 2, LIST_HEIGHT, 6, 0x070b14, 0.95, 0x1e293b, 1);
 			addChild(listBox);
@@ -191,62 +224,238 @@ package input {
 			// Divider Line above Load section
 			const divider:Shape = new Shape();
 			divider.graphics.lineStyle(1, 0x1e293b, 1);
-			divider.graphics.moveTo(PADDING, 358);
-			divider.graphics.lineTo(UI_WIDTH - PADDING, 358);
+			divider.graphics.moveTo(PADDING, 364);
+			divider.graphics.lineTo(UI_WIDTH - PADDING, 364);
 			addChild(divider);
 
-			// Section 2 Header: Load Quests
+			// Bottom Section: Quest Load Controls
+			buildQuestLoadSection();
+
+			// Bottom Section: Shop Load Controls
+			buildShopLoadSection();
+
+			// Options Menu
+			buildOptionsMenu();
+
+			// Confirmation Modal
+			buildConfirmModal();
+
+			// Center panel
+			if (stage != null && x == 0 && y == 0) {
+				x = (stage.stageWidth - UI_WIDTH) / 2;
+				y = (stage.stageHeight - UI_HEIGHT) / 2;
+			}
+
+			// Initial state
+			setMode(MODE_QUEST);
+		}
+
+		private function buildRadioBar():void {
+			const radioContainer:Sprite = new Sprite();
+			radioContainer.x = PADDING;
+			radioContainer.y = 44;
+			addChild(radioContainer);
+
+			// Radio 1: Quest
+			questRadioBtn = new Sprite();
+			questRadioBtn.buttonMode = true;
+			questRadioBtn.useHandCursor = true;
+
+			const qOuterCircle:Shape = new Shape();
+			drawCircle(qOuterCircle.graphics, 7, 7, 6.5, 0x1e293b, 1.0, 0x475569, 1.5);
+			questRadioBtn.addChild(qOuterCircle);
+
+			questRadioDot = new Shape();
+			drawCircle(questRadioDot.graphics, 7, 7, 3.5, 0x38bdf8, 1.0);
+			questRadioBtn.addChild(questRadioDot);
+
+			questRadioLabel = createLabel("Quest", 0xf8fafc, 11, true);
+			questRadioLabel.x = 18;
+			questRadioLabel.y = -1;
+			questRadioBtn.addChild(questRadioLabel);
+
+			questRadioBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					setMode(MODE_QUEST);
+				});
+			radioContainer.addChild(questRadioBtn);
+
+			// Radio 2: Shop
+			shopRadioBtn = new Sprite();
+			shopRadioBtn.x = 88;
+			shopRadioBtn.buttonMode = true;
+			shopRadioBtn.useHandCursor = true;
+
+			const sOuterCircle:Shape = new Shape();
+			drawCircle(sOuterCircle.graphics, 7, 7, 6.5, 0x1e293b, 1.0, 0x475569, 1.5);
+			shopRadioBtn.addChild(sOuterCircle);
+
+			shopRadioDot = new Shape();
+			drawCircle(shopRadioDot.graphics, 7, 7, 3.5, 0x38bdf8, 1.0);
+			shopRadioDot.visible = false;
+			shopRadioBtn.addChild(shopRadioDot);
+
+			shopRadioLabel = createLabel("Shop", 0x94a3b8, 11, false);
+			shopRadioLabel.x = 18;
+			shopRadioLabel.y = -1;
+			shopRadioBtn.addChild(shopRadioLabel);
+
+			shopRadioBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					setMode(MODE_SHOP);
+				});
+			radioContainer.addChild(shopRadioBtn);
+
+			// Mode Count label (right side)
+			modeCountLabel = createLabel("", 0x64748b, 9.5, false, TextFormatAlign.RIGHT);
+			modeCountLabel.x = UI_WIDTH - PADDING - 120;
+			modeCountLabel.y = 44;
+			modeCountLabel.width = 120;
+			addChild(modeCountLabel);
+		}
+
+		private function buildQuestLoadSection():void {
+			questLoadContainer = new Sprite();
+			questLoadContainer.y = 372;
+			addChild(questLoadContainer);
+
 			const loadHeader:TextField = createLabel("LOAD QUESTS", 0x64748b, 9.5, true);
 			loadHeader.x = PADDING;
-			loadHeader.y = 366;
+			loadHeader.y = 0;
 			loadHeader.width = 160;
-			addChild(loadHeader);
+			questLoadContainer.addChild(loadHeader);
 
-			// Load Form Controls (y = 384)
 			const inputHeight:Number = 26;
 
-			questIdInput = new MyTextField(110, inputHeight, 12.5);
+			questIdInput = new MyTextField(110, inputHeight, 12);
 			questIdInput.x = PADDING;
-			questIdInput.y = 384;
+			questIdInput.y = 16;
 			questIdInput.maxChars = 128;
 			questIdInput.restrict = "0-9,";
-			questIdInput.addEventListener(KeyboardEvent.KEY_DOWN, onInputKeyDown, false, 0, true);
-			addChild(questIdInput);
+			questIdInput.addEventListener(KeyboardEvent.KEY_DOWN, onQuestInputKeyDown, false, 0, true);
+			questLoadContainer.addChild(questIdInput);
 
 			// Dec button (-)
 			const decBtn:Sprite = createSmallButton("-", 22, inputHeight, 0xef4444);
 			decBtn.x = 128;
-			decBtn.y = 384;
+			decBtn.y = 16;
 			decBtn.addEventListener(MouseEvent.CLICK, onDecClick, false, 0, true);
-			addChild(decBtn);
+			questLoadContainer.addChild(decBtn);
 
 			// Count input
-			countInput = new MyTextField(36, inputHeight, 12.5, TextFormatAlign.CENTER, true);
+			countInput = new MyTextField(36, inputHeight, 12, TextFormatAlign.CENTER, true);
 			countInput.text = "0";
 			countInput.x = 152;
-			countInput.y = 384;
+			countInput.y = 16;
 			countInput.restrict = "0-9";
-			addChild(countInput);
+			questLoadContainer.addChild(countInput);
 
 			// Inc button (+)
 			const incBtn:Sprite = createSmallButton("+", 22, inputHeight, 0x4ade80);
 			incBtn.x = 190;
-			incBtn.y = 384;
+			incBtn.y = 16;
 			incBtn.addEventListener(MouseEvent.CLICK, onIncClick, false, 0, true);
-			addChild(incBtn);
+			questLoadContainer.addChild(incBtn);
 
 			// Load button
-			loadQuestBtn = new MyButton("Load", 118, inputHeight, MyButton.TYPE_SUCCESS, onLoadClick);
+			loadQuestBtn = new MyButton("Load Quests", 118, inputHeight, MyButton.TYPE_SUCCESS, onLoadQuestClick);
 			loadQuestBtn.x = 220;
-			loadQuestBtn.y = 384;
-			addChild(loadQuestBtn);
+			loadQuestBtn.y = 16;
+			questLoadContainer.addChild(loadQuestBtn);
 
-			buildOptionsMenu();
+			const helpTf:TextField = createLabel("Enter Quest ID or ID + count for range", 0x475569, 8.5, false);
+			helpTf.x = PADDING;
+			helpTf.y = 46;
+			helpTf.width = 280;
+			questLoadContainer.addChild(helpTf);
+		}
 
-			// Center
-			if (stage != null && x == 0 && y == 0) {
-				x = (stage.stageWidth - UI_WIDTH) / 2;
-				y = (stage.stageHeight - UI_HEIGHT) / 2;
+		private function buildShopLoadSection():void {
+			shopLoadContainer = new Sprite();
+			shopLoadContainer.y = 372;
+			shopLoadContainer.visible = false;
+			addChild(shopLoadContainer);
+
+			const loadHeader:TextField = createLabel("LOAD SHOP", 0x64748b, 9.5, true);
+			loadHeader.x = PADDING;
+			loadHeader.y = 0;
+			loadHeader.width = 160;
+			shopLoadContainer.addChild(loadHeader);
+
+			const inputHeight:Number = 26;
+
+			shopIdInput = new MyTextField(170, inputHeight, 12);
+			shopIdInput.x = PADDING;
+			shopIdInput.y = 16;
+			shopIdInput.maxChars = 10;
+			shopIdInput.restrict = "0-9";
+			shopIdInput.addEventListener(KeyboardEvent.KEY_DOWN, onShopInputKeyDown, false, 0, true);
+			shopLoadContainer.addChild(shopIdInput);
+
+			loadShopBtn = new MyButton("Load Shop", 146, inputHeight, MyButton.TYPE_SUCCESS, function(e:MouseEvent):void {
+					loadShopFromInput();
+				});
+			loadShopBtn.x = PADDING + 170 + 10; // 192
+			loadShopBtn.y = 16;
+			shopLoadContainer.addChild(loadShopBtn);
+
+			const helpTf:TextField = createLabel("Enter Shop ID to load items & preview in-game", 0x475569, 8.5, false);
+			helpTf.x = PADDING;
+			helpTf.y = 46;
+			helpTf.width = 280;
+			shopLoadContainer.addChild(helpTf);
+		}
+
+		public function setMode(mode:String):void {
+			currentMode = mode;
+			selectedShop = null;
+
+			// Update Radio Buttons
+			if (currentMode == MODE_QUEST) {
+				questRadioDot.visible = true;
+				questRadioLabel.textColor = 0xf8fafc;
+				shopRadioDot.visible = false;
+				shopRadioLabel.textColor = 0x94a3b8;
+
+				questLoadContainer.visible = true;
+				shopLoadContainer.visible = false;
+			}
+			else {
+				questRadioDot.visible = false;
+				questRadioLabel.textColor = 0x94a3b8;
+				shopRadioDot.visible = true;
+				shopRadioLabel.textColor = 0xf8fafc;
+
+				questLoadContainer.visible = false;
+				shopLoadContainer.visible = true;
+			}
+
+			checkAndCacheCurrentShop();
+			refresh();
+		}
+
+		private function checkAndCacheCurrentShop():void {
+			if (game != null && game.world != null) {
+				if (game.world.shopinfo != null && game.world.shopinfo.items != null) {
+					cacheShop(game.world.shopinfo);
+				}
+				if (game.world.hairshopinfo != null && game.world.hairshopinfo.items != null) {
+					cacheShop(game.world.hairshopinfo);
+				}
+			}
+		}
+
+		private function cacheShop(shopObj:Object):void {
+			if (shopObj == null || shopObj.ShopID == null)
+				return;
+			var exists:Boolean = false;
+			for (var i:int = 0; i < loadedShops.length; i++) {
+				if (loadedShops[i].ShopID == shopObj.ShopID) {
+					loadedShops[i] = shopObj;
+					exists = true;
+					break;
+				}
+			}
+			if (!exists) {
+				loadedShops.push(shopObj);
 			}
 		}
 
@@ -255,8 +464,21 @@ package input {
 				scrollContent.removeChildAt(0);
 			}
 
+			if (currentMode == MODE_QUEST) {
+				refreshQuestView();
+			}
+			else {
+				refreshShopView();
+			}
+		}
+
+		private function refreshQuestView():void {
 			var quests:Array = autoQuest.getQuestTree();
+			var count:int = (quests != null) ? quests.length : 0;
+			modeCountLabel.text = count + " Quests Loaded";
+
 			if (quests == null || quests.length == 0) {
+				emptyLabel.text = "No quests available.\nEnter Quest ID below to load.";
 				emptyLabel.visible = true;
 				scrollbar.visible = false;
 				return;
@@ -346,7 +568,7 @@ package input {
 						drawRoundedRect(Shape(btn.getChildAt(0)).graphics, 0, 0, 20, 18, 3, 0x1e293b, 1.0, 0x334155, 1);
 						TextField(btn.getChildAt(1)).textColor = 0x94a3b8;
 					});
-				optBtn.addEventListener(MouseEvent.CLICK, onOptBtnClick);
+				optBtn.addEventListener(MouseEvent.CLICK, onQuestOptBtnClick);
 				item.addChild(optBtn);
 
 				// Add to AutoQuest button (+)
@@ -381,6 +603,261 @@ package input {
 				scrollContent.addChild(item);
 			}
 
+			setupScrollbar(totalContentHeight);
+		}
+
+		private function refreshShopView():void {
+			checkAndCacheCurrentShop();
+
+			if (selectedShop != null) {
+				renderShopItemsView();
+			}
+			else {
+				renderShopsListView();
+			}
+		}
+
+		private function renderShopsListView():void {
+			modeCountLabel.text = loadedShops.length + " Shops Loaded";
+
+			if (loadedShops.length == 0) {
+				emptyLabel.text = "No shops loaded.\nEnter Shop ID below to load.";
+				emptyLabel.visible = true;
+				scrollbar.visible = false;
+				return;
+			}
+
+			emptyLabel.visible = false;
+
+			const totalContentHeight:Number = loadedShops.length * (ITEM_HEIGHT + ITEM_SPACING);
+
+			for (var i:int = 0; i < loadedShops.length; i++) {
+				const shop:Object = loadedShops[i];
+				const itemY:Number = i * (ITEM_HEIGHT + ITEM_SPACING);
+				const shopID:int = int(shop.ShopID);
+				const itemCount:int = (shop.items != null) ? shop.items.length : 0;
+				const shopName:String = (shop.sName != null && shop.sName != "") ? String(shop.sName) : ("Shop #" + shopID);
+
+				const item:Sprite = new Sprite();
+				item.y = itemY;
+
+				const itemBg:Shape = new Shape();
+				drawRoundedRect(itemBg.graphics, 0, 0, INNER_CONTENT_WIDTH, ITEM_HEIGHT, 4, 0x0f172a, 0.8, 0x1e293b, 1);
+				item.addChild(itemBg);
+
+				// Shop ID Badge
+				const idContainer:Sprite = new Sprite();
+				idContainer.x = 4;
+				idContainer.y = 3;
+				idContainer.name = String(shopID);
+
+				const idBg:Shape = new Shape();
+				drawRoundedRect(idBg.graphics, 0, 0, 48, 18, 3, 0x1e293b, 1.0, 0x334155, 1);
+				idContainer.addChild(idBg);
+
+				const idLabel:TextField = createLabel(String(shopID), 0xf59e0b, 9.5, true, TextFormatAlign.CENTER);
+				idLabel.width = 48;
+				idLabel.height = 18;
+				idLabel.y = 1;
+				idContainer.addChild(idLabel);
+
+				idContainer.buttonMode = true;
+				idContainer.useHandCursor = true;
+				idContainer.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+						copyToClipboard(Sprite(e.currentTarget).name);
+						e.stopImmediatePropagation();
+					});
+				item.addChild(idContainer);
+
+				// Shop Name & count
+				const nameLabel:TextField = createLabel(shopName + " (" + itemCount + " items)", 0xf1f5f9, 10, false);
+				nameLabel.x = 56;
+				nameLabel.y = 4;
+				nameLabel.width = INNER_CONTENT_WIDTH - 56 - 68;
+				nameLabel.height = 16;
+				item.addChild(nameLabel);
+
+				// View Items Button
+				const viewBtn:Sprite = new Sprite();
+				viewBtn.buttonMode = true;
+				viewBtn.useHandCursor = true;
+				const vBg:Shape = new Shape();
+				drawRoundedRect(vBg.graphics, 0, 0, 40, 18, 3, 0x2563eb, 1.0, 0x3b82f6, 1);
+				viewBtn.addChild(vBg);
+
+				const vLabel:TextField = createLabel("View", 0xffffff, 9.5, true, TextFormatAlign.CENTER);
+				vLabel.width = 40;
+				vLabel.height = 18;
+				vLabel.y = 1;
+				viewBtn.addChild(vLabel);
+
+				viewBtn.x = INNER_CONTENT_WIDTH - 66;
+				viewBtn.y = 3;
+				viewBtn.addEventListener(MouseEvent.CLICK, (function(s:Object):Function {
+						return function(e:MouseEvent):void {
+							selectedShop = s;
+							refresh();
+							e.stopImmediatePropagation();
+						};
+					})(shop));
+				item.addChild(viewBtn);
+
+				// Option button (⋮)
+				const optBtn:Sprite = new Sprite();
+				optBtn.buttonMode = true;
+				optBtn.useHandCursor = true;
+				const optBg:Shape = new Shape();
+				drawRoundedRect(optBg.graphics, 0, 0, 20, 18, 3, 0x1e293b, 1.0, 0x334155, 1);
+				optBtn.addChild(optBg);
+
+				const optLabel:TextField = createLabel("⋮", 0x94a3b8, 12, true, TextFormatAlign.CENTER);
+				optLabel.width = 20;
+				optLabel.height = 18;
+				optLabel.y = -1;
+				optBtn.addChild(optLabel);
+
+				optBtn.x = INNER_CONTENT_WIDTH - 22;
+				optBtn.y = 3;
+				optBtn.addEventListener(MouseEvent.CLICK, (function(s:Object):Function {
+						return function(e:MouseEvent):void {
+							onShopRowOptBtnClick(e, s);
+						};
+					})(shop));
+				item.addChild(optBtn);
+
+				scrollContent.addChild(item);
+			}
+
+			setupScrollbar(totalContentHeight);
+		}
+
+		private function renderShopItemsView():void {
+			emptyLabel.visible = false;
+			var items:Array = (selectedShop.items != null) ? selectedShop.items : [];
+			modeCountLabel.text = items.length + " Items";
+
+			// Top Back Button Row
+			const headerRow:Sprite = new Sprite();
+			headerRow.y = 0;
+
+			const backBtn:Sprite = new Sprite();
+			backBtn.buttonMode = true;
+			backBtn.useHandCursor = true;
+			const bBg:Shape = new Shape();
+			drawRoundedRect(bBg.graphics, 0, 0, 68, 20, 3, 0x334155, 1.0, 0x475569, 1);
+			backBtn.addChild(bBg);
+
+			const bLabel:TextField = createLabel("← Back", 0xf8fafc, 9.5, true, TextFormatAlign.CENTER);
+			bLabel.width = 68;
+			bLabel.height = 20;
+			bLabel.y = 2;
+			backBtn.addChild(bLabel);
+
+			backBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					selectedShop = null;
+					refresh();
+					e.stopImmediatePropagation();
+				});
+			headerRow.addChild(backBtn);
+
+			const sTitle:String = "#" + selectedShop.ShopID + " " + ((selectedShop.sName != null) ? selectedShop.sName : "");
+			const shopTitleTf:TextField = createLabel(sTitle, 0x38bdf8, 10, true);
+			shopTitleTf.x = 76;
+			shopTitleTf.y = 2;
+			shopTitleTf.width = INNER_CONTENT_WIDTH - 76;
+			headerRow.addChild(shopTitleTf);
+
+			scrollContent.addChild(headerRow);
+
+			const startY:Number = 26;
+			const totalContentHeight:Number = startY + items.length * (ITEM_HEIGHT + ITEM_SPACING);
+
+			for (var i:int = 0; i < items.length; i++) {
+				const shopItem:Object = items[i];
+				const itemY:Number = startY + i * (ITEM_HEIGHT + ITEM_SPACING);
+				const itemID:int = int(shopItem.ItemID);
+				const itemName:String = String(shopItem.sName);
+				const isCoins:Boolean = (shopItem.bCoins == 1 || shopItem.bCoins == true);
+				const costStr:String = String(shopItem.iCost) + (isCoins ? " AC" : " G");
+				const costColor:uint = isCoins ? 0x38bdf8 : 0xfacc15;
+
+				const item:Sprite = new Sprite();
+				item.y = itemY;
+
+				const itemBg:Shape = new Shape();
+				drawRoundedRect(itemBg.graphics, 0, 0, INNER_CONTENT_WIDTH, ITEM_HEIGHT, 4, 0x0f172a, 0.8, 0x1e293b, 1);
+				item.addChild(itemBg);
+
+				// Item ID Badge
+				const idContainer:Sprite = new Sprite();
+				idContainer.x = 4;
+				idContainer.y = 3;
+				idContainer.name = String(itemID);
+
+				const idBg:Shape = new Shape();
+				drawRoundedRect(idBg.graphics, 0, 0, 48, 18, 3, 0x1e293b, 1.0, 0x334155, 1);
+				idContainer.addChild(idBg);
+
+				const idLabel:TextField = createLabel(String(itemID), 0x94a3b8, 9, true, TextFormatAlign.CENTER);
+				idLabel.width = 48;
+				idLabel.height = 18;
+				idLabel.y = 1;
+				idContainer.addChild(idLabel);
+
+				idContainer.buttonMode = true;
+				idContainer.useHandCursor = true;
+				idContainer.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+						copyToClipboard(Sprite(e.currentTarget).name);
+						e.stopImmediatePropagation();
+					});
+				item.addChild(idContainer);
+
+				// Item Name
+				const nameLabel:TextField = createLabel(itemName, 0xf1f5f9, 9.5, false);
+				nameLabel.x = 56;
+				nameLabel.y = 4;
+				nameLabel.width = INNER_CONTENT_WIDTH - 56 - 80;
+				nameLabel.height = 16;
+				item.addChild(nameLabel);
+
+				// Cost Badge
+				const costLabel:TextField = createLabel(costStr, costColor, 9, true, TextFormatAlign.RIGHT);
+				costLabel.x = INNER_CONTENT_WIDTH - 80;
+				costLabel.y = 4;
+				costLabel.width = 54;
+				costLabel.height = 16;
+				item.addChild(costLabel);
+
+				// Option button (⋮)
+				const optBtn:Sprite = new Sprite();
+				optBtn.buttonMode = true;
+				optBtn.useHandCursor = true;
+				const optBg:Shape = new Shape();
+				drawRoundedRect(optBg.graphics, 0, 0, 20, 18, 3, 0x1e293b, 1.0, 0x334155, 1);
+				optBtn.addChild(optBg);
+
+				const optLabel:TextField = createLabel("⋮", 0x94a3b8, 12, true, TextFormatAlign.CENTER);
+				optLabel.width = 20;
+				optLabel.height = 18;
+				optLabel.y = -1;
+				optBtn.addChild(optLabel);
+
+				optBtn.x = INNER_CONTENT_WIDTH - 22;
+				optBtn.y = 3;
+				optBtn.addEventListener(MouseEvent.CLICK, (function(it:Object):Function {
+						return function(e:MouseEvent):void {
+							onShopItemOptBtnClick(e, it);
+						};
+					})(shopItem));
+				item.addChild(optBtn);
+
+				scrollContent.addChild(item);
+			}
+
+			setupScrollbar(totalContentHeight);
+		}
+
+		private function setupScrollbar(totalContentHeight:Number):void {
 			if (totalContentHeight > LIST_VISIBLE_HEIGHT) {
 				maxScrollY = totalContentHeight - LIST_VISIBLE_HEIGHT;
 				scrollY = 0;
@@ -423,6 +900,8 @@ package input {
 		}
 
 		private function onThumbMouseDown(e:MouseEvent):void {
+			if (confirmModal != null && confirmModal.visible)
+				return;
 			isDragging = true;
 			dragStartY = e.stageY;
 			thumbStartY = scrollThumb.y;
@@ -469,33 +948,57 @@ package input {
 		private function onAddQuestClick(e:MouseEvent):void {
 			var btn:Sprite = Sprite(e.currentTarget);
 			var questID:String = btn.name.split("-")[1];
-
-			if (AutoQuestUI.instance != null) {
-				AutoQuestUI.instance.addQuestId(questID);
-				btn.visible = false;
+			var questName:String = "";
+			var quests:Array = autoQuest.getQuestTree();
+			if (quests != null) {
+				for (var i:int = 0; i < quests.length; i++) {
+					if (String(quests[i].QuestID) == questID) {
+						questName = String(quests[i].sName);
+						break;
+					}
+				}
 			}
+
+			var displayMsg:String = "Add this quest to Auto Quest?\n\n[" + questID + "] " + (questName != "" ? questName : "Quest #" + questID);
+
+			showConfirmModal("ADD QUEST TO AUTO QUEST", displayMsg, "Add Quest", function():void {
+					if (AutoQuestUI.instance != null) {
+						AutoQuestUI.instance.addQuestId(questID);
+						btn.visible = false;
+					}
+				});
+
 			e.stopImmediatePropagation();
 		}
 
 		private function onRefreshClick(e:MouseEvent):void {
+			checkAndCacheCurrentShop();
 			refresh();
 			e.stopImmediatePropagation();
 		}
 
 		private function onCloseClick(e:MouseEvent):void {
 			visible = false;
+			hideConfirmModal();
 			cleanup();
 			e.stopImmediatePropagation();
 		}
 
-		private function onLoadClick(e:MouseEvent):void {
+		private function onLoadQuestClick(e:MouseEvent):void {
 			loadQuestsFromInput();
 			e.stopImmediatePropagation();
 		}
 
-		private function onInputKeyDown(e:KeyboardEvent):void {
+		private function onQuestInputKeyDown(e:KeyboardEvent):void {
 			if (e.keyCode == Keyboard.ENTER) {
 				loadQuestsFromInput();
+				e.preventDefault();
+			}
+		}
+
+		private function onShopInputKeyDown(e:KeyboardEvent):void {
+			if (e.keyCode == Keyboard.ENTER) {
+				loadShopFromInput();
 				e.preventDefault();
 			}
 		}
@@ -560,33 +1063,87 @@ package input {
 			else {
 				autoQuest.loadMultiple(ids);
 			}
+
+			setTimeout(function():void {
+					if (currentMode == MODE_QUEST) {
+						refresh();
+					}
+				}, 600);
+		}
+
+		private function loadShopFromInput():void {
+			if (!shopIdInput)
+				return;
+			var idStr:String = shopIdInput.text;
+			if (idStr == null)
+				return;
+			idStr = idStr.replace(/\s+/g, "");
+			if (idStr.length == 0)
+				return;
+
+			var shopId:int = int(idStr);
+			if (shopId <= 0)
+				return;
+
+			if (game != null && game.world != null) {
+				if (game.world.sendLoadShopRequest != null) {
+					game.world.sendLoadShopRequest(shopId);
+				}
+			}
+
+			// Poll shop info after slight delay
+			setTimeout(function():void {
+					checkAndCacheCurrentShop();
+					if (currentMode == MODE_SHOP) {
+						refresh();
+					}
+				}, 600);
+			setTimeout(function():void {
+					checkAndCacheCurrentShop();
+					if (currentMode == MODE_SHOP) {
+						refresh();
+					}
+				}, 1400);
 		}
 
 		private function buildOptionsMenu():void {
 			optionsMenu = new Sprite();
 			optionsMenu.visible = false;
-
-			const menuBg:Shape = new Shape();
-			drawRoundedRect(menuBg.graphics, 0, 0, 104, 90, 6, 0x0f172a, 0.98, 0x334155, 1);
-			optionsMenu.addChild(menuBg);
-			optionsMenu.filters = [new DropShadowFilter(8, 90, 0x000000, 0.7, 12, 12)];
-
-			const acceptBtn:Sprite = createMenuButton("Accept", 0x15803d, 0x16a34a, 6, 6);
-			acceptBtn.addEventListener(MouseEvent.CLICK, onAcceptMenuClick);
-			optionsMenu.addChild(acceptBtn);
-
-			const completeBtn:Sprite = createMenuButton("Complete", 0x2563eb, 0x3b82f6, 6, 33);
-			completeBtn.addEventListener(MouseEvent.CLICK, onCompleteMenuClick);
-			optionsMenu.addChild(completeBtn);
-
-			const loadBtn:Sprite = createMenuButton("Load", 0xd97706, 0xf59e0b, 6, 60);
-			loadBtn.addEventListener(MouseEvent.CLICK, onLoadMenuClick);
-			optionsMenu.addChild(loadBtn);
-
 			addChild(optionsMenu);
 		}
 
-		private function createMenuButton(labelStr:String, normalCol:uint, hoverCol:uint, xPos:Number, yPos:Number):Sprite {
+		private function showMenuWithButtons(buttons:Array, globalX:Number, globalY:Number):void {
+			while (optionsMenu.numChildren > 0) {
+				optionsMenu.removeChildAt(0);
+			}
+
+			const menuWidth:Number = 106;
+			const btnHeight:Number = 22;
+			const btnSpacing:Number = 4;
+			const padding:Number = 6;
+			const menuHeight:Number = padding * 2 + buttons.length * (btnHeight + btnSpacing) - btnSpacing;
+
+			const menuBg:Shape = new Shape();
+			drawRoundedRect(menuBg.graphics, 0, 0, menuWidth, menuHeight, 6, 0x0f172a, 0.98, 0x334155, 1);
+			optionsMenu.addChild(menuBg);
+			optionsMenu.filters = [new DropShadowFilter(8, 90, 0x000000, 0.7, 12, 12)];
+
+			for (var i:int = 0; i < buttons.length; i++) {
+				var bData:Object = buttons[i];
+				var btn:Sprite = createMenuButton(bData.label, bData.color, bData.hoverColor, padding, padding + i * (btnHeight + btnSpacing), menuWidth - padding * 2, btnHeight);
+				btn.addEventListener(MouseEvent.CLICK, bData.fn);
+				optionsMenu.addChild(btn);
+			}
+
+			var pt:Point = this.globalToLocal(new Point(globalX, globalY));
+			optionsMenu.x = Math.max(PADDING, Math.min(pt.x - menuWidth, UI_WIDTH - menuWidth - PADDING));
+			optionsMenu.y = Math.max(HEADER_HEIGHT, Math.min(pt.y, UI_HEIGHT - menuHeight - PADDING));
+			optionsMenu.visible = true;
+
+			stage.addEventListener(MouseEvent.CLICK, onStageClick);
+		}
+
+		private function createMenuButton(labelStr:String, normalCol:uint, hoverCol:uint, xPos:Number, yPos:Number, w:Number, h:Number):Sprite {
 			const btn:Sprite = new Sprite();
 			btn.x = xPos;
 			btn.y = yPos;
@@ -594,36 +1151,23 @@ package input {
 			btn.useHandCursor = true;
 
 			const bg:Shape = new Shape();
-			drawRoundedRect(bg.graphics, 0, 0, 92, 22, 4, normalCol, 1.0);
+			drawRoundedRect(bg.graphics, 0, 0, w, h, 4, normalCol, 1.0);
 			btn.addChild(bg);
 
-			const tf:TextField = createLabel(labelStr, 0xffffff, 10, true, TextFormatAlign.CENTER);
-			tf.width = 92;
-			tf.height = 22;
+			const tf:TextField = createLabel(labelStr, 0xffffff, 9.5, true, TextFormatAlign.CENTER);
+			tf.width = w;
+			tf.height = h;
 			tf.y = 3;
 			btn.addChild(tf);
 
 			btn.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent):void {
-					drawRoundedRect(bg.graphics, 0, 0, 92, 22, 4, hoverCol, 1.0);
+					drawRoundedRect(bg.graphics, 0, 0, w, h, 4, hoverCol, 1.0);
 				});
 			btn.addEventListener(MouseEvent.MOUSE_OUT, function(e:MouseEvent):void {
-					drawRoundedRect(bg.graphics, 0, 0, 92, 22, 4, normalCol, 1.0);
+					drawRoundedRect(bg.graphics, 0, 0, w, h, 4, normalCol, 1.0);
 				});
 
 			return btn;
-		}
-
-		private function onOptBtnClick(e:MouseEvent):void {
-			var btn:Sprite = Sprite(e.currentTarget);
-			currentQuestID = int(btn.name.split("-")[1]);
-
-			var pt:Point = this.globalToLocal(btn.localToGlobal(new Point(0, 0)));
-			optionsMenu.x = pt.x - 108;
-			optionsMenu.y = pt.y;
-			optionsMenu.visible = true;
-
-			stage.addEventListener(MouseEvent.CLICK, onStageClick);
-			e.stopImmediatePropagation();
 		}
 
 		private function onStageClick(e:MouseEvent):void {
@@ -633,22 +1177,267 @@ package input {
 			}
 		}
 
-		private function onAcceptMenuClick(e:MouseEvent):void {
-			autoQuest.accept(currentQuestID);
-			optionsMenu.visible = false;
+		private function onQuestOptBtnClick(e:MouseEvent):void {
+			var btn:Sprite = Sprite(e.currentTarget);
+			var questID:int = int(btn.name.split("-")[1]);
+
+			var pt:Point = btn.localToGlobal(new Point(0, 0));
+			showMenuWithButtons([
+				{
+					label: "Add to Auto",
+					color: 0x15803d,
+					hoverColor: 0x16a34a,
+					fn: function(ev:MouseEvent):void {
+						optionsMenu.visible = false;
+						var qName:String = "";
+						var qs:Array = autoQuest.getQuestTree();
+						if (qs != null) {
+							for (var j:int = 0; j < qs.length; j++) {
+								if (qs[j].QuestID == questID) {
+									qName = String(qs[j].sName);
+									break;
+								}
+							}
+						}
+						var displayMsg:String = "Add this quest to Auto Quest?\n\n[" + questID + "] " + (qName != "" ? qName : "Quest #" + questID);
+						showConfirmModal("ADD QUEST TO AUTO QUEST", displayMsg, "Add Quest", function():void {
+							if (AutoQuestUI.instance != null) {
+								AutoQuestUI.instance.addQuestId(String(questID));
+								for (var k:int = 0; k < scrollContent.numChildren; k++) {
+									var item:Sprite = scrollContent.getChildAt(k) as Sprite;
+									if (item != null) {
+										var b:Sprite = item.getChildByName("addBtn-" + questID) as Sprite;
+										if (b != null) {
+											b.visible = false;
+											break;
+										}
+									}
+								}
+							}
+						});
+					}
+				},
+				{
+					label: "Accept",
+					color: 0x2563eb,
+					hoverColor: 0x3b82f6,
+					fn: function(ev:MouseEvent):void {
+						autoQuest.accept(questID);
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "Complete",
+					color: 0x0284c7,
+					hoverColor: 0x0ea5e9,
+					fn: function(ev:MouseEvent):void {
+						autoQuest.tryToComplete(questID);
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "Load",
+					color: 0xd97706,
+					hoverColor: 0xf59e0b,
+					fn: function(ev:MouseEvent):void {
+						autoQuest.load(String(questID));
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "Copy ID",
+					color: 0x334155,
+					hoverColor: 0x475569,
+					fn: function(ev:MouseEvent):void {
+						copyToClipboard(String(questID));
+						optionsMenu.visible = false;
+					}
+				}
+			], pt.x, pt.y);
+
 			e.stopImmediatePropagation();
 		}
 
-		private function onCompleteMenuClick(e:MouseEvent):void {
-			autoQuest.tryToComplete(currentQuestID);
-			optionsMenu.visible = false;
+		private function onShopRowOptBtnClick(e:MouseEvent, shop:Object):void {
+			var btn:Sprite = Sprite(e.currentTarget);
+			var pt:Point = btn.localToGlobal(new Point(0, 0));
+
+			showMenuWithButtons([
+				{
+					label: "Open Shop",
+					color: 0x15803d,
+					hoverColor: 0x16a34a,
+					fn: function(ev:MouseEvent):void {
+						if (game != null && game.world != null && game.world.sendLoadShopRequest != null) {
+							game.world.sendLoadShopRequest(int(shop.ShopID));
+						}
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "View Items",
+					color: 0x2563eb,
+					hoverColor: 0x3b82f6,
+					fn: function(ev:MouseEvent):void {
+						selectedShop = shop;
+						refresh();
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "Copy Shop ID",
+					color: 0x334155,
+					hoverColor: 0x475569,
+					fn: function(ev:MouseEvent):void {
+						copyToClipboard(String(shop.ShopID));
+						optionsMenu.visible = false;
+					}
+				}
+			], pt.x, pt.y);
+
 			e.stopImmediatePropagation();
 		}
 
-		private function onLoadMenuClick(e:MouseEvent):void {
-			autoQuest.load(String(currentQuestID));
-			optionsMenu.visible = false;
+		private function onShopItemOptBtnClick(e:MouseEvent, item:Object):void {
+			var btn:Sprite = Sprite(e.currentTarget);
+			var pt:Point = btn.localToGlobal(new Point(0, 0));
+
+			var isCoins:Boolean = (item.bCoins == 1 || item.bCoins == true);
+			var costStr:String = String(item.iCost) + (isCoins ? " AC" : " Gold");
+
+			showMenuWithButtons([
+				{
+					label: "Buy 1",
+					color: 0x15803d,
+					hoverColor: 0x16a34a,
+					fn: function(ev:MouseEvent):void {
+						optionsMenu.visible = false;
+						var buyMsg:String = "Are you sure you want to buy:\n\"" + item.sName + "\"\nPrice: " + costStr + "?";
+						showConfirmModal("CONFIRM PURCHASE", buyMsg, "Buy", function():void {
+							buyShopItem(item);
+						});
+					}
+				},
+				{
+					label: "Copy Name",
+					color: 0x2563eb,
+					hoverColor: 0x3b82f6,
+					fn: function(ev:MouseEvent):void {
+						copyToClipboard(String(item.sName));
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "Copy Item ID",
+					color: 0x334155,
+					hoverColor: 0x475569,
+					fn: function(ev:MouseEvent):void {
+						copyToClipboard(String(item.ItemID));
+						optionsMenu.visible = false;
+					}
+				},
+				{
+					label: "Open Shop",
+					color: 0xd97706,
+					hoverColor: 0xf59e0b,
+					fn: function(ev:MouseEvent):void {
+						if (selectedShop != null && game != null && game.world != null && game.world.sendLoadShopRequest != null) {
+							game.world.sendLoadShopRequest(int(selectedShop.ShopID));
+						}
+						optionsMenu.visible = false;
+					}
+				}
+			], pt.x, pt.y);
+
 			e.stopImmediatePropagation();
+		}
+
+		private function buyShopItem(item:Object):void {
+			if (game == null || game.world == null)
+				return;
+			if (selectedShop != null) {
+				if (game.world.shopinfo == null || game.world.shopinfo.ShopID != selectedShop.ShopID) {
+					game.world.shopinfo = selectedShop;
+				}
+			}
+			if (game.world.sendBuyItemRequest != null) {
+				game.world.sendBuyItemRequest(item);
+			}
+		}
+
+		// Confirmation Modal Implementation
+		private function buildConfirmModal():void {
+			confirmModal = new Sprite();
+			confirmModal.visible = false;
+			addChild(confirmModal);
+
+			const dimmer:Shape = new Shape();
+			dimmer.graphics.beginFill(0x000000, 0.72);
+			dimmer.graphics.drawRoundRect(0, 0, UI_WIDTH, UI_HEIGHT, 8);
+			dimmer.graphics.endFill();
+			dimmer.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					e.stopImmediatePropagation();
+				});
+			confirmModal.addChild(dimmer);
+
+			const cardW:Number = 280;
+			const cardH:Number = 144;
+			const cardX:Number = int((UI_WIDTH - cardW) / 2);
+			const cardY:Number = int((UI_HEIGHT - cardH) / 2);
+
+			const cardBg:Shape = new Shape();
+			drawRoundedRect(cardBg.graphics, cardX, cardY, cardW, cardH, 8, 0x0f172a, 0.98, 0x334155, 1);
+			cardBg.filters = [new DropShadowFilter(10, 90, 0x000000, 0.7, 16, 16)];
+			confirmModal.addChild(cardBg);
+
+			confirmTitle = createLabel("CONFIRMATION", 0xf8fafc, 11, true, TextFormatAlign.CENTER);
+			confirmTitle.x = cardX + 12;
+			confirmTitle.y = cardY + 14;
+			confirmTitle.width = cardW - 24;
+			confirmModal.addChild(confirmTitle);
+
+			confirmMessage = createLabel("", 0xcbd5e1, 10, false, TextFormatAlign.CENTER);
+			confirmMessage.x = cardX + 14;
+			confirmMessage.y = cardY + 38;
+			confirmMessage.width = cardW - 28;
+			confirmMessage.height = 54;
+			confirmMessage.multiline = true;
+			confirmMessage.wordWrap = true;
+			confirmModal.addChild(confirmMessage);
+
+			confirmCancelBtn = new MyButton("Cancel", 110, 24, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
+					hideConfirmModal();
+					e.stopImmediatePropagation();
+				});
+			confirmCancelBtn.x = cardX + 22;
+			confirmCancelBtn.y = cardY + cardH - 34;
+			confirmModal.addChild(confirmCancelBtn);
+
+			confirmOkBtn = new MyButton("Confirm", 110, 24, MyButton.TYPE_SUCCESS, function(e:MouseEvent):void {
+					var action:Function = onConfirmAction;
+					hideConfirmModal();
+					if (action != null) {
+						action();
+					}
+					e.stopImmediatePropagation();
+				});
+			confirmOkBtn.x = cardX + cardW - 22 - 110;
+			confirmOkBtn.y = cardY + cardH - 34;
+			confirmModal.addChild(confirmOkBtn);
+		}
+
+		private function showConfirmModal(title:String, message:String, okLabel:String, onOk:Function):void {
+			confirmTitle.text = title;
+			confirmMessage.text = message;
+			confirmOkBtn.label = okLabel;
+			onConfirmAction = onOk;
+			confirmModal.visible = true;
+			setChildIndex(confirmModal, numChildren - 1);
+		}
+
+		private function hideConfirmModal():void {
+			confirmModal.visible = false;
+			onConfirmAction = null;
 		}
 
 		private function cleanup():void {
@@ -674,6 +1463,16 @@ package input {
 				g.lineStyle(strokeThickness, strokeColor, 1.0);
 			}
 			g.drawRoundRect(x, y, w, h, r);
+			g.endFill();
+		}
+
+		private static function drawCircle(g:Graphics, x:Number, y:Number, r:Number, fillColor:uint, fillAlpha:Number, strokeColor:uint = 0, strokeThickness:Number = 0):void {
+			g.clear();
+			g.beginFill(fillColor, fillAlpha);
+			if (strokeThickness > 0) {
+				g.lineStyle(strokeThickness, strokeColor, 1.0);
+			}
+			g.drawCircle(x, y, r);
 			g.endFill();
 		}
 

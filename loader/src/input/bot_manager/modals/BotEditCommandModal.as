@@ -53,6 +53,7 @@ package input.bot_manager.modals {
 		private var editQuestIdInput:MyTextField;
 		private var editQuestItemIdInput:MyTextField;
 		private var editMapItemIdInput:MyTextField;
+		private var editMapItemQtyInput:MyTextField;
 
 		private var editDelayInput:MyTextField;
 
@@ -368,16 +369,29 @@ package input.bot_manager.modals {
 			}
 			else if (cmd is GetMapItemCommand) {
 				var gmicmd:GetMapItemCommand = cmd as GetMapItemCommand;
+				var gmiHalfW:Number = int((formW - 10) / 2);
 
 				var gmiLbl:TextField = UIUtils.createLabel("Item ID:", UIUtils.TEXT_MUTED, 10.5);
 				gmiLbl.y = 0;
 				editModalFormContainer.addChild(gmiLbl);
 
-				editMapItemIdInput = new MyTextField(formW, 24);
+				editMapItemIdInput = new MyTextField(gmiHalfW, 24);
 				editMapItemIdInput.restrict = "0-9";
 				editMapItemIdInput.y = 18;
 				editMapItemIdInput.text = String(gmicmd.itemId);
 				editModalFormContainer.addChild(editMapItemIdInput);
+
+				var gmiQtyLbl:TextField = UIUtils.createLabel("Qty (Repeat):", UIUtils.TEXT_MUTED, 10.5);
+				gmiQtyLbl.x = gmiHalfW + 10;
+				gmiQtyLbl.y = 0;
+				editModalFormContainer.addChild(gmiQtyLbl);
+
+				editMapItemQtyInput = new MyTextField(gmiHalfW, 24);
+				editMapItemQtyInput.restrict = "0-9";
+				editMapItemQtyInput.x = gmiHalfW + 10;
+				editMapItemQtyInput.y = 18;
+				editMapItemQtyInput.text = String(gmicmd.qty > 0 ? gmicmd.qty : 1);
+				editModalFormContainer.addChild(editMapItemQtyInput);
 			}
 			else if (cmd is BuyItemCommand) {
 				var bicmd:BuyItemCommand = cmd as BuyItemCommand;
@@ -623,6 +637,13 @@ package input.bot_manager.modals {
 				var gmiId:int = parseInt(editMapItemIdInput.trimmedText);
 				if (!isNaN(gmiId) && gmiId > 0) {
 					gmicmdEdit.itemId = gmiId;
+				}
+				var gmiQty:int = parseInt(editMapItemQtyInput.trimmedText);
+				if (!isNaN(gmiQty) && gmiQty > 0) {
+					gmicmdEdit.qty = gmiQty;
+				}
+				else {
+					gmicmdEdit.qty = 1;
 				}
 			}
 			else if (editingCmd is BuyItemCommand) {

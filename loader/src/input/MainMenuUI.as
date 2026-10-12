@@ -292,7 +292,7 @@ package input {
 						fn: openBotManager
 					},
 					{
-						label: "Quest Loader",
+						label: "Loader / Grabber",
 						fn: openQuestTree
 					},
 					{
