@@ -650,6 +650,49 @@ package engine {
 			return null;
 		}
 
+		public function isItemEquipped(itemName:String):Boolean {
+			if (game == null || game.world == null || game.world.myAvatar == null) {
+				return false;
+			}
+			if (itemName == null || itemName.length == 0) {
+				return false;
+			}
+			const cleanName:String = Utils.cleanItemName(itemName);
+			try {
+				var inv:* = game.world.myAvatar.items;
+				if (inv != null) {
+					for each (var item:Object in inv) {
+						if (item != null && item.sName != null && String(item.sName).toLowerCase() == cleanName) {
+							if (item.bEquip == 1 || item.bEquip == true || item.bEquip == "1") {
+								return true;
+							}
+							if (game.world.myAvatar.isItemEquipped != null && item.ItemID != null) {
+								if (game.world.myAvatar.isItemEquipped(item.ItemID)) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+			catch (e:Error) {
+			}
+			try {
+				var eqp:Object = game.world.myAvatar.objData != null ? game.world.myAvatar.objData.eqp : null;
+				if (eqp != null) {
+					for (var slot:String in eqp) {
+						var eqpItem:Object = eqp[slot];
+						if (eqpItem != null && eqpItem.sName != null && String(eqpItem.sName).toLowerCase() == cleanName) {
+							return true;
+						}
+					}
+				}
+			}
+			catch (e:Error) {
+			}
+			return false;
+		}
+
 		public function getBankItemByName(itemName:String):Object {
 			if (game == null || game.world == null || game.world.bankinfo == null) {
 				return null;
@@ -709,6 +752,71 @@ package engine {
 			catch (e:Error) {
 				return false;
 			}
+		}
+
+		public function isQuestCanBeTurnedIn(questId:int):Boolean {
+			try {
+				if (game == null || game.world == null)
+					return false;
+				if (game.world.questTree == null || game.world.questTree[questId] == null) {
+					try {
+						game.world.getQuests([questId]);
+					}
+					catch (eLoad:Error) {
+					}
+					return false;
+				}
+				if (_autoQuest == null) {
+					_autoQuest = new AutoQuest(game);
+				}
+				return _autoQuest.canComplete(questId);
+			}
+			catch (e:Error) {
+				return false;
+			}
+		}
+
+		public function getGold():int {
+			try {
+				if (game != null && game.world != null && game.world.myAvatar != null && game.world.myAvatar.objData != null) {
+					return int(game.world.myAvatar.objData.intGold);
+				}
+			}
+			catch (e:Error) {
+			}
+			return 0;
+		}
+
+		public function isCurrentMap(targetMap:String):Boolean {
+			try {
+				if (game == null || game.world == null || targetMap == null || targetMap.length == 0)
+					return false;
+				var currentArea:String = (game.world.strAreaName != null) ? String(game.world.strAreaName).toLowerCase() : "";
+				var currentMapName:String = (currentArea.indexOf("-") > -1) ? currentArea.split("-")[0] : currentArea;
+				var cleanTarget:String = Utils.trim(targetMap).toLowerCase();
+				var targetMapName:String = (cleanTarget.indexOf("-") > -1) ? cleanTarget.split("-")[0] : cleanTarget;
+
+				if (cleanTarget.indexOf("-") > -1) {
+					return currentArea == cleanTarget;
+				}
+				return (currentMapName == targetMapName || currentArea == cleanTarget);
+			}
+			catch (e:Error) {
+			}
+			return false;
+		}
+
+		public function isCurrentCell(targetCell:String):Boolean {
+			try {
+				if (game == null || game.world == null || targetCell == null || targetCell.length == 0)
+					return false;
+				var currentCell:String = (game.world.strFrame != null) ? String(game.world.strFrame).toLowerCase() : "";
+				var cleanTarget:String = Utils.trim(targetCell).toLowerCase();
+				return currentCell == cleanTarget;
+			}
+			catch (e:Error) {
+			}
+			return false;
 		}
 
 		// =========================================================================

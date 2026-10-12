@@ -103,8 +103,17 @@ package commands.conditions {
 			return [
 					{label: IsItemInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_IN_INV},
 					{label: IsItemNotInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_IN_INV},
+					{label: IsItemEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_EQUIPED},
+					{label: IsItemNotEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_EQUIPED},
 					{label: IsQuestAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_AVAILABLE},
 					{label: IsQuestNotAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE},
+					{label: IsQuestCanBeTurnedInCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN},
+					{label: IsGoldGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_GREATER},
+					{label: IsGoldLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_LESS},
+					{label: IsMapCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP},
+					{label: IsMapNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP_NOT},
+					{label: IsCellCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL},
+					{label: IsCellNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL_NOT},
 					{label: IsPlayerMemberCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_MEMBER}
 				];
 		}
@@ -133,6 +142,28 @@ package commands.conditions {
 							var2Restrict: IsItemNotInInventoryCommand.VAR2_RESTRICT,
 							var2Default: IsItemNotInInventoryCommand.VAR2_DEFAULT
 						};
+				case BotCommand.TYPE_IS_ITEM_EQUIPED:
+					return {
+							type: type,
+							label: IsItemEquipedCommand.COMMAND_LABEL,
+							var1Label: IsItemEquipedCommand.VAR1_LABEL,
+							var1Restrict: IsItemEquipedCommand.VAR1_RESTRICT,
+							var1Default: IsItemEquipedCommand.VAR1_DEFAULT,
+							var2Label: IsItemEquipedCommand.VAR2_LABEL,
+							var2Restrict: IsItemEquipedCommand.VAR2_RESTRICT,
+							var2Default: IsItemEquipedCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_ITEM_NOT_EQUIPED:
+					return {
+							type: type,
+							label: IsItemNotEquipedCommand.COMMAND_LABEL,
+							var1Label: IsItemNotEquipedCommand.VAR1_LABEL,
+							var1Restrict: IsItemNotEquipedCommand.VAR1_RESTRICT,
+							var1Default: IsItemNotEquipedCommand.VAR1_DEFAULT,
+							var2Label: IsItemNotEquipedCommand.VAR2_LABEL,
+							var2Restrict: IsItemNotEquipedCommand.VAR2_RESTRICT,
+							var2Default: IsItemNotEquipedCommand.VAR2_DEFAULT
+						};
 				case BotCommand.TYPE_IS_QUEST_AVAILABLE:
 					return {
 							type: type,
@@ -154,6 +185,83 @@ package commands.conditions {
 							var2Label: IsQuestNotAvailableCommand.VAR2_LABEL,
 							var2Restrict: IsQuestNotAvailableCommand.VAR2_RESTRICT,
 							var2Default: IsQuestNotAvailableCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN:
+					return {
+							type: type,
+							label: IsQuestCanBeTurnedInCommand.COMMAND_LABEL,
+							var1Label: IsQuestCanBeTurnedInCommand.VAR1_LABEL,
+							var1Restrict: IsQuestCanBeTurnedInCommand.VAR1_RESTRICT,
+							var1Default: IsQuestCanBeTurnedInCommand.VAR1_DEFAULT,
+							var2Label: IsQuestCanBeTurnedInCommand.VAR2_LABEL,
+							var2Restrict: IsQuestCanBeTurnedInCommand.VAR2_RESTRICT,
+							var2Default: IsQuestCanBeTurnedInCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_GOLD_GREATER:
+					return {
+							type: type,
+							label: IsGoldGreaterThanCommand.COMMAND_LABEL,
+							var1Label: IsGoldGreaterThanCommand.VAR1_LABEL,
+							var1Restrict: IsGoldGreaterThanCommand.VAR1_RESTRICT,
+							var1Default: IsGoldGreaterThanCommand.VAR1_DEFAULT,
+							var2Label: IsGoldGreaterThanCommand.VAR2_LABEL,
+							var2Restrict: IsGoldGreaterThanCommand.VAR2_RESTRICT,
+							var2Default: IsGoldGreaterThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_GOLD_LESS:
+					return {
+							type: type,
+							label: IsGoldLessThanCommand.COMMAND_LABEL,
+							var1Label: IsGoldLessThanCommand.VAR1_LABEL,
+							var1Restrict: IsGoldLessThanCommand.VAR1_RESTRICT,
+							var1Default: IsGoldLessThanCommand.VAR1_DEFAULT,
+							var2Label: IsGoldLessThanCommand.VAR2_LABEL,
+							var2Restrict: IsGoldLessThanCommand.VAR2_RESTRICT,
+							var2Default: IsGoldLessThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_MAP:
+					return {
+							type: type,
+							label: IsMapCommand.COMMAND_LABEL,
+							var1Label: IsMapCommand.VAR1_LABEL,
+							var1Restrict: IsMapCommand.VAR1_RESTRICT,
+							var1Default: IsMapCommand.VAR1_DEFAULT,
+							var2Label: IsMapCommand.VAR2_LABEL,
+							var2Restrict: IsMapCommand.VAR2_RESTRICT,
+							var2Default: IsMapCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_MAP_NOT:
+					return {
+							type: type,
+							label: IsMapNotCommand.COMMAND_LABEL,
+							var1Label: IsMapNotCommand.VAR1_LABEL,
+							var1Restrict: IsMapNotCommand.VAR1_RESTRICT,
+							var1Default: IsMapNotCommand.VAR1_DEFAULT,
+							var2Label: IsMapNotCommand.VAR2_LABEL,
+							var2Restrict: IsMapNotCommand.VAR2_RESTRICT,
+							var2Default: IsMapNotCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_CELL:
+					return {
+							type: type,
+							label: IsCellCommand.COMMAND_LABEL,
+							var1Label: IsCellCommand.VAR1_LABEL,
+							var1Restrict: IsCellCommand.VAR1_RESTRICT,
+							var1Default: IsCellCommand.VAR1_DEFAULT,
+							var2Label: IsCellCommand.VAR2_LABEL,
+							var2Restrict: IsCellCommand.VAR2_RESTRICT,
+							var2Default: IsCellCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_CELL_NOT:
+					return {
+							type: type,
+							label: IsCellNotCommand.COMMAND_LABEL,
+							var1Label: IsCellNotCommand.VAR1_LABEL,
+							var1Restrict: IsCellNotCommand.VAR1_RESTRICT,
+							var1Default: IsCellNotCommand.VAR1_DEFAULT,
+							var2Label: IsCellNotCommand.VAR2_LABEL,
+							var2Restrict: IsCellNotCommand.VAR2_RESTRICT,
+							var2Default: IsCellNotCommand.VAR2_DEFAULT
 						};
 				case BotCommand.TYPE_IS_PLAYER_MEMBER:
 					return {
@@ -184,10 +292,28 @@ package commands.conditions {
 					return IsItemInInventoryCommand.fromJSON(data);
 				case BotCommand.TYPE_IS_ITEM_NOT_IN_INV:
 					return IsItemNotInInventoryCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_ITEM_EQUIPED:
+					return IsItemEquipedCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_ITEM_NOT_EQUIPED:
+					return IsItemNotEquipedCommand.fromJSON(data);
 				case BotCommand.TYPE_IS_QUEST_AVAILABLE:
 					return IsQuestAvailableCommand.fromJSON(data);
 				case BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE:
 					return IsQuestNotAvailableCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN:
+					return IsQuestCanBeTurnedInCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_GOLD_GREATER:
+					return IsGoldGreaterThanCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_GOLD_LESS:
+					return IsGoldLessThanCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_MAP:
+					return IsMapCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_MAP_NOT:
+					return IsMapNotCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_CELL:
+					return IsCellCommand.fromJSON(data);
+				case BotCommand.TYPE_IS_CELL_NOT:
+					return IsCellNotCommand.fromJSON(data);
 				case BotCommand.TYPE_IS_PLAYER_MEMBER:
 					return IsPlayerMemberCommand.fromJSON(data);
 				default:
@@ -209,12 +335,33 @@ package commands.conditions {
 						qty2 = 1;
 					}
 					return new IsItemNotInInventoryCommand(var1, qty2);
+				case BotCommand.TYPE_IS_ITEM_EQUIPED:
+					return new IsItemEquipedCommand(var1);
+				case BotCommand.TYPE_IS_ITEM_NOT_EQUIPED:
+					return new IsItemNotEquipedCommand(var1);
 				case BotCommand.TYPE_IS_QUEST_AVAILABLE:
 					var qId1:int = parseInt(var1);
 					return new IsQuestAvailableCommand(qId1);
 				case BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE:
 					var qId2:int = parseInt(var1);
 					return new IsQuestNotAvailableCommand(qId2);
+				case BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN:
+					var qId3:int = parseInt(var1);
+					return new IsQuestCanBeTurnedInCommand(qId3);
+				case BotCommand.TYPE_IS_GOLD_GREATER:
+					var gAmt1:int = parseInt(var1);
+					return new IsGoldGreaterThanCommand(gAmt1);
+				case BotCommand.TYPE_IS_GOLD_LESS:
+					var gAmt2:int = parseInt(var1);
+					return new IsGoldLessThanCommand(gAmt2);
+				case BotCommand.TYPE_IS_MAP:
+					return new IsMapCommand(var1);
+				case BotCommand.TYPE_IS_MAP_NOT:
+					return new IsMapNotCommand(var1);
+				case BotCommand.TYPE_IS_CELL:
+					return new IsCellCommand(var1);
+				case BotCommand.TYPE_IS_CELL_NOT:
+					return new IsCellNotCommand(var1);
 				case BotCommand.TYPE_IS_PLAYER_MEMBER:
 					return new IsPlayerMemberCommand();
 				default:

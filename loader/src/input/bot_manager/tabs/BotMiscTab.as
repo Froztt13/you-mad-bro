@@ -200,9 +200,7 @@ package input.bot_manager.tabs {
 				miscCondVar1Input.visible = true;
 				miscCondVar1Input.restrict = def.var1Restrict;
 				miscCondVar1Input.width = (def.var2Label != null && String(def.var2Label).length > 0) ? 244 : contentW;
-				if (miscCondVar1Input.text == "" && def.var1Default != null) {
-					miscCondVar1Input.text = def.var1Default;
-				}
+				miscCondVar1Input.text = (def.var1Default != null) ? def.var1Default : "";
 			}
 			else {
 				miscCondVar1Label.visible = false;
@@ -214,9 +212,7 @@ package input.bot_manager.tabs {
 				miscCondVar2Label.text = def.var2Label;
 				miscCondVar2Input.visible = true;
 				miscCondVar2Input.restrict = def.var2Restrict;
-				if (miscCondVar2Input.text == "" && def.var2Default != null) {
-					miscCondVar2Input.text = def.var2Default;
-				}
+				miscCondVar2Input.text = (def.var2Default != null) ? def.var2Default : "";
 			}
 			else {
 				miscCondVar2Label.visible = false;

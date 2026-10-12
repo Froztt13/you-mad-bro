@@ -47,6 +47,9 @@ package input.bot_manager.modals {
 		private var editCellInput:MyTextField;
 		private var editPadInput:MyTextField;
 
+		private var editWalkXInput:MyTextField;
+		private var editWalkYInput:MyTextField;
+
 		private var editQuestIdInput:MyTextField;
 		private var editQuestItemIdInput:MyTextField;
 
@@ -314,10 +317,17 @@ package input.bot_manager.modals {
 				editDelayInput.restrict = "0-9.";
 				editModalFormContainer.addChild(editDelayInput);
 			}
-			else if (cmd is TransferToBankCommand || cmd is TransferToInventoryCommand) {
-				var isBank:Boolean = (cmd is TransferToBankCommand);
-				var tbcmd:TransferToBankCommand = isBank ? (cmd as TransferToBankCommand) : null;
-				var ticmd:TransferToInventoryCommand = !isBank ? (cmd as TransferToInventoryCommand) : null;
+			else if (cmd is TransferToBankCommand || cmd is TransferToInventoryCommand || cmd is EquipItemCommand) {
+				var itmName:String = "";
+				if (cmd is EquipItemCommand) {
+					itmName = (cmd as EquipItemCommand).itemName;
+				}
+				else if (cmd is TransferToBankCommand) {
+					itmName = (cmd as TransferToBankCommand).itemName;
+				}
+				else if (cmd is TransferToInventoryCommand) {
+					itmName = (cmd as TransferToInventoryCommand).itemName;
+				}
 
 				var tLbl:TextField = UIUtils.createLabel("Item Name:", UIUtils.TEXT_MUTED, 10.5);
 				tLbl.y = 0;
@@ -325,8 +335,33 @@ package input.bot_manager.modals {
 
 				editItemTransferInput = new MyTextField(formW, 24);
 				editItemTransferInput.y = 18;
-				editItemTransferInput.text = isBank ? tbcmd.itemName : ticmd.itemName;
+				editItemTransferInput.text = itmName;
 				editModalFormContainer.addChild(editItemTransferInput);
+			}
+			else if (cmd is WalkCommand) {
+				var wcmd:WalkCommand = cmd as WalkCommand;
+
+				var wxLbl:TextField = UIUtils.createLabel("X:", UIUtils.TEXT_MUTED, 10.5);
+				wxLbl.y = 0;
+				editModalFormContainer.addChild(wxLbl);
+
+				editWalkXInput = new MyTextField(100, 24);
+				editWalkXInput.restrict = "0-9";
+				editWalkXInput.y = 18;
+				editWalkXInput.text = String(wcmd.x);
+				editModalFormContainer.addChild(editWalkXInput);
+
+				var wyLbl:TextField = UIUtils.createLabel("Y:", UIUtils.TEXT_MUTED, 10.5);
+				wyLbl.x = 110;
+				wyLbl.y = 0;
+				editModalFormContainer.addChild(wyLbl);
+
+				editWalkYInput = new MyTextField(100, 24);
+				editWalkYInput.restrict = "0-9";
+				editWalkYInput.x = 110;
+				editWalkYInput.y = 18;
+				editWalkYInput.text = String(wcmd.y);
+				editModalFormContainer.addChild(editWalkYInput);
 			}
 			else if (cmd is NotifCommand) {
 				var ncmd:NotifCommand = cmd as NotifCommand;
@@ -513,6 +548,24 @@ package input.bot_manager.modals {
 				var iname2:String = editItemTransferInput.trimmedText;
 				if (iname2.length > 0) {
 					ticmd.itemName = iname2;
+				}
+			}
+			else if (editingCmd is EquipItemCommand) {
+				var eqcmd:EquipItemCommand = editingCmd as EquipItemCommand;
+				var iname3:String = editItemTransferInput.trimmedText;
+				if (iname3.length > 0) {
+					eqcmd.itemName = iname3;
+				}
+			}
+			else if (editingCmd is WalkCommand) {
+				var wcmdEdit:WalkCommand = editingCmd as WalkCommand;
+				var wxVal:int = parseInt(editWalkXInput.trimmedText);
+				var wyVal:int = parseInt(editWalkYInput.trimmedText);
+				if (!isNaN(wxVal)) {
+					wcmdEdit.x = wxVal;
+				}
+				if (!isNaN(wyVal)) {
+					wcmdEdit.y = wyVal;
 				}
 			}
 			else if (editingCmd is NotifCommand) {

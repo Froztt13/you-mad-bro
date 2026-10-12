@@ -5,11 +5,13 @@ package input.bot_manager.tabs {
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 
+	import commands.EquipItemCommand;
 	import commands.TransferToBankCommand;
 	import commands.TransferToInventoryCommand;
 	import input.bot_manager.BotManagerUI;
 	import ui.MyButton;
 	import ui.MyCheckbox;
+	import ui.MyDropdown;
 	import ui.MyTextField;
 	import ui.UIUtils;
 
@@ -17,7 +19,8 @@ package input.bot_manager.tabs {
 
 		private var manager:BotManagerUI;
 
-		private var itemTransferInput:MyTextField;
+		private var itemNameInput:MyTextField;
+		private var actionDropdown:MyDropdown;
 		private var whitelistStatusLabel:TextField;
 		private var notifyDropsCheckbox:MyCheckbox;
 
@@ -33,34 +36,47 @@ package input.bot_manager.tabs {
 		private function buildUI():void {
 			const contentW:Number = BotManagerUI.COL_RIGHT_W - 20;
 
-			// 1. Transfer Section
+			// 1. Item Action Section
 			const itemLbl:TextField = UIUtils.createLabel("Item Name:", UIUtils.TEXT_MUTED, 10.5);
 			itemLbl.x = 0;
 			itemLbl.y = 4;
 			addChild(itemLbl);
 
-			itemTransferInput = new MyTextField(contentW, 24);
-			itemTransferInput.x = 0;
-			itemTransferInput.y = 22;
-			addChild(itemTransferInput);
+			itemNameInput = new MyTextField(contentW, 24);
+			itemNameInput.x = 0;
+			itemNameInput.y = 22;
+			addChild(itemNameInput);
 
-			const addBankBtn:MyButton = new MyButton("Transfer To Bank", 130, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
-					if (itemTransferInput.trimmedText.length > 0) {
-						manager.addBotCommand(new TransferToBankCommand(itemTransferInput.trimmedText));
-					}
-				});
-			addBankBtn.x = 0;
-			addBankBtn.y = 52;
-			addChild(addBankBtn);
+			const actionItems:Array = [
+				{label: "Equip", value: "equip"},
+				{label: "Transfer to Bank", value: "bank"},
+				{label: "Transfer to Invent", value: "inv"}
+			];
 
-			const addInvBtn:MyButton = new MyButton("Transfer To Inv", 130, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
-					if (itemTransferInput.trimmedText.length > 0) {
-						manager.addBotCommand(new TransferToInventoryCommand(itemTransferInput.trimmedText));
-					}
-				});
-			addInvBtn.x = 138;
-			addInvBtn.y = 52;
-			addChild(addInvBtn);
+			actionDropdown = new MyDropdown(190, 24, actionItems);
+			actionDropdown.x = 0;
+			actionDropdown.y = 52;
+			addChild(actionDropdown);
+
+			const addCmdBtn:MyButton = new MyButton("Add Command", contentW - 198, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+				var name:String = itemNameInput.trimmedText;
+				if (name.length == 0) {
+					return;
+				}
+				var act:String = String(actionDropdown.selectedValue);
+				if (act == "equip") {
+					manager.addBotCommand(new EquipItemCommand(name));
+				}
+				else if (act == "bank") {
+					manager.addBotCommand(new TransferToBankCommand(name));
+				}
+				else if (act == "inv") {
+					manager.addBotCommand(new TransferToInventoryCommand(name));
+				}
+			});
+			addCmdBtn.x = 198;
+			addCmdBtn.y = 52;
+			addChild(addCmdBtn);
 
 			// Divider between Transfer and Whitelist (aligned with MapTab at y=84)
 			const divWl:Shape = new Shape();

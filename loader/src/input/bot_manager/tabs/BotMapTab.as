@@ -7,6 +7,7 @@ package input.bot_manager.tabs {
 
 	import commands.JoinCommand;
 	import commands.JumpCommand;
+	import commands.WalkCommand;
 	import input.bot_manager.BotManagerUI;
 	import ui.MyButton;
 	import ui.MyTextField;
@@ -15,6 +16,8 @@ package input.bot_manager.tabs {
 	public class BotMapTab extends Sprite {
 
 		private var manager:BotManagerUI;
+		private var walkXInput:MyTextField;
+		private var walkYInput:MyTextField;
 
 		public function BotMapTab(manager:BotManagerUI) {
 			super();
@@ -132,6 +135,68 @@ package input.bot_manager.tabs {
 			addJumpBtn.x = 218;
 			addJumpBtn.y = 128;
 			addChild(addJumpBtn);
+
+			// Divider between Jump and Walk
+			const div2:Shape = new Shape();
+			div2.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			div2.graphics.moveTo(0, 160);
+			div2.graphics.lineTo(contentW, 160);
+			addChild(div2);
+
+			// 3. Walk To Section
+			const walkTitle:TextField = UIUtils.createLabel("Walk To (Coordinates):", UIUtils.TEXT_MUTED, 10.5);
+			walkTitle.y = 168;
+			addChild(walkTitle);
+
+			const xLbl:TextField = UIUtils.createLabel("X:", UIUtils.TEXT_MUTED, 10.5);
+			xLbl.x = 0;
+			xLbl.y = 186;
+			addChild(xLbl);
+
+			walkXInput = new MyTextField(70, 24);
+			walkXInput.restrict = "0-9";
+			walkXInput.x = 0;
+			walkXInput.y = 204;
+			walkXInput.text = "0";
+			addChild(walkXInput);
+
+			const yLbl:TextField = UIUtils.createLabel("Y:", UIUtils.TEXT_MUTED, 10.5);
+			yLbl.x = 76;
+			yLbl.y = 186;
+			addChild(yLbl);
+
+			walkYInput = new MyTextField(70, 24);
+			walkYInput.restrict = "0-9";
+			walkYInput.x = 76;
+			walkYInput.y = 204;
+			walkYInput.text = "0";
+			addChild(walkYInput);
+
+			const addWalkBtn:MyButton = new MyButton("Walk To", 100, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+					var wx:int = parseInt(walkXInput.trimmedText);
+					var wy:int = parseInt(walkYInput.trimmedText);
+					if (!isNaN(wx) && !isNaN(wy)) {
+						manager.addBotCommand(new WalkCommand(wx, wy));
+					}
+				});
+			addWalkBtn.x = 154;
+			addWalkBtn.y = 204;
+			addChild(addWalkBtn);
+
+			const getPosBtn:MyButton = new MyButton("Get Pos", 68, 24, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
+					try {
+						var g:Object = manager.game;
+						if (g != null && g.world != null && g.world.myAvatar != null && g.world.myAvatar.pMC != null) {
+							walkXInput.text = String(int(g.world.myAvatar.pMC.x));
+							walkYInput.text = String(int(g.world.myAvatar.pMC.y));
+						}
+					}
+					catch (err:Error) {
+					}
+				});
+			getPosBtn.x = 260;
+			getPosBtn.y = 204;
+			addChild(getPosBtn);
 		}
 	}
 }
