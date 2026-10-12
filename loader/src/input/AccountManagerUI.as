@@ -16,6 +16,7 @@ package input {
 	import Utils;
 	import Config;
 	import com.aqw.battery.BatteryOptimizer;
+	import input.bot_manager.modals.BotLoadModal;
 
 	public class AccountManagerUI extends Sprite {
 

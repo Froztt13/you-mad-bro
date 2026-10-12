@@ -18,7 +18,7 @@ package input {
 	import engine.AutoQuest;
 	import engine.BotEngine;
 	import engine.MapCommands;
-	import input.BotManagerUI;
+	import input.bot_manager.BotManagerUI;
 	import input.CellJumpUI;
 	import input.CustomCharUI;
 	import input.PacketLoggerUI;

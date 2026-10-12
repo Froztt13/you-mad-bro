@@ -1,4 +1,4 @@
-package input {
+package input.bot_manager.modals {
 
 	import flash.display.Shape;
 	import flash.display.Sprite;

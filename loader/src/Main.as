@@ -48,7 +48,7 @@ package {
 	import ui.UIUtils;
 	import ui.ChatPreviewUI;
 	import input.AccountManagerUI;
-	import input.BotManagerUI;
+	import input.bot_manager.BotManagerUI;
 	import input.MainMenuUI;
 	import input.PacketLoggerUI;
 	import input.AppLogUI;
