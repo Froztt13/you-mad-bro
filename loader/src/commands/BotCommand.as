@@ -1,6 +1,7 @@
 package commands {
 
 	import engine.BotEngine;
+	import commands.conditions.BaseConditionalCommand;
 
 	public class BotCommand {
 
@@ -18,6 +19,12 @@ package commands {
 		public static const TYPE_GOTO_LABEL:String = "goto_label";
 		public static const TYPE_RESTART_BOT:String = "restart_bot";
 		public static const TYPE_STOP_BOT:String = "stop_bot";
+
+		public static const TYPE_IS_ITEM_IN_INV:String = "is_item_in_inventory";
+		public static const TYPE_IS_ITEM_NOT_IN_INV:String = "is_item_not_in_inventory";
+		public static const TYPE_IS_QUEST_AVAILABLE:String = "is_quest_available";
+		public static const TYPE_IS_QUEST_NOT_AVAILABLE:String = "is_quest_not_available";
+		public static const TYPE_IS_PLAYER_MEMBER:String = "is_player_member";
 
 		public var type:String;
 
@@ -61,77 +68,19 @@ package commands {
 					return RestartBotCommand.fromJSON(data);
 				case TYPE_STOP_BOT:
 					return StopBotCommand.fromJSON(data);
+
+				case TYPE_IS_ITEM_IN_INV:
+				case TYPE_IS_ITEM_NOT_IN_INV:
+				case TYPE_IS_QUEST_AVAILABLE:
+				case TYPE_IS_QUEST_NOT_AVAILABLE:
+				case TYPE_IS_PLAYER_MEMBER:
+					return BaseConditionalCommand.fromJSON(data);
 				default:
+					if (BaseConditionalCommand.isConditionType(String(data.type))) {
+						return BaseConditionalCommand.fromJSON(data);
+					}
 					return null;
 			}
-		}
-
-		public static function createKill(
-				monster:String = "*",
-				killMode:String = "none",
-				killCount:int = 1,
-				itemName:String = "",
-				itemQty:int = 1
-			):KillCommand {
-			return new KillCommand(monster, killMode, killCount, itemName, itemQty);
-		}
-
-		public static function createHunt(
-				monster:String = "*",
-				killMode:String = "none",
-				killCount:int = 1,
-				itemName:String = "",
-				itemQty:int = 1
-			):HuntCommand {
-			return new HuntCommand(monster, killMode, killCount, itemName, itemQty);
-		}
-
-		public static function createJoin(map:String, cell:String = "Enter", pad:String = "Spawn"):JoinCommand {
-			return new JoinCommand(map, cell, pad);
-		}
-
-		public static function createJump(cell:String = "Enter", pad:String = "*"):JumpCommand {
-			return new JumpCommand(cell, pad);
-		}
-
-		public static function createQuestAccept(questId:int):QuestAcceptCommand {
-			return new QuestAcceptCommand(questId);
-		}
-
-		public static function createQuestComplete(questId:int, itemId:int = -1):QuestCompleteCommand {
-			return new QuestCompleteCommand(questId, itemId);
-		}
-
-		public static function createDelay(seconds:Number):DelayCommand {
-			return new DelayCommand(seconds);
-		}
-
-		public static function createTransferToBank(itemName:String):TransferToBankCommand {
-			return new TransferToBankCommand(itemName);
-		}
-
-		public static function createTransferToInventory(itemName:String):TransferToInventoryCommand {
-			return new TransferToInventoryCommand(itemName);
-		}
-
-		public static function createNotif(message:String, title:String = "Bot Alert"):NotifCommand {
-			return new NotifCommand(message, title);
-		}
-
-		public static function createLabel(labelName:String):LabelCommand {
-			return new LabelCommand(labelName);
-		}
-
-		public static function createGotoLabel(labelName:String):GotoLabelCommand {
-			return new GotoLabelCommand(labelName);
-		}
-
-		public static function createRestartBot():RestartBotCommand {
-			return new RestartBotCommand();
-		}
-
-		public static function createStopBot():StopBotCommand {
-			return new StopBotCommand();
 		}
 
 		public function execute(bot:BotEngine):void {

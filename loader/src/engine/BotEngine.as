@@ -48,6 +48,7 @@ package engine {
 		// Drop Whitelist
 		private var _whitelist:Array = [];
 		public var autoQuestList:Array = [];
+		private var _autoQuest:AutoQuest;
 		// Internal engine timer & execution state
 		private var engineTimer:Timer = new Timer(500); // ticks every 500ms
 		public var delayTicksRemaining:int = 0;
@@ -481,6 +482,13 @@ package engine {
 			dispatchStep();
 		}
 
+		public function skipNextStep(delayMs:int = 100):void {
+			resetStepVariables();
+			_currentStep += 2;
+			delay(delayMs);
+			dispatchStep();
+		}
+
 		public function gotoLabel(targetLabel:String, delayMs:int = 500):Boolean {
 			if (targetLabel == null)
 				return false;
@@ -648,6 +656,45 @@ package engine {
 			catch (e:Error) {
 			}
 			return null;
+		}
+
+		public function isPlayerMember():Boolean {
+			try {
+				if (game == null || game.world == null || game.world.myAvatar == null)
+					return false;
+				if (game.world.myAvatar.isUpgraded != null) {
+					return Boolean(game.world.myAvatar.isUpgraded());
+				}
+				if (game.world.myAvatar.objData != null) {
+					return int(game.world.myAvatar.objData.iUpg) > 0 || int(game.world.myAvatar.objData.iUpgDays) > 0;
+				}
+			}
+			catch (e:Error) {
+				return false;
+			}
+			return false;
+		}
+
+		public function isQuestAvailable(questId:int):Boolean {
+			try {
+				if (game == null || game.world == null)
+					return false;
+				if (game.world.questTree == null || game.world.questTree[questId] == null) {
+					try {
+						game.world.getQuests([questId]);
+					}
+					catch (eLoad:Error) {
+					}
+					return false;
+				}
+				if (_autoQuest == null) {
+					_autoQuest = new AutoQuest(game);
+				}
+				return _autoQuest.isAvailable(questId);
+			}
+			catch (e:Error) {
+				return false;
+			}
 		}
 
 		// =========================================================================

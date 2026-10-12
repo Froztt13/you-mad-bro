@@ -23,6 +23,7 @@ package input {
 	import ui.MyButton;
 	import ui.MyCheckbox;
 	import ui.MyTextField;
+	import ui.MyDropdown;
 	import ui.ScrollContainer;
 	import ui.UIUtils;
 	import commands.BotCommand;
@@ -44,6 +45,12 @@ package input {
 	import commands.GotoLabelCommand;
 	import commands.RestartBotCommand;
 	import commands.StopBotCommand;
+	import commands.conditions.BaseConditionalCommand;
+	import commands.conditions.IsItemInInventoryCommand;
+	import commands.conditions.IsItemNotInInventoryCommand;
+	import commands.conditions.IsQuestAvailableCommand;
+	import commands.conditions.IsQuestNotAvailableCommand;
+	import commands.conditions.IsPlayerMemberCommand;
 
 	public class BotManagerUI extends BaseModal {
 
@@ -156,9 +163,16 @@ package input {
 		private var editNotifMsgInput:MyTextField;
 
 		private var editLabelInput:MyTextField;
+		private var editCondVar1Input:MyTextField;
+		private var editCondVar2Input:MyTextField;
 
 		// Misc Tab Fields
 		private var miscLabelInput:MyTextField;
+		private var miscCondDropdown:MyDropdown;
+		private var miscCondVar1Input:MyTextField;
+		private var miscCondVar2Input:MyTextField;
+		private var miscCondVar1Label:TextField;
+		private var miscCondVar2Label:TextField;
 
 		// Current Labels Modal Overlay
 		private var currentLabelsOverlay:Sprite;
@@ -532,7 +546,7 @@ package input {
 			const addAcceptBtn:MyButton = new MyButton("Add Accept Quest", 130, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					var qid:int = parseInt(qInput.text);
 					if (qid > 0) {
-						addBotCommand(BotCommand.createQuestAccept(qid));
+						addBotCommand(new QuestAcceptCommand(qid));
 					}
 				});
 			addAcceptBtn.x = 0;
@@ -546,7 +560,7 @@ package input {
 						iid = -1;
 					}
 					if (qid > 0) {
-						addBotCommand(BotCommand.createQuestComplete(qid, iid));
+						addBotCommand(new QuestCompleteCommand(qid, iid));
 					}
 				});
 			addTurnInBtn.x = 138;
@@ -597,7 +611,7 @@ package input {
 
 			const addJoinBtn:MyButton = new MyButton("Add Join Map", 110, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (mapInput.trimmedText.length > 0) {
-						addBotCommand(BotCommand.createJoin(mapInput.trimmedText, cellInput.trimmedText, padInput.trimmedText));
+						addBotCommand(new JoinCommand(mapInput.trimmedText, cellInput.trimmedText, padInput.trimmedText));
 					}
 				});
 			addJoinBtn.y = 52;
@@ -661,7 +675,7 @@ package input {
 
 			const addJumpBtn:MyButton = new MyButton("Add Jump Cell", 110, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (jCellInput.trimmedText.length > 0) {
-						addBotCommand(BotCommand.createJump(jCellInput.trimmedText, jPadInput.trimmedText));
+						addBotCommand(new JumpCommand(jCellInput.trimmedText, jPadInput.trimmedText));
 					}
 				});
 			addJumpBtn.x = 218;
@@ -691,7 +705,7 @@ package input {
 
 			const addBankBtn:MyButton = new MyButton("Transfer To Bank", 130, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (itemTransferInput.trimmedText.length > 0) {
-						addBotCommand(BotCommand.createTransferToBank(itemTransferInput.trimmedText));
+						addBotCommand(new TransferToBankCommand(itemTransferInput.trimmedText));
 					}
 				});
 			addBankBtn.x = 0;
@@ -700,7 +714,7 @@ package input {
 
 			const addInvBtn:MyButton = new MyButton("Transfer To Inv", 130, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (itemTransferInput.trimmedText.length > 0) {
-						addBotCommand(BotCommand.createTransferToInventory(itemTransferInput.trimmedText));
+						addBotCommand(new TransferToInventoryCommand(itemTransferInput.trimmedText));
 					}
 				});
 			addInvBtn.x = 138;
@@ -791,7 +805,7 @@ package input {
 			const addLabelBtn:MyButton = new MyButton("Add", 66, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					var name:String = miscLabelInput.trimmedText.toUpperCase();
 					if (name.length > 0) {
-						addBotCommand(BotCommand.createLabel(name));
+						addBotCommand(new LabelCommand(name));
 					}
 				});
 			addLabelBtn.x = 190;
@@ -801,7 +815,7 @@ package input {
 			const gotoLabelBtn:MyButton = new MyButton("Goto", 66, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					var name:String = miscLabelInput.trimmedText.toUpperCase();
 					if (name.length > 0) {
-						addBotCommand(BotCommand.createGotoLabel(name));
+						addBotCommand(new GotoLabelCommand(name));
 					}
 				});
 			gotoLabelBtn.x = 260;
@@ -821,20 +835,132 @@ package input {
 			miscTab.addChild(ctrlTitle);
 
 			const restartBtn:MyButton = new MyButton("Restart Bot", 100, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
-					addBotCommand(BotCommand.createRestartBot());
+					addBotCommand(new RestartBotCommand());
 				});
 			restartBtn.x = 0;
 			restartBtn.y = 86;
 			miscTab.addChild(restartBtn);
 
 			const stopCmdBtn:MyButton = new MyButton("Stop Bot", 100, 26, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
-					addBotCommand(BotCommand.createStopBot());
+					addBotCommand(new StopBotCommand());
 				});
 			stopCmdBtn.x = 108;
 			stopCmdBtn.y = 86;
 			miscTab.addChild(stopCmdBtn);
 
+			// Divider between Bot Controls and Conditionals
+			const div2:Shape = new Shape();
+			div2.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			div2.graphics.moveTo(0, 122);
+			div2.graphics.lineTo(COL_RIGHT_W - 20, 122);
+			miscTab.addChild(div2);
+
+			// 3. Conditional Command Section (Skip 1 command if false)
+			const condTitle:TextField = UIUtils.createLabel("Condition (Skip 1 command if false):", UIUtils.TEXT_MUTED, 10.5);
+			condTitle.y = 130;
+			miscTab.addChild(condTitle);
+
+			const condItems:Array = BaseConditionalCommand.getAvailableConditions();
+
+			miscCondDropdown = new MyDropdown(244, 24, condItems, onMiscConditionChange);
+			miscCondDropdown.x = 0;
+			miscCondDropdown.y = 150;
+			miscTab.addChild(miscCondDropdown);
+
+			const addCondBtn:MyButton = new MyButton("Add", 76, 24, MyButton.TYPE_PRIMARY, onAddConditionClick);
+			addCondBtn.x = 252;
+			addCondBtn.y = 150;
+			miscTab.addChild(addCondBtn);
+
+			miscCondVar1Label = UIUtils.createLabel("Name:", UIUtils.TEXT_MUTED, 10);
+			miscCondVar1Label.x = 0;
+			miscCondVar1Label.y = 180;
+			miscTab.addChild(miscCondVar1Label);
+
+			miscCondVar2Label = UIUtils.createLabel("Qty:", UIUtils.TEXT_MUTED, 10);
+			miscCondVar2Label.x = 252;
+			miscCondVar2Label.y = 180;
+			miscTab.addChild(miscCondVar2Label);
+
+			miscCondVar1Input = new MyTextField(244, 24);
+			miscCondVar1Input.x = 0;
+			miscCondVar1Input.y = 196;
+			miscCondVar1Input.text = "";
+			miscTab.addChild(miscCondVar1Input);
+
+			miscCondVar2Input = new MyTextField(76, 24);
+			miscCondVar2Input.x = 252;
+			miscCondVar2Input.y = 196;
+			miscCondVar2Input.text = "1";
+			miscCondVar2Input.restrict = "0-9";
+			miscTab.addChild(miscCondVar2Input);
+
+			updateConditionInputs(BotCommand.TYPE_IS_ITEM_IN_INV);
+
 			tabContentContainer.addChild(miscTab);
+		}
+
+		private function onMiscConditionChange(item:Object):void {
+			if (item != null && item.value != null) {
+				updateConditionInputs(String(item.value));
+			}
+		}
+
+		private function updateConditionInputs(condType:String):void {
+			var def:Object = BaseConditionalCommand.getDefinition(condType);
+			if (def == null)
+				return;
+
+			if (def.var1Label != null && String(def.var1Label).length > 0) {
+				miscCondVar1Label.visible = true;
+				miscCondVar1Label.text = def.var1Label;
+				miscCondVar1Input.visible = true;
+				miscCondVar1Input.restrict = def.var1Restrict;
+				miscCondVar1Input.width = (def.var2Label != null && String(def.var2Label).length > 0) ? 244 : (COL_RIGHT_W - 20);
+				if (miscCondVar1Input.text == "" && def.var1Default != null) {
+					miscCondVar1Input.text = def.var1Default;
+				}
+			}
+			else {
+				miscCondVar1Label.visible = false;
+				miscCondVar1Input.visible = false;
+			}
+
+			if (def.var2Label != null && String(def.var2Label).length > 0) {
+				miscCondVar2Label.visible = true;
+				miscCondVar2Label.text = def.var2Label;
+				miscCondVar2Input.visible = true;
+				miscCondVar2Input.restrict = def.var2Restrict;
+				if (miscCondVar2Input.text == "" && def.var2Default != null) {
+					miscCondVar2Input.text = def.var2Default;
+				}
+			}
+			else {
+				miscCondVar2Label.visible = false;
+				miscCondVar2Input.visible = false;
+			}
+		}
+
+		private function onAddConditionClick(e:MouseEvent):void {
+			if (miscCondDropdown == null)
+				return;
+			var condType:String = String(miscCondDropdown.selectedValue);
+			var def:Object = BaseConditionalCommand.getDefinition(condType);
+			if (def == null)
+				return;
+
+			if (def.var1Label != null && String(def.var1Label).length > 0 && miscCondVar1Input.trimmedText.length == 0) {
+				return;
+			}
+
+			var cmd:BaseConditionalCommand = BaseConditionalCommand.createCommand(
+					condType,
+					miscCondVar1Input.trimmedText,
+					miscCondVar2Input.trimmedText
+				);
+			if (cmd != null) {
+				addBotCommand(cmd);
+			}
 		}
 
 		// =========================================================================
@@ -874,7 +1000,7 @@ package input {
 			const addWaitBtn:MyButton = new MyButton("Add Delay", 74, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					var secs:Number = parseFloat(delayInput.text);
 					if (!isNaN(secs) && secs > 0) {
-						addBotCommand(BotCommand.createDelay(secs));
+						addBotCommand(new DelayCommand(secs));
 					}
 				});
 			addWaitBtn.x = 68;
@@ -893,7 +1019,7 @@ package input {
 
 			const addNotifBtn:MyButton = new MyButton("Add Notif", 78, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (notifInput.trimmedText.length > 0) {
-						addBotCommand(BotCommand.createNotif(notifInput.trimmedText));
+						addBotCommand(new NotifCommand(notifInput.trimmedText));
 						notifInput.text = "";
 					}
 				});
@@ -1013,19 +1139,19 @@ package input {
 				if (itemName.length == 0)
 					return;
 				cmd = isHunt
-					? BotCommand.createHunt(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty)
-					: BotCommand.createKill(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty);
+					? new HuntCommand(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty)
+					: new KillCommand(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty);
 			}
 			else if (currentKillMode == KillCommand.MODE_COUNT) {
 				var kCount:int = parseInt(killCountInput.text);
 				cmd = isHunt
-					? BotCommand.createHunt(mon, KillCommand.MODE_COUNT, kCount)
-					: BotCommand.createKill(mon, KillCommand.MODE_COUNT, kCount);
+					? new HuntCommand(mon, KillCommand.MODE_COUNT, kCount)
+					: new KillCommand(mon, KillCommand.MODE_COUNT, kCount);
 			}
 			else {
 				cmd = isHunt
-					? BotCommand.createHunt(mon, KillCommand.MODE_NONE)
-					: BotCommand.createKill(mon, KillCommand.MODE_NONE);
+					? new HuntCommand(mon, KillCommand.MODE_NONE)
+					: new KillCommand(mon, KillCommand.MODE_NONE);
 			}
 
 			addBotCommand(cmd);
@@ -1606,7 +1732,7 @@ package input {
 				if (cmd is LabelCommand) {
 					var lcmd:LabelCommand = cmd as LabelCommand;
 					if (lcmd.labelName != null && lcmd.labelName.length > 0) {
-						labels.push({ "step": (i + 1), "name": lcmd.labelName });
+						labels.push({"step": (i + 1), "name": lcmd.labelName});
 					}
 				}
 			}
@@ -1970,6 +2096,44 @@ package input {
 				noParamLbl.y = 30;
 				editModalFormContainer.addChild(noParamLbl);
 			}
+			else if (cmd is BaseConditionalCommand) {
+				var bccmd:BaseConditionalCommand = cmd as BaseConditionalCommand;
+				var hasVar1:Boolean = (bccmd.var1Label != null && bccmd.var1Label.length > 0);
+				var hasVar2:Boolean = (bccmd.var2Label != null && bccmd.var2Label.length > 0);
+
+				if (!hasVar1 && !hasVar2) {
+					var pmLbl:TextField = UIUtils.createLabel("This conditional command has no editable parameters.", UIUtils.TEXT_MUTED, 10.5);
+					pmLbl.y = 30;
+					editModalFormContainer.addChild(pmLbl);
+				}
+				else {
+					if (hasVar1) {
+						var v1Lbl:TextField = UIUtils.createLabel(bccmd.var1Label, UIUtils.TEXT_MUTED, 10.5);
+						v1Lbl.y = 10;
+						editModalFormContainer.addChild(v1Lbl);
+
+						var v1W:Number = hasVar2 ? (formW - 80) : formW;
+						editCondVar1Input = new MyTextField(v1W, 24);
+						editCondVar1Input.y = 28;
+						editCondVar1Input.text = bccmd.var1;
+						editCondVar1Input.restrict = bccmd.var1Restrict;
+						editModalFormContainer.addChild(editCondVar1Input);
+					}
+					if (hasVar2) {
+						var v2Lbl:TextField = UIUtils.createLabel(bccmd.var2Label, UIUtils.TEXT_MUTED, 10.5);
+						v2Lbl.x = formW - 70;
+						v2Lbl.y = 10;
+						editModalFormContainer.addChild(v2Lbl);
+
+						editCondVar2Input = new MyTextField(70, 24);
+						editCondVar2Input.x = formW - 70;
+						editCondVar2Input.y = 28;
+						editCondVar2Input.text = bccmd.var2;
+						editCondVar2Input.restrict = bccmd.var2Restrict;
+						editModalFormContainer.addChild(editCondVar2Input);
+					}
+				}
+			}
 
 			editModalOverlay.visible = true;
 			setChildIndex(editModalOverlay, numChildren - 1);
@@ -2014,10 +2178,10 @@ package input {
 
 				var newCmd:BotCommand;
 				if (isHuntEdit) {
-					newCmd = BotCommand.createHunt(finalMon, editKillMode, finalCount, finalItem, finalQty);
+					newCmd = new HuntCommand(finalMon, editKillMode, finalCount, finalItem, finalQty);
 				}
 				else {
-					newCmd = BotCommand.createKill(finalMon, editKillMode, finalCount, finalItem, finalQty);
+					newCmd = new KillCommand(finalMon, editKillMode, finalCount, finalItem, finalQty);
 				}
 				botEngine.commandList[editingIndex] = newCmd;
 			}
@@ -2093,6 +2257,22 @@ package input {
 			}
 			else if (editingCmd is RestartBotCommand || editingCmd is StopBotCommand) {
 				// No editable parameters to update
+			}
+			else if (editingCmd is BaseConditionalCommand) {
+				var bccmdEdit:BaseConditionalCommand = editingCmd as BaseConditionalCommand;
+				if (editingCmd is IsItemInInventoryCommand) {
+					if (editCondVar1Input != null && editCondVar1Input.trimmedText.length > 0) {
+						bccmdEdit.var1 = editCondVar1Input.trimmedText;
+					}
+					if (editCondVar2Input != null && editCondVar2Input.trimmedText.length > 0) {
+						bccmdEdit.var2 = editCondVar2Input.trimmedText;
+					}
+				}
+				else if (editingCmd is IsQuestAvailableCommand) {
+					if (editCondVar1Input != null && editCondVar1Input.trimmedText.length > 0) {
+						bccmdEdit.var1 = editCondVar1Input.trimmedText;
+					}
+				}
 			}
 
 			editModalOverlay.visible = false;

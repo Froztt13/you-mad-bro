@@ -136,6 +136,9 @@ package engine {
 			var invItem:Object = null;
 			var validationMsg:String = null;
 			var quest:Object = game.world.questTree[questId];
+			if (quest == null) {
+				return "Quest data not loaded.";
+			}
 
 			if (quest.sField != null && game.world.getAchievement(quest.sField, quest.iIndex) != 0) {
 				if (quest.sField == "im0") {
