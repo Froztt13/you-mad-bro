@@ -78,6 +78,14 @@ package commands {
 			if (game == null || game.world == null)
 				return;
 
+			try {
+				if (game.world.setSpawnPoint != null && game.world.strFrame != null && game.world.strPad != null) {
+					game.world.setSpawnPoint(game.world.strFrame, game.world.strPad);
+				}
+			}
+			catch (eSpawn:Error) {
+			}
+
 			var myAvatar:Object = game.world.myAvatar;
 			if (myAvatar == null)
 				return;

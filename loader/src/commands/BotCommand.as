@@ -21,6 +21,8 @@ package commands {
 		public static const TYPE_STOP_BOT:String = "stop_bot";
 		public static const TYPE_WALK:String = "walk";
 		public static const TYPE_EQUIP_ITEM:String = "equip_item";
+		public static const TYPE_GET_MAP_ITEM:String = "get_map_item";
+		public static const TYPE_BUY_ITEM:String = "buy_item";
 
 		public static const TYPE_IS_ITEM_IN_INV:String = "is_item_in_inventory";
 		public static const TYPE_IS_ITEM_NOT_IN_INV:String = "is_item_not_in_inventory";
@@ -63,6 +65,10 @@ package commands {
 					return WalkCommand.fromJSON(data);
 				case TYPE_EQUIP_ITEM:
 					return EquipItemCommand.fromJSON(data);
+				case TYPE_GET_MAP_ITEM:
+					return GetMapItemCommand.fromJSON(data);
+				case TYPE_BUY_ITEM:
+					return BuyItemCommand.fromJSON(data);
 				case TYPE_QUEST_ACCEPT:
 					return QuestAcceptCommand.fromJSON(data);
 				case TYPE_QUEST_COMPLETE:

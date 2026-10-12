@@ -1,9 +1,11 @@
 package input.bot_manager.tabs {
 
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 
+	import commands.GetMapItemCommand;
 	import commands.QuestAcceptCommand;
 	import commands.QuestCompleteCommand;
 	import input.bot_manager.BotManagerUI;
@@ -14,6 +16,7 @@ package input.bot_manager.tabs {
 	public class BotQuestTab extends Sprite {
 
 		private var manager:BotManagerUI;
+		private var mapItemIdInput:MyTextField;
 
 		public function BotQuestTab(manager:BotManagerUI) {
 			super();
@@ -25,7 +28,9 @@ package input.bot_manager.tabs {
 		}
 
 		private function buildUI():void {
-			// Quest ID
+			const contentW:Number = BotManagerUI.COL_RIGHT_W - 20;
+
+			// 1. Quest Section
 			const qLbl:TextField = UIUtils.createLabel("Quest ID:", UIUtils.TEXT_MUTED, 10.5);
 			qLbl.x = 0;
 			qLbl.y = 4;
@@ -76,6 +81,40 @@ package input.bot_manager.tabs {
 			addTurnInBtn.x = 138;
 			addTurnInBtn.y = 52;
 			addChild(addTurnInBtn);
+
+			// Divider between Quest and Map Item (aligned with other tabs at y=84)
+			const div1:Shape = new Shape();
+			div1.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			div1.graphics.moveTo(0, 84);
+			div1.graphics.lineTo(contentW, 84);
+			addChild(div1);
+
+			// 2. Get Map Item Section
+			const mapItemSectionLbl:TextField = UIUtils.createLabel("Get Map Item (Quest Map Item):", UIUtils.TEXT_MUTED, 10.5);
+			mapItemSectionLbl.x = 0;
+			mapItemSectionLbl.y = 92;
+			addChild(mapItemSectionLbl);
+
+			const mapItemIdLbl:TextField = UIUtils.createLabel("Item ID:", UIUtils.TEXT_MUTED, 10.5);
+			mapItemIdLbl.x = 0;
+			mapItemIdLbl.y = 110;
+			addChild(mapItemIdLbl);
+
+			mapItemIdInput = new MyTextField(190, 24);
+			mapItemIdInput.restrict = "0-9";
+			mapItemIdInput.x = 0;
+			mapItemIdInput.y = 128;
+			addChild(mapItemIdInput);
+
+			const addMapItemBtn:MyButton = new MyButton("Get Map Item", contentW - 198, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+				var id:int = parseInt(mapItemIdInput.trimmedText);
+				if (!isNaN(id) && id > 0) {
+					manager.addBotCommand(new GetMapItemCommand(id));
+				}
+			});
+			addMapItemBtn.x = 198;
+			addMapItemBtn.y = 128;
+			addChild(addMapItemBtn);
 		}
 	}
 }

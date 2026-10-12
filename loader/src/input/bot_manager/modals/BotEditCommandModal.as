@@ -52,10 +52,13 @@ package input.bot_manager.modals {
 
 		private var editQuestIdInput:MyTextField;
 		private var editQuestItemIdInput:MyTextField;
+		private var editMapItemIdInput:MyTextField;
 
 		private var editDelayInput:MyTextField;
 
 		private var editItemTransferInput:MyTextField;
+		private var editBuyShopIdInput:MyTextField;
+		private var editBuyQtyInput:MyTextField;
 
 		private var editNotifTitleInput:MyTextField;
 		private var editNotifMsgInput:MyTextField;
@@ -363,6 +366,53 @@ package input.bot_manager.modals {
 				editWalkYInput.text = String(wcmd.y);
 				editModalFormContainer.addChild(editWalkYInput);
 			}
+			else if (cmd is GetMapItemCommand) {
+				var gmicmd:GetMapItemCommand = cmd as GetMapItemCommand;
+
+				var gmiLbl:TextField = UIUtils.createLabel("Item ID:", UIUtils.TEXT_MUTED, 10.5);
+				gmiLbl.y = 0;
+				editModalFormContainer.addChild(gmiLbl);
+
+				editMapItemIdInput = new MyTextField(formW, 24);
+				editMapItemIdInput.restrict = "0-9";
+				editMapItemIdInput.y = 18;
+				editMapItemIdInput.text = String(gmicmd.itemId);
+				editModalFormContainer.addChild(editMapItemIdInput);
+			}
+			else if (cmd is BuyItemCommand) {
+				var bicmd:BuyItemCommand = cmd as BuyItemCommand;
+
+				var biNameLbl:TextField = UIUtils.createLabel("Item Name:", UIUtils.TEXT_MUTED, 10.5);
+				biNameLbl.y = 0;
+				editModalFormContainer.addChild(biNameLbl);
+
+				editItemTransferInput = new MyTextField(formW, 24);
+				editItemTransferInput.y = 18;
+				editItemTransferInput.text = bicmd.itemName;
+				editModalFormContainer.addChild(editItemTransferInput);
+
+				var biShopLbl:TextField = UIUtils.createLabel("Shop ID (0 = open shop):", UIUtils.TEXT_MUTED, 10.5);
+				biShopLbl.y = 52;
+				editModalFormContainer.addChild(biShopLbl);
+
+				editBuyShopIdInput = new MyTextField(178, 24);
+				editBuyShopIdInput.restrict = "0-9";
+				editBuyShopIdInput.y = 70;
+				editBuyShopIdInput.text = String(bicmd.shopId);
+				editModalFormContainer.addChild(editBuyShopIdInput);
+
+				var biQtyLbl:TextField = UIUtils.createLabel("Qty:", UIUtils.TEXT_MUTED, 10.5);
+				biQtyLbl.x = 186;
+				biQtyLbl.y = 52;
+				editModalFormContainer.addChild(biQtyLbl);
+
+				editBuyQtyInput = new MyTextField(182, 24);
+				editBuyQtyInput.restrict = "0-9";
+				editBuyQtyInput.x = 186;
+				editBuyQtyInput.y = 70;
+				editBuyQtyInput.text = String(bicmd.qty);
+				editModalFormContainer.addChild(editBuyQtyInput);
+			}
 			else if (cmd is NotifCommand) {
 				var ncmd:NotifCommand = cmd as NotifCommand;
 				var ntLbl:TextField = UIUtils.createLabel("Alert Title:", UIUtils.TEXT_MUTED, 10.5);
@@ -566,6 +616,28 @@ package input.bot_manager.modals {
 				}
 				if (!isNaN(wyVal)) {
 					wcmdEdit.y = wyVal;
+				}
+			}
+			else if (editingCmd is GetMapItemCommand) {
+				var gmicmdEdit:GetMapItemCommand = editingCmd as GetMapItemCommand;
+				var gmiId:int = parseInt(editMapItemIdInput.trimmedText);
+				if (!isNaN(gmiId) && gmiId > 0) {
+					gmicmdEdit.itemId = gmiId;
+				}
+			}
+			else if (editingCmd is BuyItemCommand) {
+				var bicmdEdit:BuyItemCommand = editingCmd as BuyItemCommand;
+				var bName:String = editItemTransferInput.trimmedText;
+				if (bName.length > 0) {
+					bicmdEdit.itemName = bName;
+				}
+				var bSid:int = parseInt(editBuyShopIdInput.trimmedText);
+				if (!isNaN(bSid)) {
+					bicmdEdit.shopId = bSid;
+				}
+				var bQty:int = parseInt(editBuyQtyInput.trimmedText);
+				if (!isNaN(bQty) && bQty > 0) {
+					bicmdEdit.qty = bQty;
 				}
 			}
 			else if (editingCmd is NotifCommand) {
