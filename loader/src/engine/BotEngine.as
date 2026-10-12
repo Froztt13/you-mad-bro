@@ -14,6 +14,8 @@ package engine {
 	import commands.DelayCommand;
 	import commands.QuestAcceptCommand;
 	import commands.QuestCompleteCommand;
+	import commands.LabelCommand;
+	import commands.GotoLabelCommand;
 	import handler.ItemDropsHandler;
 	import input.AutoQuestUI;
 	import SFSEvent;
@@ -477,6 +479,39 @@ package engine {
 			_currentStep++;
 			delay(delayMs);
 			dispatchStep();
+		}
+
+		public function gotoLabel(targetLabel:String, delayMs:int = 500):Boolean {
+			if (targetLabel == null)
+				return false;
+			var targetClean:String = Utils.trim(targetLabel).toUpperCase();
+			if (targetClean.length == 0)
+				return false;
+
+			for (var i:int = 0; i < _commands.length; i++) {
+				var cmd:BotCommand = _commands[i] as BotCommand;
+				if (cmd is LabelCommand) {
+					var lbl:LabelCommand = cmd as LabelCommand;
+					if (lbl.labelName != null && Utils.trim(lbl.labelName).toUpperCase() == targetClean) {
+						resetStepVariables();
+						_currentStep = i;
+						delay(delayMs);
+						dispatchStep();
+						log("Jumped to label: " + lbl.labelName);
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		public function restart(delayMs:int = 500):void {
+			_completedLoops++;
+			_currentStep = 0;
+			resetStepVariables();
+			delay(delayMs);
+			dispatchStep();
+			log("Bot script restarted to beginning.");
 		}
 
 		// =========================================================================

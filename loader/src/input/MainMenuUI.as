@@ -24,8 +24,12 @@ package input {
 	import input.PacketLoggerUI;
 	import Config;
 	import com.aqw.battery.BatteryOptimizer;
+	import flash.net.SharedObject;
 
 	public class MainMenuUI extends Sprite {
+
+		private static const SO_KEY:String = "aqw_pocket_settings";
+		private static const PREF_MENU_BAR_VISIBLE:String = "menuBarVisible";
 
 		private static const BTN_SIZE:Number = 32;
 		private static const BTN_GAP:Number = 4;
@@ -66,6 +70,12 @@ package input {
 		private var actionDropdown:Sprite;
 		private var dropdownOpen:Boolean = false;
 		private var actionDropdownOpen:Boolean = false;
+		private var menuBar:Sprite;
+		private var restHookTimer:Timer;
+		private var hookedRestBtn:InteractiveObject = null;
+		private var restHoldTimer:Timer;
+		private var isRestHoldTriggered:Boolean = false;
+		private static const REST_HOLD_DURATION_MS:int = 500;
 
 		private var showPadTf:TextField;
 		private var editLayoutTf:TextField;
@@ -103,7 +113,7 @@ package input {
 				});
 			gearBtn.addEventListener(MouseEvent.CLICK, onGearClick);
 
-			addChild(gearBtn);
+			menuBar.addChild(gearBtn);
 
 			dropdown = new Sprite();
 			dropdown.visible = false;
@@ -111,7 +121,7 @@ package input {
 
 			dropdown.x = gearBtn.x + BTN_SIZE + 6;
 			dropdown.y = gearBtn.y;
-			addChild(dropdown);
+			menuBar.addChild(dropdown);
 
 			rebuildGearDropdown();
 		}
@@ -219,7 +229,7 @@ package input {
 				});
 			actionMenuBtn.addEventListener(MouseEvent.CLICK, onActionClick);
 
-			addChild(actionMenuBtn);
+			menuBar.addChild(actionMenuBtn);
 
 			// Initialize Auto Quest UI
 			if (autoQuestUI == null) {
@@ -322,7 +332,7 @@ package input {
 
 			actionDropdown.x = actionMenuBtn.x + BTN_SIZE + 6;
 			actionDropdown.y = actionMenuBtn.y;
-			addChild(actionDropdown);
+			menuBar.addChild(actionDropdown);
 		}
 
 		private function buildBankButton():void {
@@ -345,7 +355,7 @@ package input {
 				});
 			bankBtn.addEventListener(MouseEvent.CLICK, onBankClick);
 
-			addChild(bankBtn);
+			menuBar.addChild(bankBtn);
 		}
 
 		private function buildAutoBattleButton():void {
@@ -382,7 +392,7 @@ package input {
 				});
 			autoBattleBtn.addEventListener(MouseEvent.CLICK, onAutoBattleClick);
 
-			addChild(autoBattleBtn);
+			menuBar.addChild(autoBattleBtn);
 		}
 
 		private function buildMenuItem(lbl:String, fn:Function, idx:int, closeFn:Function = null):Sprite {
@@ -1183,6 +1193,10 @@ package input {
 			autoQuest = new AutoQuest(game);
 			mapCommands = new MapCommands(game);
 
+			menuBar = new Sprite();
+			menuBar.visible = loadMenuBarVisibility();
+			addChild(menuBar);
+
 			buildGearMenu();
 			buildActionButton();
 			buildAutoBattleButton();
@@ -1194,6 +1208,8 @@ package input {
 			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMove);
 			stage.addEventListener(MouseEvent.MOUSE_UP, onUp);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
+
+			initRestButtonHook();
 		}
 
 		private function onGearClick(e:MouseEvent):void {
@@ -1309,6 +1325,175 @@ package input {
 
 		private function onEnterFrame(e:Event):void {
 			walkCtrl.update();
+		}
+
+		private function initRestButtonHook():void {
+			if (restHookTimer == null) {
+				restHookTimer = new Timer(500);
+				restHookTimer.addEventListener(TimerEvent.TIMER, function(e:TimerEvent):void {
+						checkRestButtonHook();
+					});
+				restHookTimer.start();
+			}
+			checkRestButtonHook();
+		}
+
+		private function getRestButton():InteractiveObject {
+			try {
+				if (game != null && game.ui != null && game.ui.mcInterface != null) {
+					if (game.ui.mcInterface.mcMenu != null && game.ui.mcInterface.mcMenu.btnRest != null) {
+						return game.ui.mcInterface.mcMenu.btnRest as InteractiveObject;
+					}
+					if (game.ui.mcInterface.btnRest != null) {
+						return game.ui.mcInterface.btnRest as InteractiveObject;
+					}
+				}
+			}
+			catch (err:Error) {
+			}
+			return null;
+		}
+
+		private function checkRestButtonHook():void {
+			var btn:InteractiveObject = getRestButton();
+			if (btn != null && btn != hookedRestBtn) {
+				if (hookedRestBtn != null) {
+					removeRestBtnListeners(hookedRestBtn);
+				}
+				hookedRestBtn = btn;
+				attachRestBtnListeners(hookedRestBtn);
+			}
+		}
+
+		private function attachRestBtnListeners(btn:InteractiveObject):void {
+			try {
+				btn.addEventListener(MouseEvent.MOUSE_DOWN, onRestMouseDown, false, 9999, true);
+				btn.addEventListener(MouseEvent.MOUSE_UP, onRestMouseUp, false, 9999, true);
+				btn.addEventListener(MouseEvent.CLICK, onRestClick, false, 9999, true);
+				btn.addEventListener(MouseEvent.ROLL_OUT, onRestRollOut, false, 9999, true);
+				btn.addEventListener(Event.REMOVED_FROM_STAGE, onRestRemovedFromStage, false, 0, true);
+			}
+			catch (err:Error) {
+			}
+		}
+
+		private function removeRestBtnListeners(btn:InteractiveObject):void {
+			try {
+				btn.removeEventListener(MouseEvent.MOUSE_DOWN, onRestMouseDown, false);
+				btn.removeEventListener(MouseEvent.MOUSE_UP, onRestMouseUp, false);
+				btn.removeEventListener(MouseEvent.CLICK, onRestClick, false);
+				btn.removeEventListener(MouseEvent.ROLL_OUT, onRestRollOut, false);
+				btn.removeEventListener(Event.REMOVED_FROM_STAGE, onRestRemovedFromStage, false);
+			}
+			catch (err:Error) {
+			}
+		}
+
+		private function onRestRemovedFromStage(e:Event):void {
+			hookedRestBtn = null;
+		}
+
+		private function onRestMouseDown(e:MouseEvent):void {
+			isRestHoldTriggered = false;
+			if (restHoldTimer == null) {
+				restHoldTimer = new Timer(REST_HOLD_DURATION_MS, 1);
+				restHoldTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onRestHoldComplete);
+			}
+			restHoldTimer.reset();
+			restHoldTimer.start();
+
+			if (stage != null) {
+				stage.addEventListener(MouseEvent.MOUSE_UP, onStageMouseUpForRest, false, 0, true);
+			}
+		}
+
+		private function onStageMouseUpForRest(e:MouseEvent):void {
+			if (stage != null) {
+				stage.removeEventListener(MouseEvent.MOUSE_UP, onStageMouseUpForRest);
+			}
+			if (restHoldTimer != null && restHoldTimer.running) {
+				restHoldTimer.stop();
+			}
+		}
+
+		private function onRestMouseUp(e:MouseEvent):void {
+			if (restHoldTimer != null && restHoldTimer.running) {
+				restHoldTimer.stop();
+			}
+		}
+
+		private function onRestRollOut(e:MouseEvent):void {
+			if (restHoldTimer != null && restHoldTimer.running) {
+				restHoldTimer.stop();
+			}
+		}
+
+		private function onRestHoldComplete(e:TimerEvent):void {
+			isRestHoldTriggered = true;
+			triggerGameRest();
+		}
+
+		private function triggerGameRest():void {
+			try {
+				if (game != null && game.world != null) {
+					if (game.ui != null && game.ui.mcInterface != null && game.ui.mcInterface.mcMenu != null) {
+						if ("handleMenu" in game.ui.mcInterface.mcMenu) {
+							game.ui.mcInterface.mcMenu.handleMenu(null);
+						}
+					}
+					game.world.rest();
+				}
+			}
+			catch (err:Error) {
+			}
+		}
+
+		private function onRestClick(e:MouseEvent):void {
+			e.stopImmediatePropagation();
+			if (restHoldTimer != null && restHoldTimer.running) {
+				restHoldTimer.stop();
+			}
+
+			if (!isRestHoldTriggered) {
+				toggleMenuBar();
+			}
+			isRestHoldTriggered = false;
+		}
+
+		public function toggleMenuBar():void {
+			if (menuBar == null) {
+				return;
+			}
+			menuBar.visible = !menuBar.visible;
+			saveMenuBarVisibility(menuBar.visible);
+			if (!menuBar.visible) {
+				closeDropdown();
+				closeActionDropdown();
+			}
+		}
+
+		private function loadMenuBarVisibility():Boolean {
+			try {
+				var so:SharedObject = SharedObject.getLocal(SO_KEY);
+				if (so != null && so.data != null && so.data.hasOwnProperty(PREF_MENU_BAR_VISIBLE)) {
+					return Boolean(so.data[PREF_MENU_BAR_VISIBLE]);
+				}
+			}
+			catch (e:Error) {
+			}
+			return false;
+		}
+
+		private function saveMenuBarVisibility(visible:Boolean):void {
+			try {
+				var so:SharedObject = SharedObject.getLocal(SO_KEY);
+				if (so != null && so.data != null) {
+					so.data[PREF_MENU_BAR_VISIBLE] = visible;
+					so.flush();
+				}
+			}
+			catch (e:Error) {
+			}
 		}
 
 	}

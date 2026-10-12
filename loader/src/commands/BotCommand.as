@@ -14,6 +14,10 @@ package commands {
 		public static const TYPE_TRANSFER_TO_BANK:String = "transfer_to_bank";
 		public static const TYPE_TRANSFER_TO_INVENTORY:String = "transfer_to_inventory";
 		public static const TYPE_NOTIF:String = "notif";
+		public static const TYPE_LABEL:String = "label";
+		public static const TYPE_GOTO_LABEL:String = "goto_label";
+		public static const TYPE_RESTART_BOT:String = "restart_bot";
+		public static const TYPE_STOP_BOT:String = "stop_bot";
 
 		public var type:String;
 
@@ -49,6 +53,14 @@ package commands {
 					return TransferToInventoryCommand.fromJSON(data);
 				case TYPE_NOTIF:
 					return NotifCommand.fromJSON(data);
+				case TYPE_LABEL:
+					return LabelCommand.fromJSON(data);
+				case TYPE_GOTO_LABEL:
+					return GotoLabelCommand.fromJSON(data);
+				case TYPE_RESTART_BOT:
+					return RestartBotCommand.fromJSON(data);
+				case TYPE_STOP_BOT:
+					return StopBotCommand.fromJSON(data);
 				default:
 					return null;
 			}
@@ -104,6 +116,22 @@ package commands {
 
 		public static function createNotif(message:String, title:String = "Bot Alert"):NotifCommand {
 			return new NotifCommand(message, title);
+		}
+
+		public static function createLabel(labelName:String):LabelCommand {
+			return new LabelCommand(labelName);
+		}
+
+		public static function createGotoLabel(labelName:String):GotoLabelCommand {
+			return new GotoLabelCommand(labelName);
+		}
+
+		public static function createRestartBot():RestartBotCommand {
+			return new RestartBotCommand();
+		}
+
+		public static function createStopBot():StopBotCommand {
+			return new StopBotCommand();
 		}
 
 		public function execute(bot:BotEngine):void {

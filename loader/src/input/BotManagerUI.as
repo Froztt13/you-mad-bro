@@ -40,6 +40,10 @@ package input {
 	import commands.TransferToBankCommand;
 	import commands.TransferToInventoryCommand;
 	import commands.NotifCommand;
+	import commands.LabelCommand;
+	import commands.GotoLabelCommand;
+	import commands.RestartBotCommand;
+	import commands.StopBotCommand;
 
 	public class BotManagerUI extends BaseModal {
 
@@ -75,6 +79,7 @@ package input {
 		private var tabMapBtn:MyButton;
 		private var tabItemBtn:MyButton;
 		private var tabMiscBtn:MyButton;
+		private var tabSettingsBtn:MyButton;
 		private var loadBtn:MyButton;
 		private var saveBtn:MyButton;
 
@@ -85,7 +90,8 @@ package input {
 		private var mapTab:Sprite;
 		private var itemTab:Sprite;
 		private var miscTab:Sprite;
-		private var currentTab:int = 0; // 0=Combat, 1=Quest, 2=Map, 3=Item, 4=Misc
+		private var settingsTab:Sprite;
+		private var currentTab:int = 0; // 0=Combat, 1=Quest, 2=Map, 3=Item, 4=Misc, 5=Settings
 
 		// Item Tab Fields
 		private var itemTransferInput:MyTextField;
@@ -105,7 +111,7 @@ package input {
 		private var killItemQtyInput:MyTextField;
 		private var huntModeCheckbox:MyCheckbox;
 
-		// Misc Tab Fields
+		// Settings Tab Fields
 		private var botRepeatCheckbox:MyCheckbox;
 		private var leaveCombatCheckbox:MyCheckbox;
 		private var notifyDropsCheckbox:MyCheckbox;
@@ -149,6 +155,17 @@ package input {
 		private var editNotifTitleInput:MyTextField;
 		private var editNotifMsgInput:MyTextField;
 
+		private var editLabelInput:MyTextField;
+
+		// Misc Tab Fields
+		private var miscLabelInput:MyTextField;
+
+		// Current Labels Modal Overlay
+		private var currentLabelsOverlay:Sprite;
+		private var currentLabelsCountLabel:TextField;
+		private var currentLabelsScroll:ScrollContainer;
+		private var emptyLabelsLabel:TextField;
+
 		public function BotManagerUI(game:Object = null) {
 			super(MODAL_W, MODAL_H, "Bot Manager", "Script Builder");
 			instance = this;
@@ -171,6 +188,7 @@ package input {
 			addChild(whitelistModal);
 
 			buildEditModalOverlay();
+			buildCurrentLabelsModalOverlay();
 
 			if (Config.isAndroid) {
 				const pipBtn:MyButton = new MyButton("PiP", 38, 22, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
@@ -315,30 +333,35 @@ package input {
 			const tabH:Number = 26;
 			const gap:Number = 4;
 
-			tabCombatBtn = new MyButton("Combat", 52, tabH, MyButton.TYPE_SECONDARY, onTabCombatClick);
+			tabCombatBtn = new MyButton("Combat", 50, tabH, MyButton.TYPE_SECONDARY, onTabCombatClick);
 			tabCombatBtn.x = COL_RIGHT_X;
 			tabCombatBtn.y = topY;
 			addChild(tabCombatBtn);
 
-			tabQuestBtn = new MyButton("Quest", 48, tabH, MyButton.TYPE_SECONDARY, onTabQuestClick);
-			tabQuestBtn.x = tabCombatBtn.x + 52 + gap;
+			tabQuestBtn = new MyButton("Quest", 46, tabH, MyButton.TYPE_SECONDARY, onTabQuestClick);
+			tabQuestBtn.x = tabCombatBtn.x + 50 + gap;
 			tabQuestBtn.y = topY;
 			addChild(tabQuestBtn);
 
-			tabMapBtn = new MyButton("Map", 46, tabH, MyButton.TYPE_SECONDARY, onTabMapClick);
-			tabMapBtn.x = tabQuestBtn.x + 48 + gap;
+			tabMapBtn = new MyButton("Map", 42, tabH, MyButton.TYPE_SECONDARY, onTabMapClick);
+			tabMapBtn.x = tabQuestBtn.x + 46 + gap;
 			tabMapBtn.y = topY;
 			addChild(tabMapBtn);
 
-			tabItemBtn = new MyButton("Item", 46, tabH, MyButton.TYPE_SECONDARY, onTabItemClick);
-			tabItemBtn.x = tabMapBtn.x + 46 + gap;
+			tabItemBtn = new MyButton("Item", 42, tabH, MyButton.TYPE_SECONDARY, onTabItemClick);
+			tabItemBtn.x = tabMapBtn.x + 42 + gap;
 			tabItemBtn.y = topY;
 			addChild(tabItemBtn);
 
-			tabMiscBtn = new MyButton("Misc", 46, tabH, MyButton.TYPE_SECONDARY, onTabMiscClick);
-			tabMiscBtn.x = tabItemBtn.x + 46 + gap;
+			tabMiscBtn = new MyButton("Misc", 44, tabH, MyButton.TYPE_SECONDARY, onTabMiscClick);
+			tabMiscBtn.x = tabItemBtn.x + 42 + gap;
 			tabMiscBtn.y = topY;
 			addChild(tabMiscBtn);
+
+			tabSettingsBtn = new MyButton("Settings", 58, tabH, MyButton.TYPE_SECONDARY, onTabSettingsClick);
+			tabSettingsBtn.x = tabMiscBtn.x + 44 + gap;
+			tabSettingsBtn.y = topY;
+			addChild(tabSettingsBtn);
 
 			tabContentContainer = new Sprite();
 			tabContentContainer.x = COL_RIGHT_X;
@@ -355,6 +378,7 @@ package input {
 			buildMapTab();
 			buildItemTab();
 			buildMiscTab();
+			buildSettingsTab();
 		}
 
 		// =========================================================================
@@ -648,7 +672,7 @@ package input {
 		}
 
 		// =========================================================================
-		// 4. Item Tab (TransferToBank & TransferToInventory)
+		// 4. Item Tab (TransferToBank, TransferToInventory, Drops Whitelist)
 		// =========================================================================
 		private function buildItemTab():void {
 			itemTab = new Sprite();
@@ -683,16 +707,143 @@ package input {
 			addInvBtn.y = 60;
 			itemTab.addChild(addInvBtn);
 
+			// Divider between Transfer and Whitelist
+			const divWl:Shape = new Shape();
+			divWl.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			divWl.graphics.moveTo(0, 98);
+			divWl.graphics.lineTo(COL_RIGHT_W - 20, 98);
+			itemTab.addChild(divWl);
+
+			// 2. Drops Whitelist Section
+			const wlSectionLbl:TextField = UIUtils.createLabel("Drops Whitelist:", UIUtils.TEXT_MUTED, 10.5);
+			wlSectionLbl.y = 108;
+			itemTab.addChild(wlSectionLbl);
+
+			whitelistStatusLabel = UIUtils.createLabel("No items whitelisted.", UIUtils.TEXT_DIM, 9.5);
+			whitelistStatusLabel.x = 94;
+			whitelistStatusLabel.y = 108;
+			whitelistStatusLabel.width = COL_RIGHT_W - 20 - 94;
+			itemTab.addChild(whitelistStatusLabel);
+
+			const manageWlBtn:MyButton = new MyButton("Manage Whitelist", 124, 24, MyButton.TYPE_PRIMARY, onOpenWhitelistModal);
+			manageWlBtn.x = 0;
+			manageWlBtn.y = 130;
+			itemTab.addChild(manageWlBtn);
+
+			notifyDropsCheckbox = new MyCheckbox("Drop Notif", botEngine.notifyItemDrops, function(val:Boolean):void {
+					botEngine.notifyItemDrops = val;
+				}, 10.5);
+			notifyDropsCheckbox.x = 132;
+			notifyDropsCheckbox.y = 134;
+			itemTab.addChild(notifyDropsCheckbox);
+
+			updateWhitelistStatus();
+
 			tabContentContainer.addChild(itemTab);
 		}
 
 		// =========================================================================
-		// 5. Misc Tab (Wait Delay, Notif Command, Whitelist Drops, Script Load & Save)
+		// 5. Misc Tab (Label, Goto Label, Restart Bot, Stop Bot)
 		// =========================================================================
 		private function buildMiscTab():void {
 			miscTab = new Sprite();
 			miscTab.x = 10;
 			miscTab.y = 10;
+
+			// 1. Label Section (1 input, 1 Add btn, 1 Goto btn)
+			const lblTitle:TextField = UIUtils.createLabel("Label:", UIUtils.TEXT_MUTED, 10.5);
+			lblTitle.y = 4;
+			miscTab.addChild(lblTitle);
+
+			const currentLabelsBtn:Sprite = new Sprite();
+			currentLabelsBtn.buttonMode = true;
+			currentLabelsBtn.useHandCursor = true;
+			currentLabelsBtn.x = 42;
+			currentLabelsBtn.y = 4;
+
+			const currentLabelsLink:TextField = UIUtils.createLabel("[Current Labels]", 0x38bdf8, 9.5, false);
+			currentLabelsLink.selectable = false;
+			currentLabelsLink.mouseEnabled = false;
+			currentLabelsBtn.addChild(currentLabelsLink);
+
+			currentLabelsBtn.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent):void {
+					currentLabelsLink.textColor = 0x93c5fd;
+				});
+			currentLabelsBtn.addEventListener(MouseEvent.MOUSE_OUT, function(e:MouseEvent):void {
+					currentLabelsLink.textColor = 0x38bdf8;
+				});
+			currentLabelsBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					openCurrentLabelsModal();
+				});
+			miscTab.addChild(currentLabelsBtn);
+
+			miscLabelInput = new MyTextField(184, 24);
+			miscLabelInput.x = 0;
+			miscLabelInput.y = 22;
+			miscLabelInput.text = "";
+			miscLabelInput.addEventListener(Event.CHANGE, function(e:Event):void {
+					var sel:int = miscLabelInput.caretIndex;
+					miscLabelInput.text = miscLabelInput.text.toUpperCase();
+					miscLabelInput.setSelection(sel, sel);
+				});
+			miscTab.addChild(miscLabelInput);
+
+			const addLabelBtn:MyButton = new MyButton("Add", 66, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+					var name:String = miscLabelInput.trimmedText.toUpperCase();
+					if (name.length > 0) {
+						addBotCommand(BotCommand.createLabel(name));
+					}
+				});
+			addLabelBtn.x = 190;
+			addLabelBtn.y = 22;
+			miscTab.addChild(addLabelBtn);
+
+			const gotoLabelBtn:MyButton = new MyButton("Goto", 66, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+					var name:String = miscLabelInput.trimmedText.toUpperCase();
+					if (name.length > 0) {
+						addBotCommand(BotCommand.createGotoLabel(name));
+					}
+				});
+			gotoLabelBtn.x = 260;
+			gotoLabelBtn.y = 22;
+			miscTab.addChild(gotoLabelBtn);
+
+			// Divider between Label and Bot Controls
+			const div1:Shape = new Shape();
+			div1.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			div1.graphics.moveTo(0, 58);
+			div1.graphics.lineTo(COL_RIGHT_W - 20, 58);
+			miscTab.addChild(div1);
+
+			// 2. Bot Controls Section (Restart Bot, Stop Bot)
+			const ctrlTitle:TextField = UIUtils.createLabel("Bot Controls:", UIUtils.TEXT_MUTED, 10.5);
+			ctrlTitle.y = 66;
+			miscTab.addChild(ctrlTitle);
+
+			const restartBtn:MyButton = new MyButton("Restart Bot", 100, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+					addBotCommand(BotCommand.createRestartBot());
+				});
+			restartBtn.x = 0;
+			restartBtn.y = 86;
+			miscTab.addChild(restartBtn);
+
+			const stopCmdBtn:MyButton = new MyButton("Stop Bot", 100, 26, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
+					addBotCommand(BotCommand.createStopBot());
+				});
+			stopCmdBtn.x = 108;
+			stopCmdBtn.y = 86;
+			miscTab.addChild(stopCmdBtn);
+
+			tabContentContainer.addChild(miscTab);
+		}
+
+		// =========================================================================
+		// 6. Settings Tab (Wait Delay, Notif Command, Script Load & Save)
+		// =========================================================================
+		private function buildSettingsTab():void {
+			settingsTab = new Sprite();
+			settingsTab.x = 10;
+			settingsTab.y = 10;
 
 			// 1. Checkboxes Section
 			botRepeatCheckbox = new MyCheckbox("Bot Repeat", botEngine.loop, function(val:Boolean):void {
@@ -700,25 +851,25 @@ package input {
 				});
 			botRepeatCheckbox.x = 0;
 			botRepeatCheckbox.y = 0;
-			miscTab.addChild(botRepeatCheckbox);
+			settingsTab.addChild(botRepeatCheckbox);
 
 			leaveCombatCheckbox = new MyCheckbox("Leave combat on stop/pause", botEngine.leaveCombatOnStop, function(val:Boolean):void {
 					botEngine.leaveCombatOnStop = val;
 				});
 			leaveCombatCheckbox.x = 0;
 			leaveCombatCheckbox.y = 22;
-			miscTab.addChild(leaveCombatCheckbox);
+			settingsTab.addChild(leaveCombatCheckbox);
 
 			// 2. Wait Delay & Notif Command Section
 			const delayLbl:TextField = UIUtils.createLabel("Wait Delay (s):", UIUtils.TEXT_MUTED, 10.5);
 			delayLbl.y = 48;
-			miscTab.addChild(delayLbl);
+			settingsTab.addChild(delayLbl);
 
 			const delayInput:MyTextField = new MyTextField(60, 24);
 			delayInput.y = 66;
 			delayInput.text = "2";
 			delayInput.restrict = "0-9.";
-			miscTab.addChild(delayInput);
+			settingsTab.addChild(delayInput);
 
 			const addWaitBtn:MyButton = new MyButton("Add Delay", 74, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					var secs:Number = parseFloat(delayInput.text);
@@ -728,17 +879,17 @@ package input {
 				});
 			addWaitBtn.x = 68;
 			addWaitBtn.y = 66;
-			miscTab.addChild(addWaitBtn);
+			settingsTab.addChild(addWaitBtn);
 
 			// Notification Command Section
 			const notifLbl:TextField = UIUtils.createLabel("Notification Message:", UIUtils.TEXT_MUTED, 10.5);
 			notifLbl.y = 96;
-			miscTab.addChild(notifLbl);
+			settingsTab.addChild(notifLbl);
 
 			const notifInput:MyTextField = new MyTextField(160, 24);
 			notifInput.y = 114;
 			notifInput.text = "";
-			miscTab.addChild(notifInput);
+			settingsTab.addChild(notifInput);
 
 			const addNotifBtn:MyButton = new MyButton("Add Notif", 78, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (notifInput.trimmedText.length > 0) {
@@ -748,65 +899,33 @@ package input {
 				});
 			addNotifBtn.x = 168;
 			addNotifBtn.y = 114;
-			miscTab.addChild(addNotifBtn);
+			settingsTab.addChild(addNotifBtn);
 
-			// Divider between Commands and Whitelist
-			const div:Shape = new Shape();
-			div.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
-			div.graphics.moveTo(0, 146);
-			div.graphics.lineTo(COL_RIGHT_W - 20, 146);
-			miscTab.addChild(div);
-
-			// 3. Whitelist Drops Section
-			const wlSectionLbl:TextField = UIUtils.createLabel("Drops Whitelist:", UIUtils.TEXT_MUTED, 10.5);
-			wlSectionLbl.y = 154;
-			miscTab.addChild(wlSectionLbl);
-
-			whitelistStatusLabel = UIUtils.createLabel("No items whitelisted.", UIUtils.TEXT_DIM, 9.5);
-			whitelistStatusLabel.x = 94;
-			whitelistStatusLabel.y = 154;
-			whitelistStatusLabel.width = COL_RIGHT_W - 20 - 94;
-			miscTab.addChild(whitelistStatusLabel);
-
-			const manageWlBtn:MyButton = new MyButton("Manage Whitelist", 124, 24, MyButton.TYPE_PRIMARY, onOpenWhitelistModal);
-			manageWlBtn.x = 0;
-			manageWlBtn.y = 176;
-			miscTab.addChild(manageWlBtn);
-
-			notifyDropsCheckbox = new MyCheckbox("Drop Notif", botEngine.notifyItemDrops, function(val:Boolean):void {
-					botEngine.notifyItemDrops = val;
-				}, 10.5);
-			notifyDropsCheckbox.x = 132;
-			notifyDropsCheckbox.y = 180;
-			miscTab.addChild(notifyDropsCheckbox);
-
-			// Divider between Whitelist and Script Files
+			// Divider between Commands and Script Files
 			const div2:Shape = new Shape();
 			div2.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
-			div2.graphics.moveTo(0, 210);
-			div2.graphics.lineTo(COL_RIGHT_W - 20, 210);
-			miscTab.addChild(div2);
+			div2.graphics.moveTo(0, 148);
+			div2.graphics.lineTo(COL_RIGHT_W - 20, 148);
+			settingsTab.addChild(div2);
 
-			// 4. Script Files Section (Load & Save)
+			// 3. Script Files Section (Load & Save)
 			const scriptLbl:TextField = UIUtils.createLabel("Script Management:", UIUtils.TEXT_MUTED, 10.5);
-			scriptLbl.y = 218;
-			miscTab.addChild(scriptLbl);
+			scriptLbl.y = 156;
+			settingsTab.addChild(scriptLbl);
 
 			loadBtn = new MyButton("Load Script", 100, 26, MyButton.TYPE_MUTED, onLoadClick);
 			loadBtn.setColors(0x064e3b, 0x065f46, 0x059669, 0x10b981, 0xa7f3d0, 0xffffff);
 			loadBtn.x = 0;
-			loadBtn.y = 238;
-			miscTab.addChild(loadBtn);
+			loadBtn.y = 176;
+			settingsTab.addChild(loadBtn);
 
 			saveBtn = new MyButton("Save Script", 100, 26, MyButton.TYPE_MUTED, onSaveClick);
 			saveBtn.setColors(0x1e1b4b, 0x2e1065, 0x4338ca, 0x6366f1, 0xc7d2fe, 0xffffff);
 			saveBtn.x = 108;
-			saveBtn.y = 238;
-			miscTab.addChild(saveBtn);
+			saveBtn.y = 176;
+			settingsTab.addChild(saveBtn);
 
-			updateWhitelistStatus();
-
-			tabContentContainer.addChild(miscTab);
+			tabContentContainer.addChild(settingsTab);
 		}
 
 		public function switchTab(index:int):void {
@@ -817,20 +936,23 @@ package input {
 			tabMapBtn.setType(index == 2 ? MyButton.TYPE_PRIMARY : MyButton.TYPE_SECONDARY);
 			tabItemBtn.setType(index == 3 ? MyButton.TYPE_PRIMARY : MyButton.TYPE_SECONDARY);
 			tabMiscBtn.setType(index == 4 ? MyButton.TYPE_PRIMARY : MyButton.TYPE_SECONDARY);
+			tabSettingsBtn.setType(index == 5 ? MyButton.TYPE_PRIMARY : MyButton.TYPE_SECONDARY);
 
 			tabCombatBtn.active = (index == 0);
 			tabQuestBtn.active = (index == 1);
 			tabMapBtn.active = (index == 2);
 			tabItemBtn.active = (index == 3);
 			tabMiscBtn.active = (index == 4);
+			tabSettingsBtn.active = (index == 5);
 
 			combatTab.visible = (index == 0);
 			questTab.visible = (index == 1);
 			mapTab.visible = (index == 2);
 			itemTab.visible = (index == 3);
 			miscTab.visible = (index == 4);
+			settingsTab.visible = (index == 5);
 
-			if (index == 4) {
+			if (index == 3) {
 				updateWhitelistStatus();
 			}
 		}
@@ -853,6 +975,10 @@ package input {
 
 		private function onTabMiscClick(e:MouseEvent):void {
 			switchTab(4);
+		}
+
+		private function onTabSettingsClick(e:MouseEvent):void {
+			switchTab(5);
 		}
 
 		private function onKillModeOnceClick(e:MouseEvent):void {
@@ -1392,6 +1518,177 @@ package input {
 			addChild(editModalOverlay);
 		}
 
+		// =========================================================================
+		// Current Labels Modal Overlay
+		// =========================================================================
+		private function buildCurrentLabelsModalOverlay():void {
+			currentLabelsOverlay = new Sprite();
+			currentLabelsOverlay.visible = false;
+
+			// Dimmer
+			const dimmer:Shape = new Shape();
+			dimmer.graphics.beginFill(0x000000, 0.75);
+			dimmer.graphics.drawRoundRect(0, 0, MODAL_W, MODAL_H, 8);
+			dimmer.graphics.endFill();
+			currentLabelsOverlay.addChild(dimmer);
+
+			dimmer.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					closeCurrentLabelsModal();
+				});
+
+			// Card
+			const boxW:Number = 380;
+			const boxH:Number = 250;
+			const boxX:Number = int((MODAL_W - boxW) / 2);
+			const boxY:Number = int((MODAL_H - boxH) / 2);
+
+			const boxBg:Shape = new Shape();
+			UIUtils.drawRoundedRect(boxBg.graphics, boxX, boxY, boxW, boxH, 8, UIUtils.BG_DARK, 0.98, UIUtils.BORDER_NORMAL, 1);
+			boxBg.filters = [UIUtils.createShadow()];
+			currentLabelsOverlay.addChild(boxBg);
+
+			// Title & Subtitle
+			const title:TextField = UIUtils.createLabel("CURRENT LABELS", UIUtils.TEXT_WHITE, 12, true);
+			title.x = boxX + 16;
+			title.y = boxY + 12;
+			currentLabelsOverlay.addChild(title);
+
+			currentLabelsCountLabel = UIUtils.createLabel("", UIUtils.TEXT_DIM, 9.5, false);
+			currentLabelsCountLabel.x = boxX + 130;
+			currentLabelsCountLabel.y = boxY + 14;
+			currentLabelsCountLabel.width = 150;
+			currentLabelsOverlay.addChild(currentLabelsCountLabel);
+
+			const closeBtn:CloseButton = new CloseButton();
+			closeBtn.x = boxX + boxW - 32;
+			closeBtn.y = boxY + 10;
+			closeBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					closeCurrentLabelsModal();
+				});
+			currentLabelsOverlay.addChild(closeBtn);
+
+			// Divider under header
+			const div:Shape = new Shape();
+			div.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 1);
+			div.graphics.moveTo(boxX + 16, boxY + 36);
+			div.graphics.lineTo(boxX + boxW - 16, boxY + 36);
+			currentLabelsOverlay.addChild(div);
+
+			// Scroll Container
+			currentLabelsScroll = new ScrollContainer(boxW - 32, boxH - 52, 10, true);
+			currentLabelsScroll.x = boxX + 16;
+			currentLabelsScroll.y = boxY + 42;
+			currentLabelsOverlay.addChild(currentLabelsScroll);
+
+			emptyLabelsLabel = UIUtils.createLabel(
+					"No labels found in current script.\n\nAdd labels using the 'Add' button first.",
+					UIUtils.TEXT_DIM,
+					10.5,
+					false,
+					TextFormatAlign.CENTER
+				);
+			emptyLabelsLabel.width = boxW - 48;
+			emptyLabelsLabel.x = 8;
+			emptyLabelsLabel.y = 50;
+			emptyLabelsLabel.multiline = true;
+			emptyLabelsLabel.wordWrap = true;
+
+			addChild(currentLabelsOverlay);
+		}
+
+		private function openCurrentLabelsModal():void {
+			currentLabelsScroll.clearContent(true);
+
+			var labels:Array = [];
+			var cmds:Array = botEngine.commandList;
+			for (var i:int = 0; i < cmds.length; i++) {
+				var cmd:BotCommand = cmds[i] as BotCommand;
+				if (cmd is LabelCommand) {
+					var lcmd:LabelCommand = cmd as LabelCommand;
+					if (lcmd.labelName != null && lcmd.labelName.length > 0) {
+						labels.push({ "step": (i + 1), "name": lcmd.labelName });
+					}
+				}
+			}
+
+			if (labels.length == 0) {
+				currentLabelsCountLabel.text = "(0 labels)";
+				currentLabelsScroll.addItem(emptyLabelsLabel);
+				emptyLabelsLabel.visible = true;
+				currentLabelsScroll.updateScroll(0);
+			}
+			else {
+				emptyLabelsLabel.visible = false;
+				currentLabelsCountLabel.text = "(" + labels.length + " label" + (labels.length == 1 ? "" : "s") + ")";
+
+				const rowW:Number = currentLabelsScroll.contentWidth;
+				const rowH:Number = 26;
+
+				for (var j:int = 0; j < labels.length; j++) {
+					var item:Object = labels[j];
+					var row:Sprite = buildLabelItemRow(item, rowW, rowH);
+					row.y = j * (rowH + 4);
+					currentLabelsScroll.addItem(row);
+				}
+
+				currentLabelsScroll.updateScroll(labels.length * (rowH + 4));
+			}
+
+			currentLabelsOverlay.visible = true;
+			setChildIndex(currentLabelsOverlay, numChildren - 1);
+		}
+
+		private function buildLabelItemRow(item:Object, w:Number, h:Number):Sprite {
+			const row:Sprite = new Sprite();
+			row.buttonMode = true;
+			row.useHandCursor = true;
+
+			const bg:Shape = new Shape();
+			UIUtils.drawRoundedRect(bg.graphics, 0, 0, w, h, 4, 0x0f172a, 0.95, 0x1e293b, 1);
+			row.addChild(bg);
+
+			const stepTf:TextField = UIUtils.createLabel("#" + item.step, 0x60a5fa, 9.5, true);
+			stepTf.x = 6;
+			stepTf.y = 5;
+			stepTf.width = 30;
+			row.addChild(stepTf);
+
+			const nameTf:TextField = UIUtils.createLabel(String(item.name), UIUtils.TEXT_MAIN, 10, true);
+			nameTf.x = 38;
+			nameTf.y = 5;
+			nameTf.width = w - 100;
+			row.addChild(nameTf);
+
+			const selectTf:TextField = UIUtils.createLabel("Select ↵", 0x38bdf8, 9.5, false, TextFormatAlign.RIGHT);
+			selectTf.x = w - 60;
+			selectTf.y = 5;
+			selectTf.width = 54;
+			row.addChild(selectTf);
+
+			row.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent):void {
+					UIUtils.drawRoundedRect(bg.graphics, 0, 0, w, h, 4, 0x1e293b, 1.0, 0x38bdf8, 1);
+					nameTf.textColor = 0xffffff;
+				});
+			row.addEventListener(MouseEvent.MOUSE_OUT, function(e:MouseEvent):void {
+					UIUtils.drawRoundedRect(bg.graphics, 0, 0, w, h, 4, 0x0f172a, 0.95, 0x1e293b, 1);
+					nameTf.textColor = UIUtils.TEXT_MAIN;
+				});
+			row.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					if (miscLabelInput != null) {
+						miscLabelInput.text = String(item.name).toUpperCase();
+					}
+					closeCurrentLabelsModal();
+				});
+
+			return row;
+		}
+
+		private function closeCurrentLabelsModal():void {
+			if (currentLabelsOverlay != null) {
+				currentLabelsOverlay.visible = false;
+			}
+		}
+
 		private function openEditCommandModal(index:int, cmd:BotCommand):void {
 			if (cmd == null)
 				return;
@@ -1634,6 +1931,45 @@ package input {
 				editNotifMsgInput.text = ncmd.message;
 				editModalFormContainer.addChild(editNotifMsgInput);
 			}
+			else if (cmd is LabelCommand) {
+				var lcmd:LabelCommand = cmd as LabelCommand;
+
+				var lLbl:TextField = UIUtils.createLabel("Label Name:", UIUtils.TEXT_MUTED, 10.5);
+				lLbl.y = 20;
+				editModalFormContainer.addChild(lLbl);
+
+				editLabelInput = new MyTextField(formW, 24);
+				editLabelInput.y = 40;
+				editLabelInput.text = lcmd.labelName != null ? lcmd.labelName.toUpperCase() : "";
+				editLabelInput.addEventListener(Event.CHANGE, function(e:Event):void {
+						var sel:int = editLabelInput.caretIndex;
+						editLabelInput.text = editLabelInput.text.toUpperCase();
+						editLabelInput.setSelection(sel, sel);
+					});
+				editModalFormContainer.addChild(editLabelInput);
+			}
+			else if (cmd is GotoLabelCommand) {
+				var glcmd:GotoLabelCommand = cmd as GotoLabelCommand;
+
+				var glLbl:TextField = UIUtils.createLabel("Target Label Name:", UIUtils.TEXT_MUTED, 10.5);
+				glLbl.y = 20;
+				editModalFormContainer.addChild(glLbl);
+
+				editLabelInput = new MyTextField(formW, 24);
+				editLabelInput.y = 40;
+				editLabelInput.text = glcmd.labelName != null ? glcmd.labelName.toUpperCase() : "";
+				editLabelInput.addEventListener(Event.CHANGE, function(e:Event):void {
+						var sel:int = editLabelInput.caretIndex;
+						editLabelInput.text = editLabelInput.text.toUpperCase();
+						editLabelInput.setSelection(sel, sel);
+					});
+				editModalFormContainer.addChild(editLabelInput);
+			}
+			else if (cmd is RestartBotCommand || cmd is StopBotCommand) {
+				var noParamLbl:TextField = UIUtils.createLabel("This command does not have editable parameters.", UIUtils.TEXT_MUTED, 10.5);
+				noParamLbl.y = 30;
+				editModalFormContainer.addChild(noParamLbl);
+			}
 
 			editModalOverlay.visible = true;
 			setChildIndex(editModalOverlay, numChildren - 1);
@@ -1740,6 +2076,23 @@ package input {
 					ncmdEdit.title = tText;
 				}
 				ncmdEdit.message = mText;
+			}
+			else if (editingCmd is LabelCommand) {
+				var lcmdEdit:LabelCommand = editingCmd as LabelCommand;
+				var lName:String = editLabelInput.trimmedText.toUpperCase();
+				if (lName.length > 0) {
+					lcmdEdit.labelName = lName;
+				}
+			}
+			else if (editingCmd is GotoLabelCommand) {
+				var glcmdEdit:GotoLabelCommand = editingCmd as GotoLabelCommand;
+				var glName:String = editLabelInput.trimmedText.toUpperCase();
+				if (glName.length > 0) {
+					glcmdEdit.labelName = glName;
+				}
+			}
+			else if (editingCmd is RestartBotCommand || editingCmd is StopBotCommand) {
+				// No editable parameters to update
 			}
 
 			editModalOverlay.visible = false;
