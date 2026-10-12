@@ -179,6 +179,7 @@ package {
 			}
 
 			log("[Game] ERR uncaught: " + errText);
+			AppLogUI.error(errText);
 
 			if (loadState != STATE_READY) {
 				showError("Global Uncaught Error:\n" + errText);
@@ -195,6 +196,14 @@ package {
 		private function initStage():void {
 			if (stage != null) {
 				appStage = stage;
+				try {
+					if ("loaderInfo" in stage && stage.loaderInfo != null && "uncaughtErrorEvents" in stage.loaderInfo && stage.loaderInfo.uncaughtErrorEvents != null) {
+						stage.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalUncaughtError);
+					}
+				}
+				catch (errUncaught:Error) {
+				}
+
 				try {
 					stage.quality = StageQuality.LOW;
 					stage.scaleMode = StageScaleMode.SHOW_ALL;
@@ -360,6 +369,10 @@ package {
 						log("[Map] Downloaded " + bytes.length + " bytes for: " + url);
 						const ldr:Loader = new Loader();
 
+						if ("uncaughtErrorEvents" in ldr && ldr.uncaughtErrorEvents != null) {
+							ldr.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalUncaughtError);
+						}
+
 						if (gameMovieClip != null && gameMovieClip.world != null) {
 							gameMovieClip.world.ldr_map = ldr;
 						}
@@ -389,6 +402,10 @@ package {
 			}
 			prepareContext(context);
 			log("[Asset] Queueing: " + url);
+
+			if (ldr != null && "uncaughtErrorEvents" in ldr && ldr.uncaughtErrorEvents != null) {
+				ldr.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalUncaughtError);
+			}
 
 			loadBinary(url,
 					function(bytes:ByteArray):void {
@@ -424,6 +441,10 @@ package {
 			}
 			prepareContext(context);
 			log("[Mobile] Loading: " + url);
+
+			if (ldr != null && "uncaughtErrorEvents" in ldr && ldr.uncaughtErrorEvents != null) {
+				ldr.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalUncaughtError);
+			}
 
 			loadBinary(url,
 					function(bytes:ByteArray):void {
@@ -547,6 +568,14 @@ package {
 
 				stage.addChild(gameMovieClip);
 				stage.setChildIndex(gameMovieClip, 0);
+
+				try {
+					if (gameMovieClip != null && "loaderInfo" in gameMovieClip && gameMovieClip.loaderInfo != null && "uncaughtErrorEvents" in gameMovieClip.loaderInfo && gameMovieClip.loaderInfo.uncaughtErrorEvents != null) {
+						gameMovieClip.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalUncaughtError);
+					}
+				}
+				catch (errMC:Error) {
+				}
 
 				try {
 					stage.quality = StageQuality.LOW;
@@ -776,6 +805,9 @@ package {
 
 						if ("uncaughtErrorEvents" in ldr && ldr.uncaughtErrorEvents != null) {
 							ldr.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, function(e:UncaughtErrorEvent):void {
+									if (e != null) {
+										e.preventDefault();
+									}
 									var errStr:String = "";
 									if (e.error is Error) {
 										var err:Error = e.error as Error;
@@ -790,7 +822,10 @@ package {
 									else {
 										errStr = String(e.error);
 									}
-									showError("SWF Runtime/Verify Error:\n" + errStr);
+									AppLogUI.error(errStr);
+									if (loadState != STATE_READY) {
+										showError("SWF Runtime/Verify Error:\n" + errStr);
+									}
 								});
 						}
 
