@@ -58,26 +58,26 @@ package input.bot_manager.tabs {
 			addChild(condLbl);
 
 			const btnW:Number = 96;
-			const btnH:Number = 22;
+			const btnH:Number = 24;
 
 			killModeOnceBtn = new MyButton("Kill Once", btnW, btnH, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
 					setKillMode(KillCommand.MODE_NONE);
 				});
-			killModeOnceBtn.y = 88;
+			killModeOnceBtn.y = 86;
 			addChild(killModeOnceBtn);
 
 			killModeCountBtn = new MyButton("Kill Count", btnW, btnH, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
 					setKillMode(KillCommand.MODE_COUNT);
 				});
 			killModeCountBtn.x = btnW + 6;
-			killModeCountBtn.y = 88;
+			killModeCountBtn.y = 86;
 			addChild(killModeCountBtn);
 
 			killModeItemBtn = new MyButton("Kill for Items", 112, btnH, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
 					setKillMode(KillCommand.MODE_ITEM);
 				});
 			killModeItemBtn.x = (btnW + 6) * 2;
-			killModeItemBtn.y = 88;
+			killModeItemBtn.y = 86;
 			addChild(killModeItemBtn);
 
 			// Kill Count Section
@@ -124,7 +124,7 @@ package input.bot_manager.tabs {
 			addChild(huntModeCheckbox);
 
 			// Add Combat Command Button
-			addCombatBtn = new MyButton("Add Combat Command", contentW, 26, MyButton.TYPE_PRIMARY, onAddCombatCommandClick);
+			addCombatBtn = new MyButton("Add Combat Command", contentW, 24, MyButton.TYPE_PRIMARY, onAddCombatCommandClick);
 			addCombatBtn.y = 212;
 			addChild(addCombatBtn);
 

@@ -37,14 +37,14 @@ package input.bot_manager.tabs {
 			// 1. Checkboxes Section
 			botRepeatCheckbox = new MyCheckbox("Bot Repeat", manager.botEngine.loop, function(val:Boolean):void {
 					manager.botEngine.loop = val;
-				});
+				}, 10.5);
 			botRepeatCheckbox.x = 0;
 			botRepeatCheckbox.y = 0;
 			addChild(botRepeatCheckbox);
 
 			leaveCombatCheckbox = new MyCheckbox("Leave combat on stop/pause", manager.botEngine.leaveCombatOnStop, function(val:Boolean):void {
 					manager.botEngine.leaveCombatOnStop = val;
-				});
+				}, 10.5);
 			leaveCombatCheckbox.x = 0;
 			leaveCombatCheckbox.y = 22;
 			addChild(leaveCombatCheckbox);
@@ -102,7 +102,7 @@ package input.bot_manager.tabs {
 			scriptLbl.y = 156;
 			addChild(scriptLbl);
 
-			loadBtn = new MyButton("Load Script", 100, 26, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
+			loadBtn = new MyButton("Load Script", 100, 24, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
 					manager.openLoadModal();
 				});
 			loadBtn.setColors(0x064e3b, 0x065f46, 0x059669, 0x10b981, 0xa7f3d0, 0xffffff);
@@ -110,7 +110,7 @@ package input.bot_manager.tabs {
 			loadBtn.y = 176;
 			addChild(loadBtn);
 
-			saveBtn = new MyButton("Save Script", 100, 26, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
+			saveBtn = new MyButton("Save Script", 100, 24, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
 					manager.openSaveModal();
 				});
 			saveBtn.setColors(0x1e1b4b, 0x2e1065, 0x4338ca, 0x6366f1, 0xc7d2fe, 0xffffff);

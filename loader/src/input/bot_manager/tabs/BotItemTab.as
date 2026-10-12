@@ -33,49 +33,50 @@ package input.bot_manager.tabs {
 		private function buildUI():void {
 			const contentW:Number = BotManagerUI.COL_RIGHT_W - 20;
 
+			// 1. Transfer Section
 			const itemLbl:TextField = UIUtils.createLabel("Item Name:", UIUtils.TEXT_MUTED, 10.5);
 			itemLbl.x = 0;
-			itemLbl.y = 6;
+			itemLbl.y = 4;
 			addChild(itemLbl);
 
 			itemTransferInput = new MyTextField(contentW, 24);
 			itemTransferInput.x = 0;
-			itemTransferInput.y = 24;
+			itemTransferInput.y = 22;
 			addChild(itemTransferInput);
 
-			const addBankBtn:MyButton = new MyButton("Transfer To Bank", 130, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+			const addBankBtn:MyButton = new MyButton("Transfer To Bank", 130, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (itemTransferInput.trimmedText.length > 0) {
 						manager.addBotCommand(new TransferToBankCommand(itemTransferInput.trimmedText));
 					}
 				});
 			addBankBtn.x = 0;
-			addBankBtn.y = 60;
+			addBankBtn.y = 52;
 			addChild(addBankBtn);
 
-			const addInvBtn:MyButton = new MyButton("Transfer To Inv", 130, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+			const addInvBtn:MyButton = new MyButton("Transfer To Inv", 130, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					if (itemTransferInput.trimmedText.length > 0) {
 						manager.addBotCommand(new TransferToInventoryCommand(itemTransferInput.trimmedText));
 					}
 				});
 			addInvBtn.x = 138;
-			addInvBtn.y = 60;
+			addInvBtn.y = 52;
 			addChild(addInvBtn);
 
-			// Divider between Transfer and Whitelist
+			// Divider between Transfer and Whitelist (aligned with MapTab at y=84)
 			const divWl:Shape = new Shape();
 			divWl.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
-			divWl.graphics.moveTo(0, 98);
-			divWl.graphics.lineTo(contentW, 98);
+			divWl.graphics.moveTo(0, 84);
+			divWl.graphics.lineTo(contentW, 84);
 			addChild(divWl);
 
-			// 2. Drops Whitelist Section
+			// 2. Drops Whitelist Section (aligned with MapTab at y=92)
 			const wlSectionLbl:TextField = UIUtils.createLabel("Drops Whitelist:", UIUtils.TEXT_MUTED, 10.5);
-			wlSectionLbl.y = 108;
+			wlSectionLbl.y = 92;
 			addChild(wlSectionLbl);
 
-			whitelistStatusLabel = UIUtils.createLabel("No items whitelisted.", UIUtils.TEXT_DIM, 9.5);
+			whitelistStatusLabel = UIUtils.createLabel("No items whitelisted.", UIUtils.TEXT_DIM, 10.5);
 			whitelistStatusLabel.x = 94;
-			whitelistStatusLabel.y = 108;
+			whitelistStatusLabel.y = 92;
 			whitelistStatusLabel.width = contentW - 94;
 			addChild(whitelistStatusLabel);
 
@@ -83,14 +84,14 @@ package input.bot_manager.tabs {
 					manager.openWhitelistModal();
 				});
 			manageWlBtn.x = 0;
-			manageWlBtn.y = 130;
+			manageWlBtn.y = 114;
 			addChild(manageWlBtn);
 
 			notifyDropsCheckbox = new MyCheckbox("Drop Notif", manager.botEngine.notifyItemDrops, function(val:Boolean):void {
 					manager.botEngine.notifyItemDrops = val;
 				}, 10.5);
 			notifyDropsCheckbox.x = 132;
-			notifyDropsCheckbox.y = 134;
+			notifyDropsCheckbox.y = 117;
 			addChild(notifyDropsCheckbox);
 
 			updateWhitelistStatus();

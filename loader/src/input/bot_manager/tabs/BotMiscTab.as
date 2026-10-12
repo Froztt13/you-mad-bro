@@ -111,14 +111,14 @@ package input.bot_manager.tabs {
 			ctrlTitle.y = 66;
 			addChild(ctrlTitle);
 
-			const restartBtn:MyButton = new MyButton("Restart Bot", 100, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+			const restartBtn:MyButton = new MyButton("Restart Bot", 100, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					manager.addBotCommand(new RestartBotCommand());
 				});
 			restartBtn.x = 0;
 			restartBtn.y = 86;
 			addChild(restartBtn);
 
-			const stopCmdBtn:MyButton = new MyButton("Stop Bot", 100, 26, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
+			const stopCmdBtn:MyButton = new MyButton("Stop Bot", 100, 24, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
 					manager.addBotCommand(new StopBotCommand());
 				});
 			stopCmdBtn.x = 108;
@@ -149,12 +149,12 @@ package input.bot_manager.tabs {
 			addCondBtn.y = 150;
 			addChild(addCondBtn);
 
-			miscCondVar1Label = UIUtils.createLabel("Name:", UIUtils.TEXT_MUTED, 10);
+			miscCondVar1Label = UIUtils.createLabel("Name:", UIUtils.TEXT_MUTED, 10.5);
 			miscCondVar1Label.x = 0;
 			miscCondVar1Label.y = 180;
 			addChild(miscCondVar1Label);
 
-			miscCondVar2Label = UIUtils.createLabel("Qty:", UIUtils.TEXT_MUTED, 10);
+			miscCondVar2Label = UIUtils.createLabel("Qty:", UIUtils.TEXT_MUTED, 10.5);
 			miscCondVar2Label.x = 252;
 			miscCondVar2Label.y = 180;
 			addChild(miscCondVar2Label);
