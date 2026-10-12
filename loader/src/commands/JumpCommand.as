@@ -1,16 +1,17 @@
 package commands {
 
 	import engine.BotEngine;
+	import engine.MapCommands;
 
 	public class JumpCommand extends BotCommand {
 
 		public var cell:String = "Enter";
-		public var pad:String = "Spawn";
+		public var pad:String = "*";
 
-		public function JumpCommand(cell:String = "Enter", pad:String = "Spawn") {
+		public function JumpCommand(cell:String = "Enter", pad:String = "*") {
 			super(BotCommand.TYPE_JUMP);
 			this.cell = (cell != null && cell.length > 0) ? cell : "Enter";
-			this.pad = (pad != null && pad.length > 0) ? pad : "Spawn";
+			this.pad = (pad != null && pad.length > 0) ? pad : "*";
 		}
 
 		override public function toJSON():Object {
@@ -26,7 +27,7 @@ package commands {
 				return null;
 			return new JumpCommand(
 					data.cell || "Enter",
-					data.pad || "Spawn"
+					data.pad || "*"
 				);
 		}
 
@@ -39,8 +40,13 @@ package commands {
 			}
 
 			try {
-				game.world.moveToCell(cell, pad);
-				bot.log("[Jump] Moved to cell [" + cell + ", " + pad + "]");
+				var mapCmd:MapCommands = bot.getMapCommands();
+				if (mapCmd != null) {
+					mapCmd.smartJump(cell, pad);
+				} else {
+					game.world.moveToCell(cell, (pad == "*") ? "Spawn" : pad);
+				}
+				bot.log("[Jump] Smart jumped to cell [" + cell + ", " + pad + "]");
 			}
 			catch (e:Error) {
 				var errMsg:String = "[Jump] Error: " + e.name + " - " + e.message;

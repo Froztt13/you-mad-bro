@@ -40,8 +40,6 @@ package input {
 		private var lastKnownCell:String = "";
 		private var lastKnownPad:String = "";
 		private var lastKnownPadsHash:String = "";
-		private var pendingPadCorrection:Boolean = false;
-		private var targetJumpCell:String = "";
 
 		public function CellJumpUI(mapCommands:MapCommands) {
 			this.mapCommands = mapCommands;
@@ -268,12 +266,10 @@ package input {
 								currentPad = "Spawn";
 
 							if (mapCommands != null) {
-								mapCommands.jump(targetCell, currentPad);
+								mapCommands.smartJump(targetCell, currentPad);
 							}
 
 							lastKnownCell = targetCell;
-							targetJumpCell = targetCell;
-							pendingPadCorrection = true;
 							updateCellHighlight(targetCell);
 
 							schedulePadRefresh();
@@ -418,7 +414,6 @@ package input {
 							}
 
 							lastKnownPad = targetPad;
-							pendingPadCorrection = false;
 							schedulePadRefresh();
 						});
 
@@ -459,66 +454,7 @@ package input {
 			lastKnownPad = curPad;
 			lastKnownPadsHash = padsHash;
 
-			checkAndCorrectPad(curCell, curPad, availPads);
-
 			refreshPads();
-		}
-
-		private function checkAndCorrectPad(curCell:String, curPad:String, availPads:Array):void {
-			if (!pendingPadCorrection)
-				return;
-			if (availPads == null || availPads.length == 0)
-				return;
-
-			// Jika sedang menuju target jump cell, tunggu sampai cell cocok (atau targetCell tidak diset)
-			if (targetJumpCell != "" && curCell != "" && curCell.toLowerCase() != targetJumpCell.toLowerCase()) {
-				return;
-			}
-
-			// Cek apakah pad terakhir player termasuk dalam availablePads (green pads)
-			if (!isPadInAvailable(curPad, availPads)) {
-				var fallbackPad:String = chooseFallbackPad(availPads);
-				if (fallbackPad != null && fallbackPad.length > 0 && mapCommands != null) {
-					mapCommands.jump(curCell, fallbackPad);
-					lastKnownPad = fallbackPad;
-					currentPadName = fallbackPad;
-				}
-			}
-			pendingPadCorrection = false;
-		}
-
-		private function isPadInAvailable(pad:String, availablePads:Array):Boolean {
-			if (pad == null || pad.length == 0 || availablePads == null)
-				return false;
-			const padLower:String = pad.toLowerCase();
-			for each (var p:String in availablePads) {
-				if (p != null && p.toLowerCase() == padLower) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		private function chooseFallbackPad(availablePads:Array):String {
-			if (availablePads == null || availablePads.length == 0)
-				return "Spawn";
-
-			const priority:Array = ["spawn", "center", "left", "right", "top", "bottom", "up", "down"];
-			for each (var pref:String in priority) {
-				for each (var p:String in availablePads) {
-					if (p != null && p.toLowerCase() == pref) {
-						return capitalizeFirst(p);
-					}
-				}
-			}
-
-			return capitalizeFirst(availablePads[0]);
-		}
-
-		private function capitalizeFirst(str:String):String {
-			if (str == null || str.length == 0)
-				return "";
-			return str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
 		}
 
 		private function startPolling():void {
@@ -553,8 +489,6 @@ package input {
 				if (curCell != null && curCell.length > 0) {
 					updateCellHighlight(curCell);
 				}
-
-				checkAndCorrectPad(curCell, curPad, availPads);
 
 				refreshPads();
 			}

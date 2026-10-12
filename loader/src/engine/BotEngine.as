@@ -73,20 +73,33 @@ package engine {
 			}
 		}
 
+		private var _mapCommands:MapCommands;
+
 		public function BotEngine(game:Object = null) {
 			this.game = game;
 			instance = this;
 			this.itemDropsHandler = new ItemDropsHandler(game, this);
+			if (game != null) {
+				this._mapCommands = new MapCommands(game);
+			}
 		}
 
 		public function getGame():Object {
 			return game;
 		}
 
+		public function getMapCommands():MapCommands {
+			if (_mapCommands == null && game != null) {
+				_mapCommands = new MapCommands(game);
+			}
+			return _mapCommands;
+		}
+
 		public function setGame(game:Object):void {
 			if (this.game == game)
 				return;
 			this.game = game;
+			this._mapCommands = (game != null) ? new MapCommands(game) : null;
 			if (itemDropsHandler != null) {
 				itemDropsHandler.setGame(game);
 			}

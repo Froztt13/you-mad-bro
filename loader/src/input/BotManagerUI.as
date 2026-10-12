@@ -632,7 +632,7 @@ package input {
 			const jPadInput:MyTextField = new MyTextField(100, 24);
 			jPadInput.x = 110;
 			jPadInput.y = 128;
-			jPadInput.text = "Spawn";
+			jPadInput.text = "*";
 			mapTab.addChild(jPadInput);
 
 			const addJumpBtn:MyButton = new MyButton("Add Jump Cell", 110, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {

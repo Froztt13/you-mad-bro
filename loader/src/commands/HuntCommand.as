@@ -2,6 +2,7 @@ package commands {
 
 	import engine.AutoBattle;
 	import engine.BotEngine;
+	import engine.MapCommands;
 
 	public class HuntCommand extends KillCommand {
 
@@ -105,7 +106,7 @@ package commands {
 
 					if (targetCell != null && targetCell.length > 0 && targetCell.toLowerCase() != curCell.toLowerCase()) {
 						bot.log("[Hunt] Monster [" + monster + "] alive in cell [" + targetCell + "]. Jumping...");
-						jumpToCell(game, targetCell);
+						jumpToCell(bot, game, targetCell);
 						bot.delay(1000); // Jeda 1 detik agar transisi sel dan asset monster dimuat
 						return;
 					}
@@ -124,7 +125,7 @@ package commands {
 					var spawnCell:String = findMonsterSpawnCell(game, monster);
 					if (spawnCell != null && spawnCell.length > 0 && spawnCell.toLowerCase() != (game.world.strFrame ? game.world.strFrame.toLowerCase() : "")) {
 						bot.log("[Hunt] No alive [" + monster + "] found. Moving to spawn cell [" + spawnCell + "] to wait for respawn...");
-						jumpToCell(game, spawnCell);
+						jumpToCell(bot, game, spawnCell);
 						bot.delay(1000);
 						return;
 					}
@@ -242,9 +243,9 @@ package commands {
 			return false;
 		}
 
-		private function jumpToCell(game:Object, cell:String, pad:String = "Spawn"):void {
+		private function jumpToCell(bot:BotEngine, game:Object, cell:String, pad:String = "*"):void {
 			try {
-				if (game.world.cancelTarget != null) {
+				if (game.world != null && game.world.cancelTarget != null) {
 					game.world.cancelTarget();
 				}
 			}
@@ -252,7 +253,13 @@ package commands {
 			}
 
 			try {
-				game.world.moveToCell(cell, pad);
+				var mapCmd:MapCommands = (bot != null) ? bot.getMapCommands() : null;
+				if (mapCmd != null) {
+					mapCmd.smartJump(cell, pad);
+				}
+				else if (game.world != null) {
+					game.world.moveToCell(cell, (pad == "*") ? "Spawn" : pad);
+				}
 			}
 			catch (e:Error) {
 			}

@@ -1,9 +1,14 @@
 package engine {
     import flash.display.DisplayObject;
+    import flash.events.TimerEvent;
+    import flash.utils.Timer;
 
     public class MapCommands {
 
         private var game:Object;
+        private var padCorrectionTimer:Timer;
+        private var targetJumpCell:String = "";
+        private var targetJumpPad:String = "";
 
         public function MapCommands(game:Object) {
             this.game = game;
@@ -19,6 +24,135 @@ package engine {
             if (game != null && game.world != null) {
                 game.world.moveToCell(cell, pad);
             }
+        }
+
+        public function smartJump(cell:String, pad:String = null):void {
+            if (cell == null || cell.length == 0)
+                return;
+
+            var curCell:String = getMyCell();
+            var availPads:Array = getAvailablePads();
+
+            var isWildcard:Boolean = (pad == null || pad.length == 0 || pad == "*");
+            var targetPad:String = (!isWildcard) ? pad : "";
+
+            // Jika sudah di cell yang dituju dan available pads sudah ada
+            if (curCell != null && curCell.toLowerCase() == cell.toLowerCase() && availPads != null && availPads.length > 0) {
+                stopPadCorrection();
+                if (targetPad != "" && isPadInAvailable(targetPad, availPads)) {
+                    jump(cell, capitalizeFirst(targetPad));
+                } else {
+                    jump(cell, chooseFallbackPad(availPads));
+                }
+                return;
+            }
+
+            // Tentukan pad awal untuk melompat (gunakan targetPad jika ada, atau "Spawn")
+            var initialPad:String = (targetPad != "") ? targetPad : "Spawn";
+
+            targetJumpCell = cell;
+            targetJumpPad = targetPad;
+
+            // Lakukan jump awal
+            jump(cell, capitalizeFirst(initialPad));
+
+            // Jadwalkan pengecekan dan koreksi pad setelah tiba di cell
+            startPadCorrectionTimer();
+        }
+
+        private function startPadCorrectionTimer():void {
+            if (padCorrectionTimer == null) {
+                padCorrectionTimer = new Timer(150, 10);
+                padCorrectionTimer.addEventListener(TimerEvent.TIMER, onPadCorrectionTick, false, 0, true);
+                padCorrectionTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onPadCorrectionComplete, false, 0, true);
+            }
+            padCorrectionTimer.reset();
+            padCorrectionTimer.start();
+        }
+
+        private function onPadCorrectionTick(e:TimerEvent):void {
+            if (game == null || game.world == null) {
+                stopPadCorrection();
+                return;
+            }
+
+            var curCell:String = getMyCell();
+            var curPad:String = getMyPad();
+            var availPads:Array = getAvailablePads();
+
+            // Jika sedang menuju target jump cell, tunggu sampai cell cocok
+            if (targetJumpCell != "" && curCell != "" && curCell.toLowerCase() != targetJumpCell.toLowerCase()) {
+                return;
+            }
+
+            if (availPads == null || availPads.length == 0) {
+                return;
+            }
+
+            // Jika user memilih pad tertentu dan pad tersebut tersedia di cell tujuan
+            if (targetJumpPad != "" && isPadInAvailable(targetJumpPad, availPads)) {
+                if (curPad.toLowerCase() != targetJumpPad.toLowerCase()) {
+                    jump(curCell, capitalizeFirst(targetJumpPad));
+                }
+                stopPadCorrection();
+                return;
+            }
+
+            // Cek apakah pad saat ini player termasuk dalam availablePads
+            if (!isPadInAvailable(curPad, availPads)) {
+                var fallbackPad:String = chooseFallbackPad(availPads);
+                if (fallbackPad != null && fallbackPad.length > 0) {
+                    jump(curCell, fallbackPad);
+                }
+            }
+
+            stopPadCorrection();
+        }
+
+        private function onPadCorrectionComplete(e:TimerEvent):void {
+            stopPadCorrection();
+        }
+
+        public function stopPadCorrection():void {
+            if (padCorrectionTimer != null && padCorrectionTimer.running) {
+                padCorrectionTimer.stop();
+            }
+            targetJumpCell = "";
+            targetJumpPad = "";
+        }
+
+        public function isPadInAvailable(pad:String, availablePads:Array):Boolean {
+            if (pad == null || pad.length == 0 || availablePads == null)
+                return false;
+            const padLower:String = pad.toLowerCase();
+            for each (var p:String in availablePads) {
+                if (p != null && p.toLowerCase() == padLower) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public function chooseFallbackPad(availablePads:Array):String {
+            if (availablePads == null || availablePads.length == 0)
+                return "Spawn";
+
+            const priority:Array = ["spawn", "center", "left", "right", "top", "bottom", "up", "down"];
+            for each (var pref:String in priority) {
+                for each (var p:String in availablePads) {
+                    if (p != null && p.toLowerCase() == pref) {
+                        return capitalizeFirst(p);
+                    }
+                }
+            }
+
+            return capitalizeFirst(availablePads[0]);
+        }
+
+        public function capitalizeFirst(str:String):String {
+            if (str == null || str.length == 0)
+                return "";
+            return str.charAt(0).toUpperCase() + str.substr(1).toLowerCase();
         }
 
         public function getCells():String {

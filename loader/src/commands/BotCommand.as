@@ -78,7 +78,7 @@ package commands {
 			return new JoinCommand(map, cell, pad);
 		}
 
-		public static function createJump(cell:String = "Enter", pad:String = "Spawn"):JumpCommand {
+		public static function createJump(cell:String = "Enter", pad:String = "*"):JumpCommand {
 			return new JumpCommand(cell, pad);
 		}
 
