@@ -235,6 +235,16 @@ public class Patcher {
                 modified = true;
             }
 
+            // 2a. Patch World.loadMap: invoke cleanupMap() at start to clean sounds, walk objects,
+            // call unloadAndStop(true) on previous map, and clear previous map bitmaps
+            Pattern pMapCleanup = Pattern.compile("(?s)(refid \"World/instance/loadMap\".*?code\\s+getlocal0\\s+pushscope\\n)");
+            Matcher mMapCleanup = pMapCleanup.matcher(content);
+            if (mMapCleanup.find() && !content.contains("callpropvoid        QName(PackageNamespace(\"\"), \"cleanupMap\"), 0\n\n      getlocal1\n      pushstring          \"cdn.aq.com\"")) {
+                content = mMapCleanup.replaceFirst("$1      getlocal0\n      callpropvoid        QName(PackageNamespace(\"\"), \"cleanupMap\"), 0\n\n");
+                System.out.println("  -> World.loadMap patched to call cleanupMap() at start");
+                modified = true;
+            }
+
             // 2. Patch World.loadMap: redirect ldr_map.load to queueLoadViaBytes
             Pattern pMap = Pattern.compile("(?s)      getlocal0\\n      getproperty         QName\\(PackageNamespace\\(\"\"\\), \"ldr_map\"\\)\\n      findpropstrict      QName\\(PackageNamespace\\(\"flash\\.net\"\\), \"URLRequest\"\\).*?      callpropvoid        QName\\(PackageNamespace\\(\"\"\\), \"load\"\\), 2");
             Matcher mMap = pMap.matcher(content);

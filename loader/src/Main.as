@@ -361,8 +361,29 @@ package {
 		}
 
 		public function loadMapViaBytes(url:String, context:LoaderContext, onComplete:Function, onProgress:Function = null, onError:Function = null):void {
+			if (context == null || context.applicationDomain == null || context.applicationDomain == ApplicationDomain.currentDomain) {
+				context = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
+			}
 			prepareContext(context);
 			log("[Map] Loading: " + url);
+
+			if (gameMovieClip != null && gameMovieClip.world != null) {
+				if (gameMovieClip.world.ldr_map != null) {
+					try {
+						gameMovieClip.world.ldr_map.unloadAndStop(true);
+					}
+					catch (eUnload:Error) {
+					}
+				}
+				if (gameMovieClip.world.map != null) {
+					try {
+						gameMovieClip.world.map.stop();
+					}
+					catch (eStop:Error) {
+					}
+				}
+			}
+			cleanupMemory();
 
 			loadBinary(url,
 					function(bytes:ByteArray):void {
@@ -397,24 +418,67 @@ package {
 		}
 
 		public function queueLoadViaBytes(ldr:Loader, url:String, context:LoaderContext):void {
-			if (context == null) {
-				context = new LoaderContext(false, ApplicationDomain.currentDomain);
+			var isMap:Boolean = (ldr != null && gameMovieClip != null && gameMovieClip.world != null && ldr == gameMovieClip.world.ldr_map)
+				|| (url != null && (url.indexOf("maps/") != -1 || url.indexOf("/maps/") != -1));
+
+			if (isMap) {
+				// Pastikan Map selalu berada di isolated child ApplicationDomain
+				// agar kelas dan bytecode-nya bisa di-unload dan dibersihkan dari RAM saat ganti map
+				if (context == null || context.applicationDomain == null || context.applicationDomain == ApplicationDomain.currentDomain) {
+					context = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
+				}
+				log("[Map] Queueing map: " + url);
+
+				if (ldr != null && ldr.content != null) {
+					try {
+						ldr.unloadAndStop(true);
+					}
+					catch (eUnloadMap:Error) {
+					}
+				}
+				if (gameMovieClip != null && gameMovieClip.world != null && gameMovieClip.world.map != null) {
+					try {
+						gameMovieClip.world.map.stop();
+					}
+					catch (eStopMap:Error) {
+					}
+				}
+				cleanupMemory();
 			}
+			else {
+				if (context == null) {
+					context = new LoaderContext(false, ApplicationDomain.currentDomain);
+				}
+				log("[Asset] Queueing: " + url);
+			}
+
 			prepareContext(context);
-			log("[Asset] Queueing: " + url);
 
 			if (ldr != null && "uncaughtErrorEvents" in ldr && ldr.uncaughtErrorEvents != null) {
 				ldr.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onGlobalUncaughtError);
 			}
 
+			if (isMap && ldr != null) {
+				var onMapCompleteCleanup:Function = function(e:Event):void {
+					try {
+						ldr.contentLoaderInfo.removeEventListener(Event.COMPLETE, onMapCompleteCleanup);
+					}
+					catch (eRem:Error) {
+					}
+					log("[Map] Complete: " + url);
+					cleanupMemory();
+				};
+				ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, onMapCompleteCleanup);
+			}
+
 			loadBinary(url,
 					function(bytes:ByteArray):void {
-						log("[Asset] Downloaded " + bytes.length + " bytes for: " + url);
+						log((isMap ? "[Map]" : "[Asset]") + " Downloaded " + bytes.length + " bytes for: " + url);
 						try {
 							ldr.loadBytes(bytes, context);
 						}
 						catch (err:Error) {
-							log("[Asset] loadBytes ERROR: " + err.message + " for " + url);
+							log((isMap ? "[Map]" : "[Asset]") + " loadBytes ERROR: " + err.message + " for " + url);
 						}
 					},
 					function(e:ProgressEvent):void {
@@ -865,7 +929,11 @@ package {
 					packetHandler.handleServerResponse(serverMsg);
 				}
 
-				if (serverMsg.indexOf("initUserData") > -1) {
+				if (serverMsg.indexOf("moveToArea") > -1) {
+					log("[Map] moveToArea detected, running memory cleanup");
+					cleanupMemory();
+				}
+				else if (serverMsg.indexOf("initUserData") > -1) {
 					versionDisplay.visible = false;
 					accountManagerUI.updateStatus(true);
 				}
