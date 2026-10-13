@@ -41,14 +41,14 @@ package commands {
 					return;
 				}
 
-				// 1. Jika quest belum ter-load di questTree, request data quest dulu
+				// 1. If quest is not loaded in questTree yet, request quest data first
 				if (game.world.questTree == null || game.world.questTree[questId] == null) {
 					if (loadAttempts < 3) {
 						loadAttempts++;
 						bot.log("[QuestAccept] Loading quest data [" + questId + "] (attempt " + loadAttempts + ")...");
 						game.world.getQuests([questId]);
-						bot.delay(1000); // Beri jeda 1 detik agar data quest tiba dari server
-						return; // Belum advanceStep, tick berikutnya akan coba accept
+						bot.delay(1000); // Wait 1 second for quest data to arrive from server
+						return; // Do not advanceStep yet; next tick will attempt accept
 					}
 					else {
 						loadAttempts = 0;
@@ -58,7 +58,7 @@ package commands {
 					}
 				}
 
-				// 2. Data quest sudah ada di questTree, lakukan accept
+				// 2. Quest data exists in questTree, accept quest
 				loadAttempts = 0;
 				game.world.acceptQuest(questId);
 				bot.log("Accepted Quest [" + questId + "]");

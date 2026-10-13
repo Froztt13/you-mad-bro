@@ -13,6 +13,10 @@ package {
 
 		public static const APP_VERSION:String = "v1.1.0";
 
+		public static const GITHUB_REPO:String = "Froztt13/you-mad-bro";
+		public static const GITHUB_API_LATEST_RELEASE:String = "https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest";
+		public static const GITHUB_RELEASES_URL:String = "https://github.com/" + GITHUB_REPO + "/releases";
+
 		public static function get isAndroid():Boolean {
 			return Capabilities.version.indexOf("AND") == 0;
 		}

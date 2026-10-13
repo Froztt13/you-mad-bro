@@ -12,6 +12,7 @@ package input {
 	import ui.InfoMessage;
 	import ui.MyButton;
 	import ui.UIUtils;
+	import engine.AppUpdater;
 	import engine.AutoBattle;
 	import engine.AutoQuest;
 	import engine.BotEngine;
@@ -144,6 +145,10 @@ package input {
 						label: "Packet Logger",
 						fn: openLogger
 					});
+			items.push({
+						label: "Check for Updates",
+						fn: doCheckForUpdates
+					});
 
 			const panelH:Number = items.length * MENU_ITH + 8;
 
@@ -166,6 +171,10 @@ package input {
 			if (fullscreenTf != null) {
 				fullscreenTf.text = (stage.displayState == StageDisplayState.NORMAL) ? "Fullscreen" : "Exit Fullscreen";
 			}
+		}
+
+		private function doCheckForUpdates():void {
+			AppUpdater.checkUpdate(stage, true);
 		}
 
 		private function buildActionButton():void {
@@ -1067,6 +1076,8 @@ package input {
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
 
 			initRestButtonHook();
+
+			AppUpdater.checkUpdate(stage, false);
 		}
 
 		private function onGearClick(e:MouseEvent):void {

@@ -107,17 +107,17 @@ package commands {
 				}
 
 				if (needsTransfer) {
-					// Pastikan leave combat terlebih dahulu sebelum join map
+					// Ensure player leaves combat before joining a map
 					if (isPlayerInCombat(game) && combatExitAttempts < 3) {
 						combatExitAttempts++;
 						bot.log("[Join] Player in combat. Leaving combat first (attempt " + combatExitAttempts + ")...");
 						leaveCombat(game, bot);
-						// Reposisi / jump cell untuk memutuskan aggro monster jika memungkinkan
+						// Reposition / jump cell to break monster aggro if possible
 						if (game.world.moveToCell != null && game.world.strFrame != null) {
 							var curPad:String = (game.world.strPad != null && game.world.strPad.length > 0) ? game.world.strPad : "Spawn";
 							game.world.moveToCell(game.world.strFrame, curPad);
 						}
-						return; // Tunggu tick berikutnya (500ms) agar combat lepas sebelum join
+						return; // Wait for next tick (500ms) for combat to drop before joining
 					}
 
 					combatExitAttempts = 0;
@@ -126,7 +126,7 @@ package commands {
 					bot.log("[Join] Joining map: " + targetMap + " [" + targetCell + ", " + targetPad + "] (current: " + (currentArea.length > 0 ? currentArea : "none") + ")");
 					// AQW World.gotoTown requires 3 arguments: (mapName:String, cell:String, pad:String)
 					game.world.gotoTown(targetMap, targetCell, targetPad);
-					bot.advanceStep(3000); // Beri jeda 3 detik agar map dan asset selesai dimuat
+					bot.advanceStep(3000); // Wait 3 seconds for map and assets to finish loading
 					return;
 				}
 

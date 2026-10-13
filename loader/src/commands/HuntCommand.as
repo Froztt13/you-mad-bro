@@ -115,19 +115,19 @@ package commands {
 					if (targetCell != null && targetCell.length > 0 && targetCell.toLowerCase() != curCell.toLowerCase()) {
 						bot.log("[Hunt] Monster [" + monster + "] alive in cell [" + targetCell + "]. Jumping...");
 						jumpToCell(bot, game, targetCell);
-						bot.delay(1000); // Jeda 1 detik agar transisi sel dan asset monster dimuat
+						bot.delay(1000); // Wait 1 second for cell transition and monster assets to load
 						return;
 					}
 					else {
-						// Sudah berada di sel yang sama, langsung kunci target
+						// Already in the same cell, lock target immediately
 						game.world.setTarget(aliveMonster);
 						bot.targetWasAlive = (aliveMonster.dataLeaf.intHP > 0);
 						return;
 					}
 				}
 
-				// 4c. Jika monster belum spawn di sel manapun (sedang respawn):
-				// Pastikan player menunggu di sel tempat monster tersebut biasa spawn
+				// 4c. If the monster has not spawned in any cell yet (respawning):
+				// Ensure player waits in the cell where this monster normally spawns
 				var inSpawnCell:Boolean = isCurrentCellMonsterSpawn(game, monster);
 				if (!inSpawnCell) {
 					var spawnCell:String = findMonsterSpawnCell(game, monster);

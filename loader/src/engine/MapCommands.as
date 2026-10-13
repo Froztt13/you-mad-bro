@@ -36,7 +36,7 @@ package engine {
             var isWildcard:Boolean = (pad == null || pad.length == 0 || pad == "*");
             var targetPad:String = (!isWildcard) ? pad : "";
 
-            // Jika sudah di cell yang dituju dan available pads sudah ada
+            // If already in target cell and available pads are known
             if (curCell != null && curCell.toLowerCase() == cell.toLowerCase() && availPads != null && availPads.length > 0) {
                 stopPadCorrection();
                 if (targetPad != "" && isPadInAvailable(targetPad, availPads)) {
@@ -47,16 +47,16 @@ package engine {
                 return;
             }
 
-            // Tentukan pad awal untuk melompat (gunakan targetPad jika ada, atau "Spawn")
+            // Determine initial pad to jump to (use targetPad if specified, else "Spawn")
             var initialPad:String = (targetPad != "") ? targetPad : "Spawn";
 
             targetJumpCell = cell;
             targetJumpPad = targetPad;
 
-            // Lakukan jump awal
+            // Perform initial jump
             jump(cell, capitalizeFirst(initialPad));
 
-            // Jadwalkan pengecekan dan koreksi pad setelah tiba di cell
+            // Schedule pad verification and correction once arrived in cell
             startPadCorrectionTimer();
         }
 
@@ -80,7 +80,7 @@ package engine {
             var curPad:String = getMyPad();
             var availPads:Array = getAvailablePads();
 
-            // Jika sedang menuju target jump cell, tunggu sampai cell cocok
+            // If traveling towards target cell, wait until cell matches
             if (targetJumpCell != "" && curCell != "" && curCell.toLowerCase() != targetJumpCell.toLowerCase()) {
                 return;
             }
@@ -89,7 +89,7 @@ package engine {
                 return;
             }
 
-            // Jika user memilih pad tertentu dan pad tersebut tersedia di cell tujuan
+            // If user requested a specific pad and that pad exists in the target cell
             if (targetJumpPad != "" && isPadInAvailable(targetJumpPad, availPads)) {
                 if (curPad.toLowerCase() != targetJumpPad.toLowerCase()) {
                     jump(curCell, capitalizeFirst(targetJumpPad));
@@ -98,7 +98,7 @@ package engine {
                 return;
             }
 
-            // Cek apakah pad saat ini player termasuk dalam availablePads
+            // Check if player's current pad exists in availablePads
             if (!isPadInAvailable(curPad, availPads)) {
                 var fallbackPad:String = chooseFallbackPad(availPads);
                 if (fallbackPad != null && fallbackPad.length > 0) {

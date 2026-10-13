@@ -257,7 +257,7 @@ package {
 			if (!Config.isAndroid)
 				return;
 			try {
-				// Jika aplikasi sudah masuk daftar Unrestricted, tidak perlu memunculkan dialog
+				// If the app is already on the Unrestricted list, do not display dialog
 				if (BatteryOptimizer.isIgnoringBatteryOptimizations()) {
 					return;
 				}
@@ -422,8 +422,8 @@ package {
 				|| (url != null && (url.indexOf("maps/") != -1 || url.indexOf("/maps/") != -1));
 
 			if (isMap) {
-				// Pastikan Map selalu berada di isolated child ApplicationDomain
-				// agar kelas dan bytecode-nya bisa di-unload dan dibersihkan dari RAM saat ganti map
+				// Ensure Map is always loaded into an isolated child ApplicationDomain
+				// so its classes and bytecode can be unloaded and collected from RAM when changing maps
 				if (context == null || context.applicationDomain == null || context.applicationDomain == ApplicationDomain.currentDomain) {
 					context = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
 				}
