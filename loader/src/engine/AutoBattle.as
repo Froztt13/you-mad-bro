@@ -180,6 +180,12 @@ package engine {
 					return;
 				}
 
+				// King's Echo combo if equipped
+				if (isUsingClass(game, "King's Echo")) {
+					executeKingsEchoCombo(game);
+					return;
+				}
+
 				// Smart skill rotation: try from current skillIndex, find next available skill
 				for (var i:int = 0; i < 5; i++) {
 					var idx:int = (skillIndex + i) % 5;
@@ -204,7 +210,7 @@ package engine {
 					skill.range = "20000";
 				}
 
-				if (isSkillReady(game, skill) == 0 && canUseSkill(game, index) && game.world.myAvatar.dataLeaf.intMP >= skill.mp) {
+				if (isSkillReady(game, skill) == 0 && canUseSkill(game, index) && hasEnoughMana(game, skill)) {
 					if (skill.isOK && !skill.skillLock) {
 						game.world.testAction(skill);
 						return true;
@@ -214,6 +220,44 @@ package engine {
 			catch (e:Error) {
 			}
 			return false;
+		}
+
+		public static function getRequiredMana(game:Object, skill:Object):int {
+			if (skill == null || skill.mp == null)
+				return 0;
+			var baseMp:Number = Number(skill.mp || 0);
+			if (baseMp <= 0)
+				return 0;
+			var cmc:Number = 1.0;
+			try {
+				if (game != null && game.world != null && game.world.myAvatar != null && game.world.myAvatar.dataLeaf != null && game.world.myAvatar.dataLeaf.sta != null && game.world.myAvatar.dataLeaf.sta.$cmc != null) {
+					cmc = Number(game.world.myAvatar.dataLeaf.sta.$cmc);
+					if (isNaN(cmc) || cmc < 0) {
+						cmc = 0;
+					}
+				}
+			}
+			catch (e:Error) {
+				cmc = 1.0;
+			}
+			return Math.round(baseMp * cmc);
+		}
+
+		public static function hasEnoughMana(game:Object, skill:Object):Boolean {
+			try {
+				if (skill == null)
+					return false;
+				var reqMp:int = getRequiredMana(game, skill);
+				if (reqMp <= 0)
+					return true;
+				if (game == null || game.world == null || game.world.myAvatar == null || game.world.myAvatar.dataLeaf == null)
+					return false;
+				var currentMp:int = int(game.world.myAvatar.dataLeaf.intMP || 0);
+				return currentMp >= reqMp;
+			}
+			catch (e:Error) {
+			}
+			return true;
 		}
 
 		public static function isSkillReady(game:Object, skill:Object):int {
@@ -284,6 +328,11 @@ package engine {
 						if (skillIdx == 4 && !hasSafeguard && !hasDecay)
 							return true;
 						return false;
+					case "King's Echo":
+					case "Kings Echo":
+						if (skillIdx == 3 && getAurasValue(game, true, "Waiting For Corvak") > 0)
+							return false;
+						break;
 				}
 			}
 			catch (e:Error) {
@@ -368,6 +417,22 @@ package engine {
 				}
 			}
 			return false;
+		}
+
+		private static function executeKingsEchoCombo(game:Object):void {
+			var hasWaitingForCorvak:Boolean = getAurasValue(game, true, "Waiting For Corvak") > 0;
+
+			// Spam skills normally, but skip Skill 3 if 'Waiting For Corvak' is active
+			for (var i:int = 0; i < 5; i++) {
+				var idx:int = (skillIndex + i) % 5;
+				if (idx == 3 && hasWaitingForCorvak) {
+					continue;
+				}
+				if (useSkill(game, idx)) {
+					skillIndex = (idx + 1) % 5;
+					break;
+				}
+			}
 		}
 
 		private static function executeArcanaInvokerCombo(game:Object):void {

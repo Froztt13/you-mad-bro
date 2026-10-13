@@ -6,12 +6,13 @@ package {
 	public class Utils {
 
 		/**
-		 * Trims leading and trailing whitespace from a string.
+		 * Trims leading and trailing whitespace from a string, and normalizes
+		 * smart/curly apostrophes and accents to standard single quote (').
 		 */
 		public static function trim(str:String):String {
 			if (str == null)
 				return "";
-			return str.replace(/^\s+|\s+$/g, "");
+			return str.replace(/[’‘`´]/g, "'").replace(/^\s+|\s+$/g, "");
 		}
 
 		/**
