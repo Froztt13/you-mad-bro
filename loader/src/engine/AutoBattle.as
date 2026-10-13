@@ -186,6 +186,12 @@ package engine {
 					return;
 				}
 
+				// Master Ranger & Ranger combo if equipped
+				if (isUsingClass(game, "Master Ranger", "Ranger")) {
+					executeRangerCombo(game);
+					return;
+				}
+
 				// Smart skill rotation: try from current skillIndex, find next available skill
 				for (var i:int = 0; i < 5; i++) {
 					var idx:int = (skillIndex + i) % 5;
@@ -333,6 +339,13 @@ package engine {
 						if (skillIdx == 3 && getAurasValue(game, true, "Waiting For Corvak") > 0)
 							return false;
 						break;
+					case "Master Ranger":
+					case "Ranger":
+						if (skillIdx == 3 && Math.max(getAurasValue(game, true, "Marks"), getAurasValue(game, false, "Marks")) < 6)
+							return false;
+						if (skillIdx == 4 && getAurasValue(game, true, "Vampiric Shot") > 0)
+							return false;
+						break;
 				}
 			}
 			catch (e:Error) {
@@ -426,6 +439,32 @@ package engine {
 			for (var i:int = 0; i < 5; i++) {
 				var idx:int = (skillIndex + i) % 5;
 				if (idx == 3 && hasWaitingForCorvak) {
+					continue;
+				}
+				if (useSkill(game, idx)) {
+					skillIndex = (idx + 1) % 5;
+					break;
+				}
+			}
+		}
+
+		private static function executeRangerCombo(game:Object):void {
+			var marks:int = Math.max(getAurasValue(game, true, "Marks"), getAurasValue(game, false, "Marks"));
+			var hasVampiricShot:Boolean = getAurasValue(game, true, "Vampiric Shot") > 0;
+
+			// Prioritize Skill 3 immediately when player reaches 6 stacks of Marks
+			if (marks >= 6) {
+				if (useSkill(game, 3))
+					return;
+			}
+
+			// Spam remaining skills normally (skip Skill 3 if marks < 6, skip Skill 4 if Vampiric Shot active)
+			for (var i:int = 0; i < 5; i++) {
+				var idx:int = (skillIndex + i) % 5;
+				if (idx == 3 && marks < 6) {
+					continue;
+				}
+				if (idx == 4 && hasVampiricShot) {
 					continue;
 				}
 				if (useSkill(game, idx)) {
