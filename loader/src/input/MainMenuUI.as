@@ -9,8 +9,6 @@ package input {
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
 
-	import ui.Layout;
-	import ui.Joystick;
 	import ui.InfoMessage;
 	import ui.MyButton;
 	import ui.UIUtils;
@@ -41,21 +39,12 @@ package input {
 		private static const MENU_ITH:Number = 28;
 		private static const MENU_RADIUS:Number = 8;
 
-		private static const EDIT_BAR_W:Number = 216;
-		private static const EDIT_BAR_H:Number = 40;
-
 		public function MainMenuUI(game:MovieClip) {
 			this.game = game;
 			addEventListener(Event.ADDED_TO_STAGE, onAdded);
 		}
 
 		private var game:MovieClip;
-		private var padContainer:Sprite;
-		private var padVisible:Boolean = false;
-		private var joystick:Joystick;
-
-		private var walkCtrl:WalkController;
-		private var layout:Layout;
 		private var gearBtn:Sprite;
 		private var gearIcon:Shape;
 		private var bankBtn:Sprite;
@@ -76,10 +65,6 @@ package input {
 		private var restHoldTimer:Timer;
 		private var isRestHoldTriggered:Boolean = false;
 		private static const REST_HOLD_DURATION_MS:int = 500;
-
-		private var showPadTf:TextField;
-		private var editLayoutTf:TextField;
-		private var editLayoutBar:Sprite;
 
 		private var fullscreenTf:TextField;
 
@@ -141,18 +126,6 @@ package input {
 			}
 
 			if (Config.isAndroid) {
-				items.push({
-							label: padVisible ? "Hide Game Pad" : "Show Game Pad",
-							fn: doHideUI
-						});
-
-				if (padVisible) {
-					items.push({
-								label: layout.editMode ? "Save Layout" : "Edit Layout",
-								fn: doEditLayout
-							});
-				}
-
 				items.push({
 							label: "Battery Unrestricted",
 							fn: Main.requestBatteryOptimization
@@ -428,12 +401,6 @@ package input {
 				if (stage != null && stage.displayState != StageDisplayState.NORMAL) {
 					fullscreenTf.text = "Exit Fullscreen";
 				}
-			}
-			else if (lbl == "Show Game Pad" || lbl == "Hide Game Pad") {
-				showPadTf = tf;
-			}
-			else if (lbl == "Edit Layout" || lbl == "Save Layout") {
-				editLayoutTf = tf;
 			}
 
 			row.y = 4 + idx * MENU_ITH;
@@ -885,33 +852,6 @@ package input {
 			stage.removeEventListener(MouseEvent.MOUSE_DOWN, onStageClickClose);
 		}
 
-		private function doHideUI():void {
-			padVisible = !padVisible;
-			padContainer.visible = padVisible;
-
-			if (showPadTf != null) {
-				showPadTf.text = padVisible ? "Hide Game Pad" : "Show Game Pad";
-			}
-
-			if (dropdownOpen) {
-				rebuildGearDropdown();
-			}
-		}
-
-		private function doEditLayout():void {
-			if (!padVisible && !layout.editMode) {
-				doHideUI();
-			}
-
-			layout.toggleEdit();
-			updateEditLayoutUI();
-		}
-
-		private function doResetLayout():void {
-			layout.resetToDefaults();
-			updateEditLayoutUI();
-		}
-
 		private function doEnterPip():void {
 			if (Config.isAndroid) {
 				closeDropdown();
@@ -940,65 +880,6 @@ package input {
 			else {
 				addChild(alert);
 			}
-		}
-
-		private function updateEditLayoutUI():void {
-			if (editLayoutTf != null) {
-				editLayoutTf.text = layout.editMode ? "Save Layout" : "Edit Layout";
-			}
-
-			if (layout.editMode) {
-				showEditLayoutBar();
-			}
-			else {
-				hideEditLayoutBar();
-			}
-		}
-
-		private function showEditLayoutBar():void {
-			if (editLayoutBar == null) {
-				buildEditLayoutBar();
-			}
-
-			if (stage != null) {
-				editLayoutBar.x = (stage.stageWidth - EDIT_BAR_W) / 2;
-				editLayoutBar.y = 8;
-			}
-			setChildIndex(editLayoutBar, numChildren - 1);
-			editLayoutBar.visible = true;
-		}
-
-		private function hideEditLayoutBar():void {
-			if (editLayoutBar != null) {
-				editLayoutBar.visible = false;
-			}
-		}
-
-		private function buildEditLayoutBar():void {
-			editLayoutBar = new Sprite();
-
-			drawPill(editLayoutBar.graphics, EDIT_BAR_W, EDIT_BAR_H, true);
-			editLayoutBar.filters = [new DropShadowFilter(4, 90, 0x000000, 0.5, 10, 10, 1, 1)];
-
-			const btnW:Number = 96;
-			const btnH:Number = 26;
-			const btnY:Number = (EDIT_BAR_H - btnH) / 2;
-
-			const resetBtn:MyButton = new MyButton("Reset Layout", btnW, btnH, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
-					doResetLayout();
-				}, 11, 6);
-			resetBtn.x = 8;
-			resetBtn.y = btnY;
-			editLayoutBar.addChild(resetBtn);
-
-			const saveBtn:MyButton = new MyButton("Save Layout", btnW, btnH, MyButton.TYPE_SUCCESS, function(e:MouseEvent):void {
-					doEditLayout();
-				}, 11, 6);
-			saveBtn.x = resetBtn.x + btnW + 8;
-			saveBtn.y = btnY;
-			editLayoutBar.addChild(saveBtn);
-
-			addChild(editLayoutBar);
 		}
 
 		private function doWalkSpeed():void {
@@ -1152,10 +1033,6 @@ package input {
 			}
 		}
 
-		private function doTestInfo():void {
-			const alert:InfoMessage = new InfoMessage("Test Title", "This is a test description for the InfoMessage popup to verify layout and centering.");
-			addChild(alert);
-		}
 
 		private function makeLabel(text:String, color:uint, size:int, bold:Boolean = false):TextField {
 			const tf:TextField = new TextField();
@@ -1172,23 +1049,6 @@ package input {
 		private function onAdded(e:Event):void {
 			removeEventListener(Event.ADDED_TO_STAGE, onAdded);
 
-			padContainer = new Sprite();
-
-			addChild(padContainer);
-			padContainer.visible = false;
-
-			joystick = new Joystick();
-			walkCtrl = new WalkController(game, joystick);
-
-			joystick.x = Joystick.DEFAULT_X;
-			joystick.y = Joystick.DEFAULT_Y;
-
-			padContainer.addChild(joystick);
-
-			layout = new Layout();
-			layout.register("joystick", joystick, Joystick.DEFAULT_X, Joystick.DEFAULT_Y);
-			layout.load();
-
 			autoBattle = new AutoBattle(game, onAutoBattleStateChange);
 			autoQuest = new AutoQuest(game);
 			mapCommands = new MapCommands(game);
@@ -1204,9 +1064,6 @@ package input {
 
 			applyQuality();
 
-			stage.addEventListener(MouseEvent.MOUSE_DOWN, onDown);
-			stage.addEventListener(MouseEvent.MOUSE_MOVE, onMove);
-			stage.addEventListener(MouseEvent.MOUSE_UP, onUp);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
 
 			initRestButtonHook();
@@ -1292,39 +1149,6 @@ package input {
 						break;
 				}
 			}
-		}
-
-		private function onDown(e:MouseEvent):void {
-			if (!padVisible || layout.editMode) {
-				return;
-			}
-
-			if (joystick.hitTest(e.stageX, e.stageY)) {
-				joystick.move(e.stageX, e.stageY);
-				stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
-			}
-		}
-
-		private function onMove(e:MouseEvent):void {
-			if (joystick.dirX != 0 || joystick.dirY != 0) {
-				joystick.move(e.stageX, e.stageY);
-			}
-		}
-
-		private function onUp(e:MouseEvent):void {
-			if (joystick.dirX == 0 && joystick.dirY == 0) {
-				return;
-			}
-
-			joystick.snapHome();
-
-			stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
-
-			walkCtrl.stop();
-		}
-
-		private function onEnterFrame(e:Event):void {
-			walkCtrl.update();
 		}
 
 		private function initRestButtonHook():void {
