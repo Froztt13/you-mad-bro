@@ -47,12 +47,7 @@ package commands {
 					return;
 
 				try {
-					if (game.world.getMapItem != null) {
-						game.world.getMapItem(itemId);
-					}
-					else if (game.world.rootClass != null && game.world.rootClass.sfc != null) {
-						game.world.rootClass.sfc.sendXtMessage("zm", "getMapItem", [itemId], "str");
-					}
+					game.world.getMapItem(itemId);
 					count++;
 					if (totalQty > 1) {
 						bot.log("Get Map Item [" + itemId + "] (" + count + "/" + totalQty + ")");

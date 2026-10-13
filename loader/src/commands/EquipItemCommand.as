@@ -30,13 +30,12 @@ package commands {
 			try {
 				if (game != null && game.world != null && itemName != null && itemName.length > 0) {
 					var item:Object = bot.getInventoryItemByName(itemName);
-					if (item != null) {
-						if (game.world.sendEquipItemRequest != null) {
-							game.world.sendEquipItemRequest(item);
-						}
-						else if (game.world.rootClass != null && game.world.rootClass.sfc != null && item.ItemID != null) {
-							game.world.rootClass.sfc.sendXtMessage("zm", "equipItem", [item.ItemID], "str");
-						}
+					if (item != null && item.ItemID != null) {
+						game.world.sendEquipItemRequest({ItemID: parseInt(item.ItemID)});
+						bot.log("Equipped [" + itemName + "]");
+					}
+					else if (!isNaN(parseInt(itemName)) && parseInt(itemName) > 0) {
+						game.world.sendEquipItemRequest({ItemID: parseInt(itemName)});
 						bot.log("Equipped [" + itemName + "]");
 					}
 					else {
