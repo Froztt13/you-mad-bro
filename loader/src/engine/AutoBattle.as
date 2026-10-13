@@ -154,7 +154,7 @@ package engine {
 				}
 
 				// CSH combo if equipped
-				if (isUsingCSH(game)) {
+				if (isUsingClass(game, "Chrono ShadowSlayer", "Chrono ShadowHunter")) {
 					if (temporalRift >= 4) {
 						if (useSkill(game, 4)) {
 							temporalRift = 0;
@@ -171,6 +171,12 @@ package engine {
 							temporalRift++;
 						}
 					}
+					return;
+				}
+
+				// Arcana Invoker combo if equipped
+				if (isUsingClass(game, "Arcana Invoker")) {
+					executeArcanaInvokerCombo(game);
 					return;
 				}
 
@@ -314,10 +320,10 @@ package engine {
 				if (objAura == null)
 					return 0;
 
-				var cleanTargetName:String = auraName.toLowerCase().split(' ').join('');
+				var cleanTargetName:String = auraName.toLowerCase().replace(/[\s\-_]/g, "");
 				for each (var aura:Object in objAura) {
 					if (aura != null && aura.nam != null) {
-						var cleanName:String = String(aura.nam).toLowerCase().split(' ').join('');
+						var cleanName:String = String(aura.nam).toLowerCase().replace(/[\s\-_]/g, "");
 						if (cleanName == cleanTargetName) {
 							var numericVal:Number = parseFloat(aura.val);
 							value = (!isNaN(numericVal) && numericVal > 0) ? Math.ceil(numericVal) : 1;
@@ -343,9 +349,65 @@ package engine {
 			return "";
 		}
 
-		public static function isUsingCSH(game:Object):Boolean {
-			var cls:String = getEquippedClass(game);
-			return cls == "Chrono ShadowSlayer" || cls == "Chrono ShadowHunter";
+		public static function isUsingClass(game:Object, ...classes):Boolean {
+			var current:String = getEquippedClass(game);
+			if (current == null || current.length == 0 || classes == null || classes.length == 0) {
+				return false;
+			}
+			var cleanCurrent:String = Utils.trim(current).toLowerCase();
+			for each (var target:* in classes) {
+				if (target is Array) {
+					for each (var subItem:* in target) {
+						if (subItem != null && Utils.trim(String(subItem)).toLowerCase() == cleanCurrent) {
+							return true;
+						}
+					}
+				}
+				else if (target != null && Utils.trim(String(target)).toLowerCase() == cleanCurrent) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private static function executeArcanaInvokerCombo(game:Object):void {
+			var hasWorld:Boolean = getAurasValue(game, true, "XXI - The World") > 0;
+			var hasJudgement:Boolean = getAurasValue(game, true, "XX - Judgement") > 0;
+			var endOfTheWorld:int = getAurasValue(game, true, "End of The World");
+			var hasFool:Boolean = getAurasValue(game, true, "0 - The Fool") > 0;
+			var myMP:int = int(game.world.myAvatar.dataLeaf.intMP || 0);
+
+			if (!hasWorld) {
+				// Pre-World Phase:
+				// 1. Draw The Fool if not active
+				if (!hasFool) {
+					if (useSkill(game, 1))
+						return;
+				}
+				// 2. Advance to The World when Judgement is reached
+				else if (hasJudgement) {
+					if (useSkill(game, 1))
+						return;
+				}
+			}
+
+			// THE WORLD CYCLE / Core skills: prioritize Skill 2 and Skill 4
+			if (useSkill(game, 2))
+				return;
+			if (useSkill(game, 4))
+				return;
+
+			// Use Skill 3 if Judgement active or Mana > 50
+			if (hasJudgement || myMP > 50) {
+				if (useSkill(game, 3))
+					return;
+			}
+
+			// Nuke with Skill 1 when "End of The World" stacks exceed 10
+			if (endOfTheWorld > 10) {
+				if (useSkill(game, 1))
+					return;
+			}
 		}
 
 		public static function getSkill(game:Object, index:int):Object {
