@@ -37,13 +37,11 @@ package input {
 		private var maxScrollY:Number = 0;
 		private var thumbHeight:Number = 30;
 
-		private var errBtn:Sprite;
 		private var botBtn:Sprite;
-		private var gameBtn:Sprite;
+		private var chatBtn:Sprite;
 		private var logBtn:Sprite;
-		private var showErr:Boolean = true;
 		private var showBot:Boolean = true;
-		private var showGame:Boolean = true;
+		private var showChat:Boolean = true;
 		private var showLog:Boolean = true;
 
 		public static function log(msg:String, type:String = "log"):void {
@@ -61,8 +59,8 @@ package input {
 				else if (msg.indexOf("WARN") > -1 || msg.indexOf("Warning") > -1) {
 					type = "warn";
 				}
-				else if (msg.indexOf("[Game]") > -1 || msg.indexOf("[AQW]") > -1) {
-					type = "game";
+				else if (msg.indexOf("[Chat]") > -1 || msg.indexOf("[CHAT]") > -1) {
+					type = "chat";
 				}
 			}
 
@@ -101,6 +99,10 @@ package input {
 
 		public static function bot(msg:String):void {
 			log(msg, "bot");
+		}
+
+		public static function chat(msg:String):void {
+			log(msg, "chat");
 		}
 
 		private static function pad2(n:int):String {
@@ -186,25 +188,19 @@ package input {
 			headerBar.addChild(titleTf);
 
 			// Filter Buttons in Header
-			errBtn = createToggleButton("Error", 82, 7, 48, 22, 0xef4444, 0xdc2626, 0xfca5a5, function(val:Boolean):void {
-					showErr = val;
-					refresh();
-				}, true);
-			headerBar.addChild(errBtn);
-
-			botBtn = createToggleButton("Bot", 136, 7, 44, 22, 0x2563eb, 0x1d4ed8, 0x93c5fd, function(val:Boolean):void {
+			botBtn = createToggleButton("Bot", 84, 7, 44, 22, 0x2563eb, 0x1d4ed8, 0x93c5fd, function(val:Boolean):void {
 					showBot = val;
 					refresh();
 				}, true);
 			headerBar.addChild(botBtn);
 
-			gameBtn = createToggleButton("Game", 186, 7, 48, 22, 0x7c3aed, 0x6d28d9, 0xc4b5fd, function(val:Boolean):void {
-					showGame = val;
+			chatBtn = createToggleButton("Chat", 134, 7, 48, 22, 0x0284c7, 0x0369a1, 0x38bdf8, function(val:Boolean):void {
+					showChat = val;
 					refresh();
 				}, true);
-			headerBar.addChild(gameBtn);
+			headerBar.addChild(chatBtn);
 
-			logBtn = createToggleButton("Log", 240, 7, 42, 22, 0x059669, 0x047857, 0x34d399, function(val:Boolean):void {
+			logBtn = createToggleButton("Log", 188, 7, 42, 22, 0x059669, 0x047857, 0x34d399, function(val:Boolean):void {
 					showLog = val;
 					refresh();
 				}, true);
@@ -316,13 +312,11 @@ package input {
 			// Filter items
 			var visibleItems:Array = [];
 			for each (var entry:Object in logBuffer) {
-				if (entry.type == "error" && !showErr)
-					continue;
 				if (entry.type == "bot" && !showBot)
 					continue;
-				if (entry.type == "game" && !showGame)
+				if (entry.type == "chat" && !showChat)
 					continue;
-				if ((entry.type == "log" || entry.type == "warn") && !showLog)
+				if ((entry.type == "log" || entry.type == "warn" || entry.type == "error" || entry.type == "game") && !showLog)
 					continue;
 				visibleItems.push(entry);
 			}
@@ -350,7 +344,19 @@ package input {
 				var badgeText:String = "LOG";
 				var textColor:uint = 0x86efac;
 
-				if (itemData.type == "error") {
+				if (itemData.type == "bot") {
+					badgeColor = 0x2563eb;
+					badgeTextColor = 0x93c5fd;
+					badgeText = "BOT";
+					textColor = 0xbfdbfe;
+				}
+				else if (itemData.type == "chat") {
+					badgeColor = 0x0284c7;
+					badgeTextColor = 0x38bdf8;
+					badgeText = "CHAT";
+					textColor = 0x7dd3fc;
+				}
+				else if (itemData.type == "error") {
 					badgeColor = 0xef4444;
 					badgeTextColor = 0xfca5a5;
 					badgeText = "ERR";
@@ -361,18 +367,6 @@ package input {
 					badgeTextColor = 0xfcd34d;
 					badgeText = "WARN";
 					textColor = 0xfef08a;
-				}
-				else if (itemData.type == "bot") {
-					badgeColor = 0x2563eb;
-					badgeTextColor = 0x93c5fd;
-					badgeText = "BOT";
-					textColor = 0xbfdbfe;
-				}
-				else if (itemData.type == "game") {
-					badgeColor = 0x7c3aed;
-					badgeTextColor = 0xc4b5fd;
-					badgeText = "GAME";
-					textColor = 0xd8b4fe;
 				}
 
 				const badge:Sprite = new Sprite();

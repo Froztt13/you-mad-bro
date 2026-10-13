@@ -178,7 +178,6 @@ package {
 				errText = String(e.error);
 			}
 
-			log("[Game] ERR uncaught: " + errText);
 			AppLogUI.error(errText);
 
 			if (loadState != STATE_READY) {
@@ -365,7 +364,6 @@ package {
 				context = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
 			}
 			prepareContext(context);
-			log("[Map] Loading: " + url);
 
 			if (gameMovieClip != null && gameMovieClip.world != null) {
 				if (gameMovieClip.world.ldr_map != null) {
@@ -387,7 +385,6 @@ package {
 
 			loadBinary(url,
 					function(bytes:ByteArray):void {
-						log("[Map] Downloaded " + bytes.length + " bytes for: " + url);
 						const ldr:Loader = new Loader();
 
 						if ("uncaughtErrorEvents" in ldr && ldr.uncaughtErrorEvents != null) {
@@ -399,7 +396,6 @@ package {
 						}
 
 						ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void {
-								log("[Map] Complete: " + url);
 								cleanupMemory();
 								if (onComplete != null) {
 									onComplete(e);
@@ -427,7 +423,6 @@ package {
 				if (context == null || context.applicationDomain == null || context.applicationDomain == ApplicationDomain.currentDomain) {
 					context = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
 				}
-				log("[Map] Queueing map: " + url);
 
 				if (ldr != null && ldr.content != null) {
 					try {
@@ -449,7 +444,6 @@ package {
 				if (context == null) {
 					context = new LoaderContext(false, ApplicationDomain.currentDomain);
 				}
-				log("[Asset] Queueing: " + url);
 			}
 
 			prepareContext(context);
@@ -465,7 +459,6 @@ package {
 					}
 					catch (eRem:Error) {
 					}
-					log("[Map] Complete: " + url);
 					cleanupMemory();
 				};
 				ldr.contentLoaderInfo.addEventListener(Event.COMPLETE, onMapCompleteCleanup);
@@ -473,7 +466,6 @@ package {
 
 			loadBinary(url,
 					function(bytes:ByteArray):void {
-						log((isMap ? "[Map]" : "[Asset]") + " Downloaded " + bytes.length + " bytes for: " + url);
 						try {
 							ldr.loadBytes(bytes, context);
 						}
@@ -662,6 +654,8 @@ package {
 
 				accountManagerUI.setGame(gameMovieClip);
 				accountManagerUI.updateStatus(false);
+
+				packetHandler = new PacketHandler(gameMovieClip);
 
 				var isSfcHooked:Boolean = false;
 				var hookSFC:Function = function():void {

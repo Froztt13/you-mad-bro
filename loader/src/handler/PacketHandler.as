@@ -8,12 +8,25 @@ package handler {
 	public class PacketHandler {
 
 		private var game:MovieClip;
+		private var chatHandler:ChatHandler;
 
 		public function PacketHandler(game:MovieClip) {
 			this.game = game;
+			this.chatHandler = new ChatHandler(game);
 		}
 
 		public function handleServerResponse(msg:String):void {
+			if (msg == null || msg.length == 0)
+				return;
+
+			// Handle XT chat messages (chatm, whisper, warning, message)
+			if (msg.indexOf("%xt%") > -1 || msg.indexOf("xt%") == 0) {
+				if (chatHandler != null) {
+					chatHandler.handleXtMessage(msg);
+				}
+				return;
+			}
+
 			// JSON parsing
 			if (msg.indexOf("{") == 0) {
 				try {
