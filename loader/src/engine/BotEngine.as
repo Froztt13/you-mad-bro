@@ -543,18 +543,42 @@ package engine {
 			if (game == null || game.world == null)
 				return null;
 
-			var cleanName:String = (name != null) ? name.toLowerCase() : "*";
+			var cleanName:String = (name != null) ? name.replace(/^\s+|\s+$/g, "").toLowerCase() : "*";
 			try {
 				var monsters:Array = game.world.getMonstersByCell(game.world.strFrame);
 				if (monsters != null) {
-					for each (var mon:Object in monsters) {
-						if (mon != null && mon.pMC != null && mon.dataLeaf != null && mon.dataLeaf.intState > 0 && mon.dataLeaf.intHP > 0) {
+					// Pass 1: Prioritize EXACT match
+					for each (var mon1:Object in monsters) {
+						if (mon1 != null && mon1.dataLeaf != null && mon1.dataLeaf.intState > 0 && mon1.dataLeaf.intHP > 0) {
 							if (cleanName == "*" || cleanName == "") {
-								return mon;
+								return mon1;
 							}
-							var mName:String = mon.pMC.pname.ti.text.toLowerCase();
-							if (mName.indexOf(cleanName) > -1) {
-								return mon;
+							if (mon1.pMC != null && mon1.pMC.pname != null && mon1.pMC.pname.ti != null && mon1.pMC.pname.ti.text != null) {
+								var pName1:String = String(mon1.pMC.pname.ti.text).replace(/^\s+|\s+$/g, "").toLowerCase();
+								if (pName1 == cleanName) {
+									return mon1;
+								}
+							}
+							if (mon1.objData != null && mon1.objData.strMonName != null) {
+								var oName1:String = String(mon1.objData.strMonName).replace(/^\s+|\s+$/g, "").toLowerCase();
+								if (oName1 == cleanName) {
+									return mon1;
+								}
+							}
+							if (mon1.dataLeaf.MonMapID != null && String(mon1.dataLeaf.MonMapID) == cleanName) {
+								return mon1;
+							}
+						}
+					}
+
+					// Pass 2: Fallback to partial match only if no exact match exists
+					for each (var mon2:Object in monsters) {
+						if (mon2 != null && mon2.pMC != null && mon2.pMC.pname != null && mon2.pMC.pname.ti != null && mon2.pMC.pname.ti.text != null) {
+							if (mon2.dataLeaf != null && mon2.dataLeaf.intState > 0 && mon2.dataLeaf.intHP > 0) {
+								var pName2:String = String(mon2.pMC.pname.ti.text).toLowerCase();
+								if (pName2.indexOf(cleanName) > -1) {
+									return mon2;
+								}
 							}
 						}
 					}

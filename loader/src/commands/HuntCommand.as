@@ -85,6 +85,20 @@ package commands {
 
 			var curTarget:Object = myAvatar.target;
 
+			// Verify if curTarget is the monster we are actually hunting (exact match)
+			var targetMatches:Boolean = (curTarget != null && matchesMonsterName(curTarget, monster));
+			if (curTarget != null && !targetMatches) {
+				// Target is a different monster (e.g. Luxuria Guard when hunting Luxuria)
+				curTarget = null;
+				try {
+					if (game.world != null && game.world.cancelTarget != null) {
+						game.world.cancelTarget();
+					}
+				}
+				catch (eCancel:Error) {
+				}
+			}
+
 			// 3. Track kill count on target death
 			if (curTarget != null && curTarget.dataLeaf != null) {
 				if (curTarget.dataLeaf.intHP > 0) {
@@ -118,7 +132,7 @@ package commands {
 
 				// Inside bestCell: target alive monster in current cell without jumping around
 				if (curTarget == null || curTarget.dataLeaf == null || curTarget.dataLeaf.intHP <= 0) {
-					var localTgt:Object = bot.getMonsterByName(monster);
+					var localTgt:Object = findAliveMonsterInCell(game, curCellStr, monster);
 					if (localTgt != null) {
 						game.world.setTarget(localTgt);
 						bot.targetWasAlive = (localTgt.dataLeaf.intHP > 0);
@@ -132,7 +146,8 @@ package commands {
 				// 4. Default Hunt: Target selection & Auto-jump to alive monster across cells
 				if (curTarget == null || curTarget.dataLeaf == null || curTarget.dataLeaf.intHP <= 0) {
 					// 4a. Check if alive monster exists in the CURRENT cell
-					var localTarget:Object = bot.getMonsterByName(monster);
+					var curCell:String = (game.world.strFrame != null) ? game.world.strFrame : "";
+					var localTarget:Object = findAliveMonsterInCell(game, curCell, monster);
 					if (localTarget != null) {
 						game.world.setTarget(localTarget);
 						bot.targetWasAlive = (localTarget.dataLeaf.intHP > 0);
@@ -143,7 +158,6 @@ package commands {
 					var aliveMonster:Object = findAliveMonster(game, monster);
 					if (aliveMonster != null && aliveMonster.dataLeaf != null) {
 						var targetCell:String = aliveMonster.dataLeaf.strFrame;
-						var curCell:String = (game.world.strFrame != null) ? game.world.strFrame : "";
 
 						if (targetCell != null && targetCell.length > 0 && targetCell.toLowerCase() != curCell.toLowerCase()) {
 							bot.log("[Hunt] Monster [" + monster + "] alive in cell [" + targetCell + "]. Jumping...");
@@ -252,34 +266,79 @@ package commands {
 			return null;
 		}
 
-		private function matchesMonsterName(mon:Object, filter:String):Boolean {
-			if (mon == null)
-				return false;
-			if (filter == "*" || filter == "" || filter == null)
-				return true;
+		private function findAliveMonsterInCell(game:Object, cell:String, nameFilter:String):Object {
+			if (game == null || game.world == null)
+				return null;
 
-			// Check objData.strMonName
-			if (mon.objData != null && mon.objData.strMonName != null) {
-				var name1:String = String(mon.objData.strMonName).toLowerCase();
-				if (name1.indexOf(filter) > -1)
-					return true;
-			}
+			var cleanFilter:String = (nameFilter != null) ? nameFilter : "*";
+			var targetCell:String = (cell != null) ? cell.toLowerCase() : "";
 
-			// Check pMC pname ti text
 			try {
-				if (mon.pMC != null && mon.pMC.pname != null && mon.pMC.pname.ti != null && mon.pMC.pname.ti.text != null) {
-					var name2:String = String(mon.pMC.pname.ti.text).toLowerCase();
-					if (name2.indexOf(filter) > -1)
-						return true;
+				if (game.world.getMonstersByCell != null) {
+					var cellMons:Array = game.world.getMonstersByCell(game.world.strFrame);
+					if (cellMons != null) {
+						for each (var m1:Object in cellMons) {
+							if (m1 != null && m1.dataLeaf != null) {
+								var isAlive1:Boolean = (int(m1.dataLeaf.intState) > 0 && int(m1.dataLeaf.intHP) > 0);
+								if (isAlive1 && matchesMonsterName(m1, cleanFilter)) {
+									return m1;
+								}
+							}
+						}
+					}
+				}
+
+				var mons:* = game.world.monsters;
+				if (mons != null) {
+					for each (var m2:Object in mons) {
+						if (m2 != null && m2.dataLeaf != null && m2.dataLeaf.strFrame != null) {
+							if (String(m2.dataLeaf.strFrame).toLowerCase() == targetCell) {
+								var isAlive2:Boolean = (int(m2.dataLeaf.intState) > 0 && int(m2.dataLeaf.intHP) > 0);
+								if (isAlive2 && matchesMonsterName(m2, cleanFilter)) {
+									return m2;
+								}
+							}
+						}
+					}
 				}
 			}
 			catch (e:Error) {
 			}
+			return null;
+		}
+
+		private function matchesMonsterName(mon:Object, filter:String):Boolean {
+			if (mon == null)
+				return false;
+			if (filter == null || filter == "*" || filter == "")
+				return true;
+
+			var cleanFilter:String = filter.replace(/^\s+|\s+$/g, "").toLowerCase();
+			if (cleanFilter == "*" || cleanFilter == "")
+				return true;
 
 			// Check MonMapID
 			if (mon.dataLeaf != null && mon.dataLeaf.MonMapID != null) {
-				if (String(mon.dataLeaf.MonMapID) == filter)
+				if (String(mon.dataLeaf.MonMapID) == cleanFilter)
 					return true;
+			}
+
+			// Check objData.strMonName (Exact match, case-insensitive)
+			if (mon.objData != null && mon.objData.strMonName != null) {
+				var name1:String = String(mon.objData.strMonName).replace(/^\s+|\s+$/g, "").toLowerCase();
+				if (name1 == cleanFilter)
+					return true;
+			}
+
+			// Check pMC pname ti text (Exact match, case-insensitive)
+			try {
+				if (mon.pMC != null && mon.pMC.pname != null && mon.pMC.pname.ti != null && mon.pMC.pname.ti.text != null) {
+					var name2:String = String(mon.pMC.pname.ti.text).replace(/^\s+|\s+$/g, "").toLowerCase();
+					if (name2 == cleanFilter)
+						return true;
+				}
+			}
+			catch (e:Error) {
 			}
 
 			return false;
