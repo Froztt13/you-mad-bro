@@ -28,6 +28,7 @@ package input.bot_manager.tabs {
 		private var killItemNameInput:MyTextField;
 		private var killItemQtyInput:MyTextField;
 		private var huntModeCheckbox:MyCheckbox;
+		private var mostMonstersCheckbox:MyCheckbox;
 		private var addCombatBtn:MyButton;
 
 		public function BotCombatTab(manager:BotManagerUI) {
@@ -118,14 +119,24 @@ package input.bot_manager.tabs {
 			killItemContainer.addChild(killItemQtyInput);
 
 			// Hunt Mode Checkbox
-			huntModeCheckbox = new MyCheckbox("Hunt Across Cells (Auto-search monster)", false, null, 10.5);
+			huntModeCheckbox = new MyCheckbox("Hunt Across Cells (Auto-search)", false, function(checked:Boolean):void {
+					if (mostMonstersCheckbox != null) {
+						mostMonstersCheckbox.visible = checked;
+					}
+				}, 10.5);
 			huntModeCheckbox.x = 0;
 			huntModeCheckbox.y = 180;
 			addChild(huntModeCheckbox);
 
+			mostMonstersCheckbox = new MyCheckbox("Most Only (Stay in cell with most monsters)", true, null, 10.5);
+			mostMonstersCheckbox.x = 0;
+			mostMonstersCheckbox.y = 202;
+			mostMonstersCheckbox.visible = false;
+			addChild(mostMonstersCheckbox);
+
 			// Add Combat Command Button
 			addCombatBtn = new MyButton("Add Combat Command", contentW, 24, MyButton.TYPE_PRIMARY, onAddCombatCommandClick);
-			addCombatBtn.y = 212;
+			addCombatBtn.y = 228;
 			addChild(addCombatBtn);
 
 			setKillMode(KillCommand.MODE_NONE);
@@ -156,6 +167,8 @@ package input.bot_manager.tabs {
 			if (mon.length == 0)
 				mon = "*";
 
+			var isMostOnly:Boolean = (isHunt && mostMonstersCheckbox != null && mostMonstersCheckbox.checked);
+
 			var cmd:BotCommand;
 			if (currentKillMode == KillCommand.MODE_ITEM) {
 				var itemName:String = killItemNameInput.trimmedText;
@@ -163,18 +176,18 @@ package input.bot_manager.tabs {
 				if (itemName.length == 0)
 					return;
 				cmd = isHunt
-					? new HuntCommand(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty)
+					? new HuntCommand(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty, isMostOnly)
 					: new KillCommand(mon, KillCommand.MODE_ITEM, 1, itemName, itemQty);
 			}
 			else if (currentKillMode == KillCommand.MODE_COUNT) {
 				var kCount:int = parseInt(killCountInput.text);
 				cmd = isHunt
-					? new HuntCommand(mon, KillCommand.MODE_COUNT, kCount)
+					? new HuntCommand(mon, KillCommand.MODE_COUNT, kCount, "", 1, isMostOnly)
 					: new KillCommand(mon, KillCommand.MODE_COUNT, kCount);
 			}
 			else {
 				cmd = isHunt
-					? new HuntCommand(mon, KillCommand.MODE_NONE)
+					? new HuntCommand(mon, KillCommand.MODE_NONE, 1, "", 1, isMostOnly)
 					: new KillCommand(mon, KillCommand.MODE_NONE);
 			}
 

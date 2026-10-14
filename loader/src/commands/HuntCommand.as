@@ -6,15 +6,19 @@ package commands {
 
 	public class HuntCommand extends KillCommand {
 
+		public var mostMonstersOnly:Boolean = true;
+
 		public function HuntCommand(
 				monster:String = "*",
 				killMode:String = MODE_NONE,
 				killCount:int = 1,
 				itemName:String = "",
-				itemQty:int = 1
+				itemQty:int = 1,
+				mostMonstersOnly:Boolean = true
 			) {
 			super(monster, killMode, killCount, itemName, itemQty);
 			this.type = BotCommand.TYPE_HUNT;
+			this.mostMonstersOnly = mostMonstersOnly;
 		}
 
 		override public function toJSON():Object {
@@ -24,7 +28,8 @@ package commands {
 					"killMode": killMode,
 					"killCount": killCount,
 					"itemName": itemName,
-					"itemQty": itemQty
+					"itemQty": itemQty,
+					"mostMonstersOnly": mostMonstersOnly
 				};
 		}
 
@@ -36,7 +41,8 @@ package commands {
 					data.killMode || MODE_NONE,
 					int(data.killCount || 1),
 					data.itemName || "",
-					int(data.itemQty || 1)
+					int(data.itemQty || 1),
+					("mostMonstersOnly" in data && data.mostMonstersOnly != null) ? Boolean(data.mostMonstersOnly) : true
 				);
 		}
 
@@ -96,50 +102,78 @@ package commands {
 				}
 			}
 
-			// 4. Target selection & Auto-jump to alive monster cell
-			if (curTarget == null || curTarget.dataLeaf == null || curTarget.dataLeaf.intHP <= 0) {
-				// 4a. Check if alive monster exists in the CURRENT cell
-				var localTarget:Object = bot.getMonsterByName(monster);
-				if (localTarget != null) {
-					game.world.setTarget(localTarget);
-					bot.targetWasAlive = (localTarget.dataLeaf.intHP > 0);
+			// 4. Mode-specific behavior:
+			// If mostMonstersOnly is true, stay exclusively in the 1 cell with the most monsters
+			if (mostMonstersOnly) {
+				var curCellStr:String = (game.world.strFrame != null) ? String(game.world.strFrame) : "";
+				var bestCell:String = findCellWithMostMonsters(game, monster);
+
+				// If bestCell is found and player is not there yet, jump there
+				if (bestCell != null && bestCell.length > 0 && bestCell.toLowerCase() != curCellStr.toLowerCase()) {
+					bot.log("[Hunt] Moving to cell [" + bestCell + "] with most [" + monster + "]...");
+					jumpToCell(bot, game, bestCell);
+					bot.delay(1000);
 					return;
 				}
 
-				// 4b. No alive monster in current cell. Search all monsters in the map for an alive one
-				var aliveMonster:Object = findAliveMonster(game, monster);
-				if (aliveMonster != null && aliveMonster.dataLeaf != null) {
-					var targetCell:String = aliveMonster.dataLeaf.strFrame;
-					var curCell:String = (game.world.strFrame != null) ? game.world.strFrame : "";
-
-					if (targetCell != null && targetCell.length > 0 && targetCell.toLowerCase() != curCell.toLowerCase()) {
-						bot.log("[Hunt] Monster [" + monster + "] alive in cell [" + targetCell + "]. Jumping...");
-						jumpToCell(bot, game, targetCell);
-						bot.delay(1000); // Wait 1 second for cell transition and monster assets to load
+				// Inside bestCell: target alive monster in current cell without jumping around
+				if (curTarget == null || curTarget.dataLeaf == null || curTarget.dataLeaf.intHP <= 0) {
+					var localTgt:Object = bot.getMonsterByName(monster);
+					if (localTgt != null) {
+						game.world.setTarget(localTgt);
+						bot.targetWasAlive = (localTgt.dataLeaf.intHP > 0);
 						return;
 					}
-					else {
-						// Already in the same cell, lock target immediately
-						game.world.setTarget(aliveMonster);
-						bot.targetWasAlive = (aliveMonster.dataLeaf.intHP > 0);
-						return;
-					}
+					// No alive monster in current cell: wait here for respawn (no jumping!)
+					return;
 				}
-
-				// 4c. If the monster has not spawned in any cell yet (respawning):
-				// Ensure player waits in the cell where this monster normally spawns
-				var inSpawnCell:Boolean = isCurrentCellMonsterSpawn(game, monster);
-				if (!inSpawnCell) {
-					var spawnCell:String = findMonsterSpawnCell(game, monster);
-					if (spawnCell != null && spawnCell.length > 0 && spawnCell.toLowerCase() != (game.world.strFrame ? game.world.strFrame.toLowerCase() : "")) {
-						bot.log("[Hunt] No alive [" + monster + "] found. Moving to spawn cell [" + spawnCell + "] to wait for respawn...");
-						jumpToCell(bot, game, spawnCell);
-						bot.delay(1000);
+			}
+			else {
+				// 4. Default Hunt: Target selection & Auto-jump to alive monster across cells
+				if (curTarget == null || curTarget.dataLeaf == null || curTarget.dataLeaf.intHP <= 0) {
+					// 4a. Check if alive monster exists in the CURRENT cell
+					var localTarget:Object = bot.getMonsterByName(monster);
+					if (localTarget != null) {
+						game.world.setTarget(localTarget);
+						bot.targetWasAlive = (localTarget.dataLeaf.intHP > 0);
 						return;
 					}
-				}
 
-				return;
+					// 4b. No alive monster in current cell. Search all monsters in the map for an alive one
+					var aliveMonster:Object = findAliveMonster(game, monster);
+					if (aliveMonster != null && aliveMonster.dataLeaf != null) {
+						var targetCell:String = aliveMonster.dataLeaf.strFrame;
+						var curCell:String = (game.world.strFrame != null) ? game.world.strFrame : "";
+
+						if (targetCell != null && targetCell.length > 0 && targetCell.toLowerCase() != curCell.toLowerCase()) {
+							bot.log("[Hunt] Monster [" + monster + "] alive in cell [" + targetCell + "]. Jumping...");
+							jumpToCell(bot, game, targetCell);
+							bot.delay(1000); // Wait 1 second for cell transition and monster assets to load
+							return;
+						}
+						else {
+							// Already in the same cell, lock target immediately
+							game.world.setTarget(aliveMonster);
+							bot.targetWasAlive = (aliveMonster.dataLeaf.intHP > 0);
+							return;
+						}
+					}
+
+					// 4c. If the monster has not spawned in any cell yet (respawning):
+					// Ensure player waits in the cell where this monster normally spawns
+					var inSpawnCell:Boolean = isCurrentCellMonsterSpawn(game, monster);
+					if (!inSpawnCell) {
+						var spawnCell:String = findMonsterSpawnCell(game, monster);
+						if (spawnCell != null && spawnCell.length > 0 && spawnCell.toLowerCase() != (game.world.strFrame ? game.world.strFrame.toLowerCase() : "")) {
+							bot.log("[Hunt] No alive [" + monster + "] found. Moving to spawn cell [" + spawnCell + "] to wait for respawn...");
+							jumpToCell(bot, game, spawnCell);
+							bot.delay(1000);
+							return;
+						}
+					}
+
+					return;
+				}
 			}
 
 			// 5. Approach & smart combat
@@ -273,15 +307,67 @@ package commands {
 			}
 		}
 
+		public function findCellWithMostMonsters(game:Object, nameFilter:String):String {
+			if (game == null || game.world == null || game.world.monsters == null)
+				return null;
+
+			var cleanFilter:String = (nameFilter != null) ? nameFilter.toLowerCase() : "*";
+			var curCell:String = (game.world.strFrame != null) ? String(game.world.strFrame).toLowerCase() : "";
+
+			try {
+				var mons:* = game.world.monsters;
+				var cellCounts:Object = {};
+				var cellOrigName:Object = {};
+
+				for each (var m:Object in mons) {
+					if (m != null && m.dataLeaf != null && m.dataLeaf.strFrame != null) {
+						var rawCell:String = String(m.dataLeaf.strFrame);
+						if (rawCell.length > 0 && matchesMonsterName(m, cleanFilter)) {
+							var lowerCell:String = rawCell.toLowerCase();
+							if (cellCounts[lowerCell] == null) {
+								cellCounts[lowerCell] = 0;
+								cellOrigName[lowerCell] = rawCell;
+							}
+							cellCounts[lowerCell]++;
+						}
+					}
+				}
+
+				var maxCount:int = 0;
+				var bestCellLower:String = null;
+
+				for (var c:String in cellCounts) {
+					var count:int = int(cellCounts[c]);
+					if (count > maxCount) {
+						maxCount = count;
+						bestCellLower = c;
+					}
+					else if (count == maxCount && c == curCell) {
+						// Prefer staying in current cell if it's tied for the maximum count
+						bestCellLower = c;
+					}
+				}
+
+				if (bestCellLower != null) {
+					return cellOrigName[bestCellLower];
+				}
+			}
+			catch (e:Error) {
+			}
+
+			return null;
+		}
+
 		override public function toString():String {
+			var suffix:String = mostMonstersOnly ? " [Most Only]" : "";
 			if (killMode == MODE_ITEM) {
-				return "Hunt [" + monster + "] for " + itemName + " (" + itemQty + ")";
+				return "Hunt [" + monster + "] for " + itemName + " (" + itemQty + ")" + suffix;
 			}
 			else if (killMode == MODE_COUNT) {
-				return "Hunt [" + monster + "] x" + killCount;
+				return "Hunt [" + monster + "] x" + killCount + suffix;
 			}
 			else {
-				return "Hunt [" + monster + "]";
+				return "Hunt [" + monster + "]" + suffix;
 			}
 		}
 	}

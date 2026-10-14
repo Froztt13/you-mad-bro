@@ -42,6 +42,7 @@ package input.bot_manager.modals {
 		private var editKillItemNameInput:MyTextField;
 		private var editKillItemQtyInput:MyTextField;
 		private var editHuntCheckbox:MyCheckbox;
+		private var editMostMonstersCheckbox:MyCheckbox;
 
 		private var editMapInput:MyTextField;
 		private var editCellInput:MyTextField;
@@ -237,10 +238,22 @@ package input.bot_manager.modals {
 				editModalFormContainer.addChild(editKillItemBox);
 
 				// Hunt Checkbox
-				editHuntCheckbox = new MyCheckbox("Hunt Across Cells", (cmd is HuntCommand), null, 10.5);
+				var isHuntCmd:Boolean = (cmd is HuntCommand);
+				var isMostOnly:Boolean = isHuntCmd ? (cmd as HuntCommand).mostMonstersOnly : true;
+				editHuntCheckbox = new MyCheckbox("Hunt Across Cells", isHuntCmd, function(checked:Boolean):void {
+						if (editMostMonstersCheckbox != null) {
+							editMostMonstersCheckbox.visible = checked;
+						}
+					}, 10.5);
 				editHuntCheckbox.x = 0;
 				editHuntCheckbox.y = 146;
 				editModalFormContainer.addChild(editHuntCheckbox);
+
+				editMostMonstersCheckbox = new MyCheckbox("Most Monsters Cell Only", isMostOnly, null, 10.5);
+				editMostMonstersCheckbox.x = 140;
+				editMostMonstersCheckbox.y = 146;
+				editMostMonstersCheckbox.visible = isHuntCmd;
+				editModalFormContainer.addChild(editMostMonstersCheckbox);
 
 				setEditKillMode(editKillMode);
 			}
@@ -557,10 +570,11 @@ package input.bot_manager.modals {
 				var finalItem:String = (editKillMode == KillCommand.MODE_ITEM) ? editKillItemNameInput.trimmedText : "";
 				var finalQty:int = (editKillMode == KillCommand.MODE_ITEM) ? Math.max(1, parseInt(editKillItemQtyInput.text)) : 1;
 				var isHuntEdit:Boolean = (editHuntCheckbox != null && editHuntCheckbox.checked);
+				var isMostOnlyEdit:Boolean = (isHuntEdit && editMostMonstersCheckbox != null && editMostMonstersCheckbox.checked);
 
 				var newCmd:BotCommand;
 				if (isHuntEdit) {
-					newCmd = new HuntCommand(finalMon, editKillMode, finalCount, finalItem, finalQty);
+					newCmd = new HuntCommand(finalMon, editKillMode, finalCount, finalItem, finalQty, isMostOnlyEdit);
 				}
 				else {
 					newCmd = new KillCommand(finalMon, editKillMode, finalCount, finalItem, finalQty);
