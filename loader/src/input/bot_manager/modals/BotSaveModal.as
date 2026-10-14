@@ -1,12 +1,15 @@
 package input.bot_manager.modals {
 
+	import flash.display.DisplayObject;
 	import flash.display.Shape;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.text.TextField;
+	import flash.text.TextFormatAlign;
 
 	import engine.BotEngine;
 	import ui.CloseButton;
@@ -25,7 +28,11 @@ package input.bot_manager.modals {
 		private var botEngine:BotEngine;
 		private var onSavedCallback:Function;
 
+		private var explorer:BotFileExplorer;
+		private var pathSub:TextField;
 		private var saveFileNameInput:MyTextField;
+		private var statusHintLbl:TextField;
+		private var saveActionBtn:MyButton;
 
 		public function BotSaveModal(botEngine:BotEngine, onSavedCallback:Function = null) {
 			super();
@@ -45,8 +52,8 @@ package input.bot_manager.modals {
 			addChild(dimmer);
 
 			// Dialog Card
-			const boxW:Number = 420;
-			const boxH:Number = 190;
+			const boxW:Number = 480;
+			const boxH:Number = 350;
 			const boxX:Number = int((MODAL_W - boxW) / 2);
 			const boxY:Number = int((MODAL_H - boxH) / 2);
 
@@ -61,6 +68,12 @@ package input.bot_manager.modals {
 			title.y = boxY + 12;
 			addChild(title);
 
+			pathSub = UIUtils.createLabel("Folder: Documents/YouMadBro/Bots/", UIUtils.TEXT_DIM, 9.5, false);
+			pathSub.x = boxX + 130;
+			pathSub.y = boxY + 14;
+			pathSub.width = 280;
+			addChild(pathSub);
+
 			const closeBtn:CloseButton = new CloseButton();
 			closeBtn.x = boxX + boxW - 32;
 			closeBtn.y = boxY + 10;
@@ -70,57 +83,152 @@ package input.bot_manager.modals {
 			addChild(closeBtn);
 
 			// Divider under header
-			const div:Shape = new Shape();
-			div.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 1);
-			div.graphics.moveTo(boxX + 16, boxY + 36);
-			div.graphics.lineTo(boxX + boxW - 16, boxY + 36);
-			addChild(div);
+			const div1:Shape = new Shape();
+			div1.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 1);
+			div1.graphics.moveTo(boxX + 16, boxY + 36);
+			div1.graphics.lineTo(boxX + boxW - 16, boxY + 36);
+			addChild(div1);
 
-			// Folder destination hint
-			const folderLbl:TextField = UIUtils.createLabel("Destination: Documents/YouMadBro/Bots/", UIUtils.TEXT_DIM, 9.5);
-			folderLbl.x = boxX + 16;
-			folderLbl.y = boxY + 44;
-			addChild(folderLbl);
+			// Reusable File Explorer Component
+			const listW:Number = boxW - 32;
+			const listH:Number = 170;
+			explorer = new BotFileExplorer(
+					listW,
+					listH,
+					"Select",
+					MyButton.TYPE_SECONDARY,
+					onFileChosen,
+					onFolderChanged,
+					onFileChosen
+				);
+			explorer.x = boxX + 16;
+			explorer.y = boxY + 42;
+			addChild(explorer);
 
+			// Divider between Explorer and Input
+			const div2:Shape = new Shape();
+			div2.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 1);
+			div2.graphics.moveTo(boxX + 16, boxY + 220);
+			div2.graphics.lineTo(boxX + boxW - 16, boxY + 220);
+			addChild(div2);
+
+			// Name Label and Replace / Status Hint
 			const nameLbl:TextField = UIUtils.createLabel("Script File Name:", UIUtils.TEXT_MUTED, 10.5);
 			nameLbl.x = boxX + 16;
-			nameLbl.y = boxY + 66;
+			nameLbl.y = boxY + 226;
 			addChild(nameLbl);
 
-			saveFileNameInput = new MyTextField(280, 26);
+			statusHintLbl = UIUtils.createLabel("", UIUtils.TEXT_DIM, 9.5, false, TextFormatAlign.RIGHT);
+			statusHintLbl.x = boxX + 160;
+			statusHintLbl.y = boxY + 227;
+			statusHintLbl.width = boxW - 32 - 144;
+			addChild(statusHintLbl);
+
+			// Input field
+			saveFileNameInput = new MyTextField(boxW - 32 - 45, 24);
 			saveFileNameInput.x = boxX + 16;
-			saveFileNameInput.y = boxY + 86;
+			saveFileNameInput.y = boxY + 246;
 			saveFileNameInput.text = "my_bot";
+			saveFileNameInput.addEventListener(Event.CHANGE, function(e:Event):void {
+					checkOverwriteState();
+				});
 			addChild(saveFileNameInput);
 
 			const extLbl:TextField = UIUtils.createLabel(".json", UIUtils.TEXT_MAIN, 11, true);
-			extLbl.x = boxX + 16 + 284;
-			extLbl.y = boxY + 90;
+			extLbl.x = saveFileNameInput.x + saveFileNameInput.width + 6;
+			extLbl.y = boxY + 248;
 			addChild(extLbl);
 
+			// Footer Buttons
 			if (Config.isAndroid) {
 				const safExportBtn:MyButton = new MyButton("📁 Export via SAF", 125, 26, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 						saveFileViaSaf();
 					});
 				safExportBtn.x = boxX + 16;
-				safExportBtn.y = boxY + boxH - 42;
+				safExportBtn.y = boxY + boxH - 38;
 				addChild(safExportBtn);
 			}
 
-			// Footer Buttons
-			const saveActionBtn:MyButton = new MyButton("Save Script", 90, 26, MyButton.TYPE_SUCCESS, function(e:MouseEvent):void {
+			saveActionBtn = new MyButton("Save Script", 100, 26, MyButton.TYPE_SUCCESS, function(e:MouseEvent):void {
 					saveFile();
 				});
-			saveActionBtn.x = boxX + boxW - 16 - 90;
-			saveActionBtn.y = boxY + boxH - 42;
+			saveActionBtn.x = boxX + boxW - 16 - 100;
+			saveActionBtn.y = boxY + boxH - 38;
 			addChild(saveActionBtn);
 
-			const cancelBtn:MyButton = new MyButton("Cancel", 64, 26, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
+			const cancelBtn:MyButton = new MyButton("Cancel", 70, 26, MyButton.TYPE_MUTED, function(e:MouseEvent):void {
 					close();
 				});
-			cancelBtn.x = saveActionBtn.x - 70;
-			cancelBtn.y = boxY + boxH - 42;
+			cancelBtn.x = saveActionBtn.x - 78;
+			cancelBtn.y = boxY + boxH - 38;
 			addChild(cancelBtn);
+		}
+
+		private function onFileChosen(f:File):void {
+			if (f == null) {
+				return;
+			}
+			var baseName:String = f.name;
+			var extLower:String = f.extension != null ? f.extension.toLowerCase() : "";
+			if (extLower == "json" || extLower == "txt") {
+				var dotIdx:int = baseName.lastIndexOf(".");
+				if (dotIdx > 0) {
+					baseName = baseName.substr(0, dotIdx);
+				}
+			}
+			saveFileNameInput.text = baseName;
+			explorer.setSelectedFileName(f.name);
+			checkOverwriteState();
+		}
+
+		private function onFolderChanged(dir:File):void {
+			if (pathSub != null) {
+				pathSub.text = "Folder: " + explorer.getDisplayPath();
+			}
+			checkOverwriteState();
+		}
+
+		private function checkOverwriteState():void {
+			var rawName:String = saveFileNameInput.trimmedText;
+			if (rawName.length == 0) {
+				statusHintLbl.text = "";
+				saveActionBtn.label = "Save Script";
+				explorer.setSelectedFileName("");
+				return;
+			}
+
+			rawName = rawName.replace(/[\/\\:\*\?"<>\|]/g, "_");
+			if (rawName.toLowerCase().indexOf(".json") == rawName.length - 5) {
+				rawName = rawName.substr(0, rawName.length - 5);
+			}
+			var fileName:String = rawName + ".json";
+
+			var exists:Boolean = false;
+			var currentDir:File = explorer.getCurrentDir();
+			if (currentDir != null && currentDir.exists) {
+				try {
+					var checkF:File = currentDir.resolvePath(fileName);
+					exists = checkF.exists;
+				}
+				catch (e:Error) {
+				}
+			}
+			else {
+				exists = explorer.hasFileNamed(fileName);
+			}
+
+			if (exists) {
+				statusHintLbl.text = "⚠️ File exists. Will replace on save.";
+				statusHintLbl.textColor = 0xf59e0b;
+				saveActionBtn.label = "Replace";
+				explorer.setSelectedFileName(fileName);
+			}
+			else {
+				statusHintLbl.text = "New file will be created.";
+				statusHintLbl.textColor = UIUtils.TEXT_DIM;
+				saveActionBtn.label = "Save Script";
+				explorer.setSelectedFileName("");
+			}
 		}
 
 		private function saveFileViaSaf():void {
@@ -146,6 +254,13 @@ package input.bot_manager.modals {
 		}
 
 		public function open():void {
+			if (explorer != null) {
+				explorer.refreshList();
+				if (pathSub != null) {
+					pathSub.text = "Folder: " + explorer.getDisplayPath();
+				}
+				checkOverwriteState();
+			}
 			this.visible = true;
 			if (parent != null) {
 				parent.setChildIndex(this, parent.numChildren - 1);
@@ -171,25 +286,32 @@ package input.bot_manager.modals {
 			var fileName:String = rawName + ".json";
 
 			var candidateDirs:Array = [];
-			try {
-				candidateDirs.push(BotLoadModal.getBotDirectory());
+			var curDir:File = explorer != null ? explorer.getCurrentDir() : null;
+			if (curDir != null && curDir.exists && curDir.isDirectory) {
+				candidateDirs.push(curDir);
 			}
-			catch (e0:Error) {
-			}
-			try {
-				candidateDirs.push(File.applicationStorageDirectory.resolvePath("YouMadBro/Bots"));
-			}
-			catch (e1:Error) {
-			}
-			try {
-				candidateDirs.push(File.applicationStorageDirectory);
-			}
-			catch (e2:Error) {
+			else {
+				try {
+					candidateDirs.push(BotLoadModal.getBotDirectory());
+				}
+				catch (e0:Error) {
+				}
+				try {
+					candidateDirs.push(File.applicationStorageDirectory.resolvePath("YouMadBro/Bots"));
+				}
+				catch (e1:Error) {
+				}
+				try {
+					candidateDirs.push(File.applicationStorageDirectory);
+				}
+				catch (e2:Error) {
+				}
 			}
 
 			var savedFile:File = null;
 			var lastError:Error = null;
 			var content:String = botEngine != null ? botEngine.exportConfigJSON() : "{}";
+			var wasOverwrite:Boolean = false;
 
 			for each (var targetDir:File in candidateDirs) {
 				if (targetDir == null)
@@ -199,6 +321,7 @@ package input.bot_manager.modals {
 						targetDir.createDirectory();
 					}
 					var f:File = targetDir.resolvePath(fileName);
+					wasOverwrite = f.exists;
 					var stream:FileStream = new FileStream();
 					stream.open(f, FileMode.WRITE);
 					stream.writeUTFBytes(content);
@@ -233,11 +356,14 @@ package input.bot_manager.modals {
 			}
 
 			var isPublic:Boolean = (savedFile.nativePath.indexOf("/storage/emulated/0/") == 0 || savedFile.nativePath.indexOf("/sdcard/") == 0);
+			var actionWord:String = wasOverwrite ? "Successfully replaced:\n" : "Successfully saved:\n";
+			var titleWord:String = wasOverwrite ? "Bot Replaced" : "Bot Saved";
+
 			if (Config.isAndroid && !isPublic) {
-				showAlert("Bot Saved (App Storage)", "Saved to App Storage:\n" + savedFile.name + "\n\n" + displayPath + "\n\n(Tip: Allow 'All files access' in Android Settings to save directly into public Documents folder)");
+				showAlert(titleWord + " (App Storage)", actionWord + savedFile.name + "\n\n" + displayPath + "\n\n(Tip: Allow 'All files access' in Android Settings to save directly into public Documents folder)");
 			}
 			else {
-				showAlert("Bot Saved", "Successfully saved:\n" + savedFile.name + "\n\n" + displayPath);
+				showAlert(titleWord, actionWord + savedFile.name + "\n\n" + displayPath);
 			}
 		}
 

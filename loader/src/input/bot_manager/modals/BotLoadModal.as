@@ -1,5 +1,6 @@
 package input.bot_manager.modals {
 
+	import flash.display.DisplayObject;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
@@ -7,13 +8,11 @@ package input.bot_manager.modals {
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.text.TextField;
-	import flash.text.TextFormatAlign;
 
 	import engine.BotEngine;
 	import ui.CloseButton;
 	import ui.InfoMessage;
 	import ui.MyButton;
-	import ui.ScrollContainer;
 	import ui.UIUtils;
 	import Config;
 	import com.aqw.battery.BatteryOptimizer;
@@ -26,8 +25,8 @@ package input.bot_manager.modals {
 		private var botEngine:BotEngine;
 		private var onLoadedCallback:Function;
 
-		private var loadListScroll:ScrollContainer;
-		private var loadEmptyLabel:TextField;
+		private var explorer:BotFileExplorer;
+		private var pathSub:TextField;
 
 		public function BotLoadModal(botEngine:BotEngine, onLoadedCallback:Function = null) {
 			super();
@@ -197,6 +196,33 @@ package input.bot_manager.modals {
 			return dirs;
 		}
 
+		public static function getDisplayPath(dir:File):String {
+			if (dir == null) {
+				return "Bots/";
+			}
+			try {
+				var np:String = dir.nativePath;
+				if (np == null || np.length == 0) {
+					return dir.name + "/";
+				}
+				var idx:int = np.indexOf("YouMadBro/Bots");
+				if (idx != -1) {
+					return np.substring(idx);
+				}
+				idx = np.indexOf("YouMadBro\\Bots");
+				if (idx != -1) {
+					return np.substring(idx);
+				}
+				if (np.indexOf("/storage/emulated/0/") == 0) {
+					return np.replace("/storage/emulated/0/", "Storage > ");
+				}
+				return dir.name + "/";
+			}
+			catch (e:Error) {
+			}
+			return dir.name;
+		}
+
 		private function buildUI():void {
 			// Dimmer background
 			const dimmer:Shape = new Shape();
@@ -222,7 +248,7 @@ package input.bot_manager.modals {
 			title.y = boxY + 12;
 			addChild(title);
 
-			const pathSub:TextField = UIUtils.createLabel("Folder: Documents/YouMadBro/Bots/", UIUtils.TEXT_DIM, 9.5, false);
+			pathSub = UIUtils.createLabel("Folder: Documents/YouMadBro/Bots/", UIUtils.TEXT_DIM, 9.5, false);
 			pathSub.x = boxX + 130;
 			pathSub.y = boxY + 14;
 			pathSub.width = 280;
@@ -243,26 +269,21 @@ package input.bot_manager.modals {
 			div.graphics.lineTo(boxX + boxW - 16, boxY + 36);
 			addChild(div);
 
-			// Scrollable list container
+			// Reusable File Explorer Component
 			const listW:Number = boxW - 32;
 			const listH:Number = 200;
-			loadListScroll = new ScrollContainer(listW, listH, 10, true);
-			loadListScroll.x = boxX + 16;
-			loadListScroll.y = boxY + 44;
-			addChild(loadListScroll);
-
-			loadEmptyLabel = UIUtils.createLabel(
-					"No bot files (.json) found in folder.\n\nPlace bot .json files in:\nDocuments/YouMadBro/Bots/",
-					UIUtils.TEXT_DIM,
-					11,
-					false,
-					TextFormatAlign.CENTER
+			explorer = new BotFileExplorer(
+					listW,
+					listH,
+					"Load",
+					MyButton.TYPE_PRIMARY,
+					loadFile,
+					onFolderChanged,
+					loadFile
 				);
-			loadEmptyLabel.width = listW - 16;
-			loadEmptyLabel.x = 8;
-			loadEmptyLabel.y = 65;
-			loadEmptyLabel.multiline = true;
-			loadEmptyLabel.wordWrap = true;
+			explorer.x = boxX + 16;
+			explorer.y = boxY + 44;
+			addChild(explorer);
 
 			// Footer Buttons
 			const refreshBtn:MyButton = new MyButton("Refresh", 76, 26, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
@@ -285,6 +306,12 @@ package input.bot_manager.modals {
 			closeFooterBtn.x = boxX + boxW - 16 - 64;
 			closeFooterBtn.y = boxY + boxH - 44;
 			addChild(closeFooterBtn);
+		}
+
+		private function onFolderChanged(dir:File):void {
+			if (pathSub != null) {
+				pathSub.text = "Folder: " + explorer.getDisplayPath();
+			}
 		}
 
 		private function onNativePickClick(e:MouseEvent):void {
@@ -323,95 +350,18 @@ package input.bot_manager.modals {
 		}
 
 		public function refreshList():void {
-			loadListScroll.clearContent();
-
-			var dirs:Array = getAllBotDirectories();
-			var files:Array = [];
-			var seenNames:Object = {};
-
-			for each (var dir:File in dirs) {
-				try {
-					if (dir != null && dir.exists && dir.isDirectory) {
-						var list:Array = dir.getDirectoryListing();
-						for each (var f:File in list) {
-							if (f != null && !f.isDirectory) {
-								var nameLower:String = f.name != null ? f.name.toLowerCase() : "";
-								var extLower:String = f.extension != null ? f.extension.toLowerCase() : "";
-								var isBot:Boolean = (extLower == "json" || extLower == "txt");
-								if (!isBot && nameLower.length > 5) {
-									isBot = (nameLower.substr(nameLower.length - 5) == ".json" || nameLower.substr(nameLower.length - 4) == ".txt");
-								}
-
-								if (isBot && !seenNames[nameLower]) {
-									seenNames[nameLower] = true;
-									files.push(f);
-								}
-							}
-						}
-					}
-				}
-				catch (eDir:Error) {
+			if (explorer != null) {
+				explorer.refreshList();
+				if (pathSub != null) {
+					pathSub.text = "Folder: " + explorer.getDisplayPath();
 				}
 			}
-
-			if (files.length == 0) {
-				var primaryDir:File = getBotDirectory();
-				var displayDir:String = primaryDir != null ? primaryDir.nativePath : "Documents/YouMadBro/Bots";
-				if (displayDir.indexOf("/storage/emulated/0/") == 0) {
-					displayDir = displayDir.replace("/storage/emulated/0/", "Internal Storage > ");
-				}
-				loadEmptyLabel.text = "No bot files (.json) found.\n\n" +
-					"Place .json files in:\n" + displayDir + "\n\n" +
-					"(Ensure Storage / Documents permission is allowed in Settings)";
-				loadListScroll.addItem(loadEmptyLabel);
-				loadEmptyLabel.visible = true;
-				return;
-			}
-
-			loadEmptyLabel.visible = false;
-
-			const rowW:Number = loadListScroll.contentWidth;
-			const rowH:Number = 30;
-			const gap:Number = 4;
-
-			for (var i:int = 0; i < files.length; i++) {
-				var fileItem:File = files[i];
-				var row:Sprite = createRow(fileItem, rowW, rowH);
-				row.y = i * (rowH + gap);
-				loadListScroll.addItem(row);
-			}
-
-			loadListScroll.updateScroll(files.length * (rowH + gap));
-		}
-
-		private function createRow(f:File, w:Number, h:Number):Sprite {
-			var row:Sprite = new Sprite();
-
-			var bg:Shape = new Shape();
-			UIUtils.drawRoundedRect(bg.graphics, 0, 0, w, h, 4, UIUtils.BG_DARK, 0.9, UIUtils.BORDER_SUBTLE, 1);
-			row.addChild(bg);
-
-			// File Icon + Name
-			var displayName:String = f.name;
-			var nameLabel:TextField = UIUtils.createLabel("📄  " + displayName, UIUtils.TEXT_WHITE, 11, true);
-			nameLabel.x = 8;
-			nameLabel.y = 6;
-			nameLabel.width = w - 80;
-			nameLabel.height = 20;
-			row.addChild(nameLabel);
-
-			// Load Button (Delete button removed per user request)
-			var btnLoad:MyButton = new MyButton("Load", 58, 22, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
-					loadFile(f);
-				}, 10.5);
-			btnLoad.x = w - 66;
-			btnLoad.y = 4;
-			row.addChild(btnLoad);
-
-			return row;
 		}
 
 		private function loadFile(f:File):void {
+			if (f == null) {
+				return;
+			}
 			try {
 				var stream:FileStream = new FileStream();
 				stream.open(f, FileMode.READ);
