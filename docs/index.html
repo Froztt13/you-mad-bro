@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouMadBro Documentation - AQW Mobile Bot & Client</title>
+  <meta name="description" content="Official documentation for YouMadBro: an advanced AQW mobile client and visual bot loader with background execution, class combos, and subfolder script management.">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Backdrop overlay for mobile drawer -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+  <!-- Top Navbar -->
+  <header class="site-header">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">☰</button>
+      <a href="#" class="brand">
+        <img src="assets/icon.png" alt="YouMadBro Logo" class="brand-icon">
+        <span class="brand-name">YouMadBro</span>
+        <span class="brand-badge">v1.1.0</span>
+      </a>
+    </div>
+
+    <div class="header-links">
+      <a href="https://github.com/Froztt13/you-mad-bro/releases" target="_blank" rel="noopener" class="header-btn ghost">
+        <span>Releases</span>
+      </a>
+      <a href="https://github.com/Froztt13/you-mad-bro" target="_blank" rel="noopener" class="header-btn primary">
+        <span>GitHub</span> ↗
+      </a>
+    </div>
+  </header>
+
+  <!-- Layout Wrapper -->
+  <div class="docs-wrapper">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="docs-sidebar" id="docsSidebar">
+      <div class="search-box">
+        <span class="search-icon" style="font-size: 13px; font-weight: 700; color: var(--primary);">/</span>
+        <input type="text" id="docsSearch" class="search-input" placeholder="Search documentation...">
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Getting Started</div>
+        <ul class="nav-list">
+          <li><a href="#overview" class="nav-link active">Overview & Highlights</a></li>
+          <li><a href="#installation" class="nav-link">Installation & Setup</a></li>
+        </ul>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Bot Manager UI</div>
+        <ul class="nav-list">
+          <li><a href="#bot-manager-overview" class="nav-link">Architecture & Layout</a></li>
+          <li><a href="#bot-panel-left" class="nav-link">Left Panel: Command Stack</a></li>
+          <li><a href="#tab-combat" class="nav-link">Combat Tab (Kill & Hunt)</a></li>
+          <li><a href="#tab-quest" class="nav-link">Quest Tab (Quests & Items)</a></li>
+          <li><a href="#tab-map" class="nav-link">Map Tab (Join, Jump, Walk)</a></li>
+          <li><a href="#tab-item" class="nav-link">Item Tab (Equip, Buy, Drop)</a></li>
+          <li><a href="#tab-misc" class="nav-link">Misc Tab (Labels & Ifs)</a></li>
+          <li><a href="#tab-settings" class="nav-link">Settings Tab & Config</a></li>
+          <li><a href="#bot-modals" class="nav-link">Integrated Modals</a></li>
+        </ul>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Bot Engine Features</div>
+        <ul class="nav-list">
+          <li><a href="#hunt-command" class="nav-link">Smart Hunt & Cell Locking</a></li>
+          <li><a href="#bot-commands" class="nav-link">Command Reference Table</a></li>
+          <li><a href="#conditionals" class="nav-link">14 Conditional Logics</a></li>
+        </ul>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Storage & Files</div>
+        <ul class="nav-list">
+          <li><a href="#file-explorer" class="nav-link">Folder Explorer & Overwrite</a></li>
+          <li><a href="#account-manager" class="nav-link">Account Manager Vault</a></li>
+        </ul>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Combat & Classes</div>
+        <ul class="nav-list">
+          <li><a href="#combat-engine" class="nav-link">Auto Battle Engine</a></li>
+          <li><a href="#class-combos" class="nav-link">Dedicated Class Combos</a></li>
+        </ul>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">System & Optimization</div>
+        <ul class="nav-list">
+          <li><a href="#background-botting" class="nav-link">Background & Battery</a></li>
+          <li><a href="#memory-optimization" class="nav-link">Memory & Performance</a></li>
+          <li><a href="#example-bots" class="nav-link">Example Bot Scripts</a></li>
+          <li><a href="#troubleshooting" class="nav-link">FAQ & Troubleshooting</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="docs-content">
+      
+      <!-- Hero Banner -->
+      <section class="hero-banner">
+        <div class="hero-badges">
+          <span class="pill pill-cyan">AQW Mobile Client</span>
+          <span class="pill pill-green">v1.1.0 Latest</span>
+          <span class="pill pill-purple">Android & macOS</span>
+        </div>
+        <h1 class="hero-title">Automate AQW Anywhere with <span>YouMadBro</span></h1>
+        <p class="hero-desc">
+          An advanced, mobile-optimized AdventureQuest Worlds wrapper and autonomous bot loader with persistent background execution, dedicated class rotation engines, exact-match smart hunting, and nested folder script management.
+        </p>
+        <div class="hero-cta">
+          <a href="#installation" class="header-btn primary">Get Started</a>
+          <a href="#bot-manager-overview" class="header-btn ghost">Bot Manager UI Guide</a>
+          <a href="https://github.com/Froztt13/you-mad-bro/releases" target="_blank" rel="noopener" class="header-btn ghost">Download APK</a>
+        </div>
+      </section>
+
+      <!-- Section: Overview -->
+      <section id="overview" class="doc-section">
+        <h2>Overview & Key Highlights</h2>
+        <p>
+          <strong>YouMadBro</strong> is built from the ground up to solve the most difficult mobile challenges in AdventureQuest Worlds: running continuously without getting terminated by Android aggressive background policies, providing desktop-grade botting tools on touch devices, and keeping gameplay smooth and responsive.
+        </p>
+
+        <div class="grid-3">
+          <div class="feature-card">
+            <div class="badge-tag green" style="margin-bottom: 12px;">Visual Builder</div>
+            <div class="feature-title">Tab-Based Bot Manager</div>
+            <p class="feature-desc">Assemble complex farming routines across 6 intuitive tabs. Reorder, duplicate, inline-edit, and insert commands anywhere in the stack.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag amber" style="margin-bottom: 12px;">Background Service</div>
+            <div class="feature-title">24/7 Persistent Run</div>
+            <p class="feature-desc">Integrated partial WakeLock and WifiLock keep the bot connected and fighting even when your phone screen turns off or enters standby.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag purple" style="margin-bottom: 12px;">Storage Explorer</div>
+            <div class="feature-title">Folder Script Hierarchy</div>
+            <p class="feature-desc">Organize bot scripts into nested folders (Nulgath, Dailies, Forge) with 1-click overwrite detection and Android SAF import/export.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag rose" style="margin-bottom: 12px;">Combat Logic</div>
+            <div class="feature-title">Dedicated Class Combos</div>
+            <p class="feature-desc">10+ dedicated class logic routines (CSH, Arcana Invoker, Master Ranger, VHL, DoT) with dynamic mana multiplier and anti-counterattack safeguards.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag" style="margin-bottom: 12px;">Smart Hunting</div>
+            <div class="feature-title">Exact-Match Monster Hunt</div>
+            <p class="feature-desc">Auto-jump across cells to live targets or lock down the highest-density room with exact-name matching to eliminate unintended aggro.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag green" style="margin-bottom: 12px;">Security Vault</div>
+            <div class="feature-title">Account Manager Vault</div>
+            <p class="feature-desc">Secure local storage for multiple AQW accounts with 1-tap quick switching and password auto-fill directly at character selection.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Installation -->
+      <section id="installation" class="doc-section">
+        <h2>Installation & Setup</h2>
+        
+        <h3>Android Installation (Recommended)</h3>
+        <ol>
+          <li>Download the latest release APK (<code>YouMadBro_armv8-1.1.0.apk</code>) from the <a href="https://github.com/Froztt13/you-mad-bro/releases" target="_blank" rel="noopener">GitHub Releases Page</a>.</li>
+          <li>Install the APK on your device (enable <em>"Install unknown apps"</em> if prompted by Android).</li>
+          <li><strong>Storage Permission</strong>: When first opening the bot manager, allow storage access so scripts can be read from <code>Documents/YouMadBro/Bots/</code>.</li>
+          <li><strong>Battery Profile</strong>: In Android Settings &gt; Apps &gt; YouMadBro &gt; Battery, select <strong>Unrestricted</strong> so Android will not suspend the process when screen turns off.</li>
+        </ol>
+
+        <div class="callout tip">
+          <div class="callout-body">
+            <span class="callout-badge">Tip</span>
+            <strong>Android 11+ All Files Access:</strong> On modern Android versions, grant <em>All files access</em> to YouMadBro in Settings to allow direct saving and loading from your public <code>Documents/YouMadBro/Bots/</code> directory without requiring SAF picker dialogs every time.
+          </div>
+        </div>
+
+        <h3>macOS Desktop Run & Build</h3>
+        <p>YouMadBro can run natively on macOS for desktop testing or high-performance farming:</p>
+        <div class="code-container">
+          <div class="code-header">
+            <span class="code-title">Terminal (macOS)</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code># 1. Clone repository
+git clone https://github.com/Froztt13/you-mad-bro.git
+cd you-mad-bro
+
+# 2. Run immediately via ADL (Adobe AIR Debug Launcher)
+./run_mac.command
+
+# 3. Or package as a standalone macOS .app bundle
+./build_mac.command</code></pre>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           Section: Bot Manager UI Breakdown (Comprehensive Tab-by-Tab)
+           =================================================================== -->
+      <section id="bot-manager-overview" class="doc-section">
+        <h2>Bot Manager: Interface & Tab Reference</h2>
+        <p>
+          The <strong>Bot Manager</strong> (located in <code>loader/src/input/bot_manager/</code>) is designed with a high-efficiency <strong>two-column layout</strong> optimized for touchscreens and desktop screens alike:
+        </p>
+        <ul>
+          <li><strong>Left Column (Column 1)</strong>: Active command stack, execution telemetry, reordering controls, and playback buttons.</li>
+          <li><strong>Right Column (Column 2)</strong>: Six specialized tabs for adding commands, configuring conditionals, setting parameters, and managing script files.</li>
+        </ul>
+
+        <!-- Sub-section: Left Panel -->
+        <div id="bot-panel-left" class="tab-detail-card" style="margin-top: 24px;">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Left Panel: Command Stack & Execution Controls</span>
+            </div>
+            <span class="badge-tag green">BotManagerUI.as</span>
+          </div>
+          <p>
+            The left panel acts as the master control center for your automation. Every command in the active routine appears here in sequential order.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Command List Table</div>
+              <div class="ui-element-desc">
+                Scrollable view displaying step numbers, command types, and parameters. While the bot is running, the active command is highlighted with an emerald border and a live arrow indicator.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Insert Below Mode</div>
+              <div class="ui-element-desc">
+                Clicking any command highlights it as the active insertion target. Any new command added from any tab will be inserted immediately beneath the selected row instead of at the very bottom.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Inline Parameter Edit</div>
+              <div class="ui-element-desc">
+                Clicking a command opens <code>BotEditCommandModal</code>, allowing instant modification of monster names, delay seconds, map details, or quest IDs without needing to delete and recreate the step.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Telemetry & Loop Stats</div>
+              <div class="ui-element-desc">
+                Real-time dashboard displaying total command count (<code>X Commands</code>), running duration timer (<code>hh:mm:ss</code>), and iteration counter (<code>Loop: X</code>).
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Playback Controls</div>
+              <div class="ui-element-desc">
+                <strong>Start (▶)</strong> begins execution from step 0 or selected row; <strong>Pause (⏸)</strong> freezes execution state; <strong>Stop (⏹)</strong> halts the engine and resets pointer.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Stack Reordering & Delete</div>
+              <div class="ui-element-desc">
+                <strong>Move Up (▲)</strong> and <strong>Move Down (▼)</strong> shift command positions in the sequence. Each row has a <strong>✕</strong> delete button, and <strong>Clear</strong> wipes the entire list after confirmation.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Tab 1 - Combat -->
+        <div id="tab-combat" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Combat Tab</span>
+            </div>
+            <span class="badge-tag">BotCombatTab.as</span>
+          </div>
+          <p>
+            Configures monster targeting, hunting behaviors, and kill conditions.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Monster Target Input</div>
+              <div class="ui-element-desc">
+                Enter the exact monster name (e.g. <code>Dark Makai</code>) or use <code>*</code> wildcard to target any available hostile creature in the room.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Kill Mode: Kill Once</div>
+              <div class="ui-element-desc">
+                <code>MODE_NONE</code>: Engages and defeats the target monster once, then immediately proceeds to the next command in the script.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Kill Mode: Kill Count</div>
+              <div class="ui-element-desc">
+                <code>MODE_COUNT</code>: Defeats a specified numerical count of monsters (e.g. 10 kills) before moving forward.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Kill Mode: Kill for Items</div>
+              <div class="ui-element-desc">
+                <code>MODE_ITEM</code>: Automatically farms the monster repeatedly until a specified item drop reaches the target quantity (e.g. "Defeated Makai" x 50).
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Hunt Across Cells Checkbox</div>
+              <div class="ui-element-desc">
+                When checked, creates a <code>hunt</code> command that searches the entire map and automatically jumps to whichever cell the target monster is currently alive in.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Most-Monsters-Only Checkbox</div>
+              <div class="ui-element-desc">
+                Visible and default-checked when Hunt is enabled. Locks your character into the single room with the highest monster population to maximize farming speed without room-change lag.
+              </div>
+            </div>
+          </div>
+          <div class="ui-element-box" style="margin-top: 10px;">
+            <div class="ui-element-label">Action Button: Add Combat Command</div>
+            <div class="ui-element-desc">
+              Generates a <code>HuntCommand</code> or <code>KillCommand</code> with all configured parameters and adds it to the left stack.
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Tab 2 - Quest -->
+        <div id="tab-quest" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Quest Tab</span>
+            </div>
+            <span class="badge-tag amber">BotQuestTab.as</span>
+          </div>
+          <p>
+            Handles quest automation, turn-ins with specific reward selection, and interactive map item collection.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Quest ID Input</div>
+              <div class="ui-element-desc">
+                The numeric ID of the target quest from AQW database (e.g. <code>2857</code> for "Supplies to Spin The Wheel"). Restricts input strictly to digits <code>0-9</code>.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Reward Item ID / Index</div>
+              <div class="ui-element-desc">
+                Specify <code>-1</code> for default/automatic quest reward, or enter a specific reward index for quests offering selectable item rewards.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Add Accept Quest Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>QuestAcceptCommand</code> to automatically open and accept the target quest ID.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Add Turn-In Quest Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>QuestCompleteCommand</code> to submit completed quest requirements and claim the selected reward index.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Map Item Collection</div>
+              <div class="ui-element-desc">
+                Fields for <strong>Item ID</strong> and <strong>Qty</strong> to pick up interactive quest items scattered across map backgrounds (e.g. scrolls, flowers, or artifacts).
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Get Map Item Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>GetMapItemCommand</code> that queries the server to pickup temporary map items up to the specified quantity.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Tab 3 - Map -->
+        <div id="tab-map" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Map Tab</span>
+            </div>
+            <span class="badge-tag purple">BotMapTab.as</span>
+          </div>
+          <p>
+            Controls map navigation, instance jumping, room teleportation, and precise avatar movement.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Join Map Section</div>
+              <div class="ui-element-desc">
+                Inputs for <strong>Map Name</strong> (e.g. <code>battleon-1e99</code> for private instances), <strong>Cell</strong> (e.g. <code>Enter</code>), and <strong>Pad</strong> (e.g. <code>Spawn</code>).
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Get Current Auto-Detector</div>
+              <div class="ui-element-desc">
+                Instant convenience button: queries the active Flash game world and automatically fills in your current map name, cell, and pad into the input fields.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Add Join Map Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>JoinMapCommand</code> to transfer your character to the designated room and coordinates.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Jump Cell Section</div>
+              <div class="ui-element-desc">
+                Inputs for target <strong>Cell</strong> and <strong>Pad</strong> within the active map. Clicking <strong>Add Jump Cell</strong> creates a fast <code>JumpCellCommand</code> without reloading map assets.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Walk To Section</div>
+              <div class="ui-element-desc">
+                Inputs for precise pixel coordinates <strong>X</strong> and <strong>Y</strong> on the current screen.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Get Pos Coordinate Capture</div>
+              <div class="ui-element-desc">
+                Reads the avatar's real-time stage position and populates X and Y. Clicking <strong>Walk To</strong> creates a <code>WalkToCommand</code>.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Tab 4 - Item -->
+        <div id="tab-item" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Item Tab</span>
+            </div>
+            <span class="badge-tag rose">BotItemTab.as</span>
+          </div>
+          <p>
+            Manages gear equipping, banking inventory transfers, automated shop purchasing, and loot drop filtering.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Item Actions Dropdown</div>
+              <div class="ui-element-desc">
+                Options for <strong>Equip</strong> (weapons, armors, helms, capes), <strong>Transfer to Bank</strong>, and <strong>Transfer to Invent</strong> for fluid inventory management.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Item Name Input & Add Command</div>
+              <div class="ui-element-desc">
+                Enter target item name and click <strong>Add Command</strong> to generate an <code>EquipItemCommand</code> or <code>TransferItemCommand</code>.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Buy Shop Item Section</div>
+              <div class="ui-element-desc">
+                Inputs for <strong>Item Name</strong>, numeric <strong>Shop ID</strong>, and purchase <strong>Qty</strong>.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Buy Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>BuyItemCommand</code> that loads the remote shop data and automatically completes the transaction.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Manage Whitelist Button</div>
+              <div class="ui-element-desc">
+                Opens <code>BotWhitelistModal</code>. Defines the whitelist of item drops that the bot is permitted to pick up automatically, discarding junk drops.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Drop Notif Checkbox</div>
+              <div class="ui-element-desc">
+                Toggles in-game screen HUD toasts whenever a whitelisted item drop is successfully collected.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Tab 5 - Misc -->
+        <div id="tab-misc" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Misc Tab</span>
+            </div>
+            <span class="badge-tag">BotMiscTab.as</span>
+          </div>
+          <p>
+            Script flow branching, jump labels, lifecycle controls, and 14 conditional logic guards.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Label & Goto System</div>
+              <div class="ui-element-desc">
+                Enter label text (automatically converted to uppercase). Click <strong>Add</strong> for <code>LabelCommand</code>, or <strong>Goto</strong> for <code>GotoLabelCommand</code>.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">[Current Labels] Catalog</div>
+              <div class="ui-element-desc">
+                Clickable link opening <code>BotLabelsModal</code>, listing every registered label in the script to ensure jump destinations are valid and prevent broken references.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Restart Bot Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>RestartBotCommand</code> to reset the command pointer back to step 0, useful for infinite loop patterns.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Stop Bot Button</div>
+              <div class="ui-element-desc">
+                Creates a <code>StopBotCommand</code> to cleanly halt the bot engine upon completing a major farming objective.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">14 Conditional Check Dropdown</div>
+              <div class="ui-element-desc">
+                Evaluates a game state condition. If true, execution continues sequentially; <strong>if false, the bot skips 1 command immediately below</strong>.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Dynamic Var 1 & Var 2 Inputs</div>
+              <div class="ui-element-desc">
+                Field labels, input restrictions (alphanumeric vs digits), and default values automatically adjust based on the selected condition in the dropdown.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Tab 6 - Settings -->
+        <div id="tab-settings" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Settings Tab</span>
+            </div>
+            <span class="badge-tag green">BotSettingsTab.as</span>
+          </div>
+          <p>
+            Global bot engine behavior toggles, wait timers, push notifications, and script file operations.
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">Bot Repeat Checkbox</div>
+              <div class="ui-element-desc">
+                When checked (default enabled), the bot engine automatically loops back to the first command upon reaching the end of the script.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Leave Combat on Stop/Pause</div>
+              <div class="ui-element-desc">
+                Safety feature: when the user pauses or stops the bot, the client immediately drops target aggro and exits combat state.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Wait Delay Input & Add Button</div>
+              <div class="ui-element-desc">
+                Specify duration in seconds (e.g. <code>2</code> or <code>0.5</code>) and click <strong>Add Delay</strong> to create a <code>DelayCommand</code>.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Notification Message Input</div>
+              <div class="ui-element-desc">
+                Enter notification text and click <strong>Add Notif</strong> to create a <code>NotifCommand</code>, displaying an OS alert or in-game banner.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Load Script Button</div>
+              <div class="ui-element-desc">
+                Opens <code>BotLoadModal</code> to browse nested directories and load saved JSON bot routines.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">Save Script Button</div>
+              <div class="ui-element-desc">
+                Opens <code>BotSaveModal</code> to save the active routine into subfolders with 1-click overwrite detection.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-section: Integrated Modals Ecosystem -->
+        <div id="bot-modals" class="tab-detail-card">
+          <div class="tab-detail-header">
+            <div class="tab-detail-title">
+              <span>Integrated Modals Ecosystem</span>
+            </div>
+            <span class="badge-tag purple">loader/src/input/bot_manager/modals/</span>
+          </div>
+          <p>
+            The Bot Manager includes 5 modal dialogs providing specialized popup workflows:
+          </p>
+          <div class="ui-element-grid">
+            <div class="ui-element-box">
+              <div class="ui-element-label">BotLoadModal</div>
+              <div class="ui-element-desc">
+                Full directory browser supporting nested subfolders, interactive breadcrumb navigation, real-time file search, and Storage Access Framework (SAF) system import.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">BotSaveModal</div>
+              <div class="ui-element-desc">
+                Script exporter featuring subfolder browsing, directory creation, 1-tap existing file selection for overwrite detection with a prominent <strong>Replace</strong> warning, and SAF export.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">BotWhitelistModal</div>
+              <div class="ui-element-desc">
+                Whitelist editor for auto-loot drops. Add item names manually, view existing whitelisted items, and remove unwanted entries with one tap.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">BotLabelsModal</div>
+              <div class="ui-element-desc">
+                Visual catalog of all <code>label</code> commands defined in the active routine, allowing quick verification of goto jump targets.
+              </div>
+            </div>
+            <div class="ui-element-box">
+              <div class="ui-element-label">BotEditCommandModal</div>
+              <div class="ui-element-desc">
+                Inline command editor triggered by clicking any row in the left panel. Allows fine-tuning monster names, quantities, cell coordinates, and delay timers on the fly.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Section: Smart Hunt -->
+      <section id="hunt-command" class="doc-section">
+        <h2>Smart Hunt & Cell Density Locking</h2>
+        <p>
+          The <code>Hunt</code> command is an intelligent evolution of the basic <code>Kill</code> command. Instead of waiting blindly in the current cell, it tracks monsters across the entire map.
+        </p>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Standard Kill</th>
+                <th>Smart Hunt (YouMadBro)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cross-Cell Jumping</strong></td>
+                <td>No (Stays in current cell)</td>
+                <td><strong>Yes</strong> (Automatically jumps to cell where monster is alive)</td>
+              </tr>
+              <tr>
+                <td><strong>Most-Monsters-Only</strong></td>
+                <td>N/A</td>
+                <td><strong>Yes</strong> (Identifies and camps the cell with highest monster count)</td>
+              </tr>
+              <tr>
+                <td><strong>Target Matching</strong></td>
+                <td>Basic substring match</td>
+                <td><strong>Exact Name Match</strong> (Prevents locking on "Luxuria Guard" when hunting "Luxuria")</td>
+              </tr>
+              <tr>
+                <td><strong>Auto Target Cancel</strong></td>
+                <td>No</td>
+                <td><strong>Yes</strong> (Cancels target immediately if locked onto an unintended mob)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-body">
+            <span class="callout-badge">Note</span>
+            <strong>Why Most-Monsters-Only is recommended:</strong> When farming monsters that spawn across multiple rooms (e.g. Dark Makai in <code>/tercessuinotlim</code>), jumping back and forth causes transition delays and lag. Enabling <em>Most-Monsters-Only</em> keeps your player anchored in the room with the most spawns, killing continuously with zero room transitions.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Commands Reference -->
+      <section id="bot-commands" class="doc-section">
+        <h2>Command Reference Table</h2>
+        <p>Core commands available in the YouMadBro bot script engine:</p>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>Parameters</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>hunt</code></td>
+                <td><code>monster</code>, <code>killMode</code>, <code>killCount</code>, <code>itemQty</code>, <code>mostMonstersOnly</code></td>
+                <td>Hunts a monster until item drop, kill count, or single kill is reached. Cross-cell intelligent tracking.</td>
+              </tr>
+              <tr>
+                <td><code>kill</code></td>
+                <td><code>monster</code>, <code>killMode</code>, <code>killCount</code></td>
+                <td>Attacks monster in the current cell until condition met.</td>
+              </tr>
+              <tr>
+                <td><code>buy</code></td>
+                <td><code>shopId</code>, <code>itemName</code>, <code>qty</code></td>
+                <td>Opens specified shop ID and buys target item quantity automatically.</td>
+              </tr>
+              <tr>
+                <td><code>getMapItem</code></td>
+                <td><code>itemId</code></td>
+                <td>Picks up temporary quest item or map-interaction drop using item ID.</td>
+              </tr>
+              <tr>
+                <td><code>equip</code></td>
+                <td><code>itemName</code></td>
+                <td>Equips gear/weapon directly from inventory or bank.</td>
+              </tr>
+              <tr>
+                <td><code>quest</code></td>
+                <td><code>questId</code>, <code>action</code>, <code>rewardIndex</code></td>
+                <td>Accepts or completes a quest with optional reward index selection.</td>
+              </tr>
+              <tr>
+                <td><code>join</code></td>
+                <td><code>mapName</code>, <code>cell</code>, <code>pad</code></td>
+                <td>Joins room or private instance and navigates to target cell.</td>
+              </tr>
+              <tr>
+                <td><code>jump</code></td>
+                <td><code>cell</code>, <code>pad</code></td>
+                <td>Navigates player to specific cell/pad within current map.</td>
+              </tr>
+              <tr>
+                <td><code>walk</code></td>
+                <td><code>x</code>, <code>y</code></td>
+                <td>Walks avatar to specific X, Y stage coordinates.</td>
+              </tr>
+              <tr>
+                <td><code>delay</code></td>
+                <td><code>delaySecs</code></td>
+                <td>Pauses script execution for specified duration in seconds.</td>
+              </tr>
+              <tr>
+                <td><code>transfer</code></td>
+                <td><code>itemName</code>, <code>direction</code></td>
+                <td>Moves item between Inventory and Bank.</td>
+              </tr>
+              <tr>
+                <td><code>notify</code></td>
+                <td><code>message</code></td>
+                <td>Triggers native OS push notification or in-game banner alert.</td>
+              </tr>
+              <tr>
+                <td><code>label</code></td>
+                <td><code>name</code></td>
+                <td>Defines an anchor destination for script jump operations.</td>
+              </tr>
+              <tr>
+                <td><code>goto</code></td>
+                <td><code>name</code></td>
+                <td>Jumps unconditionally to the designated label name.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Conditionals -->
+      <section id="conditionals" class="doc-section">
+        <h2>Control Flow & 14 Conditional Logics</h2>
+        <p>
+          YouMadBro provides 14 built-in condition checks in the <strong>Misc Tab</strong>. If the evaluated condition is met (true), execution proceeds to the next command. If the condition is false, <strong>the bot skips exactly 1 command immediately below</strong>.
+        </p>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Condition Type</th>
+                <th>Variable 1 (Var 1)</th>
+                <th>Variable 2 (Var 2)</th>
+                <th>Evaluation Logic</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>isItemInInventory</code></td>
+                <td>Item Name</td>
+                <td>Quantity (Default: 1)</td>
+                <td>True if player has at least Var 2 quantity of Var 1 in bag.</td>
+              </tr>
+              <tr>
+                <td><code>isItemNotInInventory</code></td>
+                <td>Item Name</td>
+                <td>Quantity (Default: 1)</td>
+                <td>True if quantity of Var 1 in bag is less than Var 2.</td>
+              </tr>
+              <tr>
+                <td><code>isItemEquiped</code></td>
+                <td>Item Name</td>
+                <td>—</td>
+                <td>True if Var 1 is currently equipped on player character.</td>
+              </tr>
+              <tr>
+                <td><code>isItemNotEquiped</code></td>
+                <td>Item Name</td>
+                <td>—</td>
+                <td>True if Var 1 is not equipped on player character.</td>
+              </tr>
+              <tr>
+                <td><code>isQuestAvailable</code></td>
+                <td>Quest ID</td>
+                <td>—</td>
+                <td>True if quest ID is loaded and available to accept.</td>
+              </tr>
+              <tr>
+                <td><code>isQuestNotAvailable</code></td>
+                <td>Quest ID</td>
+                <td>—</td>
+                <td>True if quest ID is locked or unavailable.</td>
+              </tr>
+              <tr>
+                <td><code>isQuestCanBeTurnedIn</code></td>
+                <td>Quest ID</td>
+                <td>—</td>
+                <td>True if all quest requirements are satisfied and ready for turn-in.</td>
+              </tr>
+              <tr>
+                <td><code>isGoldGreaterThan</code></td>
+                <td>Amount</td>
+                <td>—</td>
+                <td>True if player gold balance is greater than the specified amount.</td>
+              </tr>
+              <tr>
+                <td><code>isGoldLessThan</code></td>
+                <td>Amount</td>
+                <td>—</td>
+                <td>True if player gold balance is less than the specified amount.</td>
+              </tr>
+              <tr>
+                <td><code>isMap</code></td>
+                <td>Map Name</td>
+                <td>—</td>
+                <td>True if player is currently in the specified map.</td>
+              </tr>
+              <tr>
+                <td><code>isMapNot</code></td>
+                <td>Map Name</td>
+                <td>—</td>
+                <td>True if player is not in the specified map.</td>
+              </tr>
+              <tr>
+                <td><code>isCell</code></td>
+                <td>Cell Name</td>
+                <td>—</td>
+                <td>True if player is currently residing in the specified cell.</td>
+              </tr>
+              <tr>
+                <td><code>isCellNot</code></td>
+                <td>Cell Name</td>
+                <td>—</td>
+                <td>True if player is not in the specified cell.</td>
+              </tr>
+              <tr>
+                <td><code>isPlayerMember</code></td>
+                <td>—</td>
+                <td>—</td>
+                <td>True if player account has an active Membership upgrade.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span class="code-title">Example: Conditional Quest Turn-in Flow (JSON)</span>
+            <button class="copy-btn">Copy</button>
+          </div>
+          <pre><code>[
+  { "type": "label", "labelName": "CheckItems" },
+  { "type": "isItemInInventory", "var1": "Diamond of Nulgath", "var2": "13" },
+  { "type": "goto", "var1": "TurnInQuest" },
+  { "type": "hunt", "var1": "Dark Makai", "var2": "MODE_ITEM", "var3": "Defeated Makai", "var4": "50", "var5": "true" },
+  { "type": "goto", "var1": "CheckItems" },
+  { "type": "label", "labelName": "TurnInQuest" },
+  { "type": "quest", "var1": "2857", "var2": "complete", "var3": "1" }
+]</code></pre>
+        </div>
+      </section>
+
+      <!-- Section: File Explorer -->
+      <section id="file-explorer" class="doc-section">
+        <h2>Bot File Explorer & Subfolder Navigation</h2>
+        <p>
+          Unlike legacy clients that dump all scripts into one flat list, YouMadBro includes a full nested file explorer built into both the <strong>Load Bot</strong> and <strong>Save Bot</strong> modals.
+        </p>
+
+        <h3>Key Explorer Capabilities</h3>
+        <ul>
+          <li><strong>Nested Subdirectories</strong>: Create and browse folders like <code>Bots/Nulgath/</code>, <code>Bots/Forge/</code>, or <code>Bots/Dailies/</code>.</li>
+          <li><strong>Real-Time Breadcrumbs</strong>: Header subtitle updates dynamically showing your current path.</li>
+          <li><strong>Safe Boundary Protection</strong>: Navigation up (<code>.. Back/Up</code>) stops strictly at your bot root folder, preventing accidental escapes.</li>
+          <li><strong>1-Tap Replace (Overwrite)</strong>: In the Save dialog, clicking any existing file in the list automatically fills the input name and highlights the row. The button dynamically switches to <strong>Replace</strong> with an amber overwrite warning.</li>
+          <li><strong>SAF Native Fallback</strong>: Android Storage Access Framework button allows importing/exporting from Downloads, Cloud Drives, or SD cards.</li>
+        </ul>
+      </section>
+
+      <!-- Section: Combat Engine & Combos -->
+      <section id="class-combos" class="doc-section">
+        <h2>Dedicated Class Combos & Auto Battle</h2>
+        <p>
+          The smart combat engine detects your equipped class and automatically applies optimized rotations, aura stack tracking, and health preservation:
+        </p>
+
+        <!-- Chrono ShadowHunter -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">Chrono ShadowHunter / Chrono ShadowSlayer (CSH)</span>
+            <span class="class-badge badge-dedicated">Dedicated Combo</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> Tracks <em>Temporal Rift</em> stacks; automatically releases Skill 4 nuke at 4+ stacks.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Detects <em>Rounds Empty</em> aura and immediately triggers Skill 1 reload.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Applies Skill 2 buff when Rift is down and builds stacks with Skill 3.</li>
+          </ul>
+        </div>
+
+        <!-- Arcana Invoker -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">Arcana Invoker</span>
+            <span class="class-badge badge-dedicated">Dedicated Combo</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> Pre-World Cycle: Draws <em>0 - The Fool</em> (Skill 1) and cycles through <em>XX - Judgement</em> (Skill 1) into <em>XXI - The World</em>.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Core Phase: Prioritizes Skill 2 and Skill 4 for sustain and damage.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Smart Mana: Uses Skill 3 only when Judgement is active or player MP &gt; 50.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Nuke Execution: Fires massive Skill 1 nuke when <em>End of The World</em> stacks reach &gt; 10.</li>
+          </ul>
+        </div>
+
+        <!-- Master Ranger -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">Master Ranger & Ranger</span>
+            <span class="class-badge badge-dedicated">Dedicated Combo</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> Tracks <em>Marks</em> aura stacks across player and target; immediately triggers Skill 3 upon reaching 6 Marks.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Holds Skill 3 when Marks &lt; 6 to avoid wasted cooldown, and avoids clipping Skill 4 if <em>Vampiric Shot</em> is already active.</li>
+          </ul>
+        </div>
+
+        <!-- King's Echo -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">King's Echo</span>
+            <span class="class-badge badge-dedicated">Dedicated Combo</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> Automatically skips Skill 3 whenever <em>Waiting For Corvak</em> aura is active to preserve cooldowns.</li>
+          </ul>
+        </div>
+
+        <!-- Hollowborn Vindicator -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">Hollowborn Vindicator</span>
+            <span class="class-badge badge-safety">Aura Conditional</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> Casts Skill 1 & Skill 3 only when <em>Safeguard</em> aura is active.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Casts Skill 2 only when <em>Decay</em> is active without Safeguard.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> Casts Skill 4 only when neither Safeguard nor Decay is present.</li>
+          </ul>
+        </div>
+
+        <!-- Void Highlord & Others -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">Safety & HP Preservation Classes</span>
+            <span class="class-badge badge-safety">Safety Logic</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Void Highlord (VHL)</strong>: Blocks self-damage skills (Skill 1 & Skill 3) when HP &lt; 60% to avoid accidental death.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Scarlet Sorceress</strong>: Prevents blood sacrifice (Skill 1 & Skill 4) when HP &lt; 50%.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Dragon of Time (DoT)</strong>: Blocks self-harm skills (Skill 1 & Skill 3) when HP &lt; 50%.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Lich</strong>: Holds Skill 4 when HP &lt; 70%, holds Skill 3 when MP &gt; 40.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>ArchPaladin</strong>: Holds Skill 2 heal when HP &gt; 60% to conserve mana and emergency readiness.</li>
+          </ul>
+        </div>
+
+        <!-- Universal Engine -->
+        <div class="class-card">
+          <div class="class-header">
+            <span class="class-name">Universal Smart Rotation (All Other Classes)</span>
+            <span class="class-badge badge-dedicated">Universal Engine</span>
+          </div>
+          <ul class="class-steps">
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Dynamic Mana Check</strong>: Calculates skill cost against class mana cost multiplier (<code>$cmc</code>) so skill rotation never stalls.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Anti-Counterattack</strong>: Automatically halts attacks when monster counterattack auras are active.</li>
+            <li class="class-step-item"><span class="step-bullet">•</span> <strong>Infinite Range</strong>: Extends skill cast distance (<code>range = 20000</code>) to eliminate distance misses.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section: Background & Battery -->
+      <section id="background-botting" class="doc-section">
+        <h2>Background Execution & Android Optimization</h2>
+        <p>
+          Android aggressively terminates background apps to save battery. YouMadBro includes a native Java ANE (Air Native Extension) called <code>BatteryOptimizer</code> that keeps the connection alive.
+        </p>
+
+        <h3>Three-Pillar Background System</h3>
+        <ol>
+          <li><strong>Foreground Service</strong>: Displays a persistent notification showing bot status, preventing Android LMK (Low Memory Killer) from evicting the process.</li>
+          <li><strong>Partial WakeLock & WifiLock</strong>: Keeps the CPU running and WiFi chip awake even when the screen turns off.</li>
+          <li><strong>Picture-in-Picture (PiP)</strong>: Tap the <em>PiP</em> button in Bot Manager to float a compact live preview window on top of other apps (Auto-enters PiP on Android 12+).</li>
+        </ol>
+
+        <div class="callout warning">
+          <div class="callout-body">
+            <span class="callout-badge">Warning</span>
+            <strong>Disable OEM Battery Killers:</strong> Device manufacturers like Xiaomi (MIUI/HyperOS), Huawei, and Samsung have custom task killers. Set YouMadBro battery profile to <em>"No restrictions"</em> and lock the app card in your Recent Apps screen for maximum stability.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Memory Optimization -->
+      <section id="memory-optimization" class="doc-section">
+        <h2>Memory & Performance Optimization</h2>
+        <p>
+          Long botting sessions across multiple maps can lead to memory bloat and FPS drops. Version 1.1.0 implements aggressive map transition memory cleanup:
+        </p>
+        <ul>
+          <li><strong>Map Cleanup Routine</strong>: Calls <code>cleanupMap</code> upon leaving rooms to cleanly unhook animations, sound clips, and timers.</li>
+          <li><strong>ApplicationDomain Isolation</strong>: Each map SWF loads into an isolated child domain, allowing the ActionScript 3 garbage collector to immediately reclaim unused assets.</li>
+          <li><strong>CPU Render Mode</strong>: Native CPU rasterization is verified in <code>app.xml</code> to eliminate GPU texture upload stalls on mobile chipsets.</li>
+        </ul>
+      </section>
+
+      <!-- Section: Account Manager -->
+      <section id="account-manager" class="doc-section">
+        <h2>Account Manager Vault</h2>
+        <p>
+          Manage all your AQW characters in one secure dashboard:
+        </p>
+        <ul>
+          <li><strong>1-Tap Quick Switch</strong>: Switch characters instantly without typing username and password.</li>
+          <li><strong>Auto Login</strong>: Launches directly into character selection or game world.</li>
+          <li><strong>Local Encryption</strong>: Credentials stored securely on-device.</li>
+          <li><strong>Import & Export (SAF)</strong>: Backup your accounts into encrypted <code>accounts.json</code> for easy device migration.</li>
+        </ul>
+      </section>
+
+      <!-- Section: Example Bots -->
+      <section id="example-bots" class="doc-section">
+        <h2>Example Bot Scripts</h2>
+        <p>
+          YouMadBro comes with pre-built example bots ready to load from the <code>example_bots/</code> directory:
+        </p>
+
+        <div class="grid-2">
+          <div class="feature-card">
+            <div class="badge-tag amber" style="margin-bottom: 10px;">Weapon Enhancement</div>
+            <div class="feature-title">Forge Weapon Enhancement</div>
+            <p class="feature-desc">Automates farming items for Blade of Awe and Forge Weapon Enhancement quests.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag purple" style="margin-bottom: 10px;">Cape Enhancement</div>
+            <div class="feature-title">Forge Cape Enhancement</div>
+            <p class="feature-desc">Completes Cape enhancement requisites including Forge, Absolution, Avarice, and Vainglory.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag green" style="margin-bottom: 10px;">Cape Material</div>
+            <div class="feature-title">Avarice Enhancement</div>
+            <p class="feature-desc">Automated farm for Avarice Forge cape quest materials.</p>
+          </div>
+          <div class="feature-card">
+            <div class="badge-tag rose" style="margin-bottom: 10px;">Boss Farm</div>
+            <div class="feature-title">Absolution & Penitence</div>
+            <p class="feature-desc">Farms boss drops and quest requirements for Absolution and Penitence enhancements.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Troubleshooting -->
+      <section id="troubleshooting" class="doc-section">
+        <h2>FAQ & Troubleshooting</h2>
+
+        <h3>Bot stops when screen turns off?</h3>
+        <p>
+          Go to Android Settings &gt; Apps &gt; YouMadBro &gt; Battery &gt; Set to <strong>Unrestricted</strong>. Also verify that you haven't enabled battery saver mode.
+        </p>
+
+        <h3>No bot files (.json) appear in Bot Load Modal?</h3>
+        <p>
+          Make sure your bot JSON files are located in <code>Documents/YouMadBro/Bots/</code>. Alternatively, click <strong>Import File (SAF)</strong> in the Load Modal to pick the file directly from Downloads or Google Drive.
+        </p>
+
+        <h3>Game FPS drops in crowded maps?</h3>
+        <p>
+          Use the in-game quick menu to toggle <strong>Hide Players</strong> and <strong>Lag Killer</strong>. This turns off high-polygon cape, helm, and pet animations from other players.
+        </p>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div id="copyToast" class="toast">Copied to clipboard!</div>
+
+  <!-- Interactive Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
