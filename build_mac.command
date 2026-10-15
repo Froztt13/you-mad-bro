@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Berpindah ke direktori tempat file .command berada
+# Change directory to script location
 cd "$(dirname "$0")"
 
-# Pastikan ~/.local/bin masuk ke PATH (untuk abcexport, rabcdasm, rabcasm, abcreplace)
+# Ensure ~/.local/bin is in PATH (for abcexport, rabcdasm, rabcasm, abcreplace)
 export PATH="$HOME/.local/bin:$PATH"
 
-# Konfigurasi Path & Info
+# Configure Paths & Info
 AIR_SDK_PATH="$HOME/AIRSDK_51.3.1"
 VERSION_PREFIX="1.1"
 RUN_NUMBER="0"
@@ -16,11 +16,11 @@ CERT_PASS="123456"
 DIST_DIR="dist"
 APP_NAME="YouMadBro_Mac.app"
 
-# Konfigurasi Resolusi (Original Logic Size, High DPI for FHD Density)
+# Resolution configuration (Original Logic Size, High DPI for FHD Density)
 WIDTH=960
 HEIGHT=550
 
-# Deteksi Arsitektur Mac
+# Detect Mac Architecture
 ARCH_TYPE="armv8"
 if [[ $(uname -m) == "x86_64" ]]; then
     ARCH_TYPE="x64"
@@ -30,31 +30,31 @@ echo "======================================="
 echo "     YouMadBro - macOS Build System    "
 echo "======================================="
 
-# 1. Build & Patch Game.swf terlebih dahulu
+# 1. Build & Patch Game.swf first
 echo ""
-echo "[Tahap 1/5] Building & Patching Game.swf..."
+echo "[Step 1/5] Building & Patching Game.swf..."
 if [ -f "scripts/build-game.sh" ]; then
     bash scripts/build-game.sh
     if [ $? -ne 0 ]; then
-        echo "ERROR: Gagal mem-build Game.swf!"
-        read -p "Tekan Enter untuk keluar..."
+        echo "ERROR: Failed to build Game.swf!"
+        read -p "Press [Enter] to exit..."
         exit 1
     fi
 else
-    echo "ERROR: scripts/build-game.sh tidak ditemukan!"
-    read -p "Tekan Enter untuk keluar..."
+    echo "ERROR: scripts/build-game.sh not found!"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
-# 2. Update Versi di Config.as & app.xml
+# 2. Update version in Config.as & app.xml
 echo ""
-echo "[Tahap 2/5] Updating version & resolution..."
+echo "[Step 2/5] Updating version & resolution..."
 if [ -f "loader/src/Config.as" ]; then
     echo "Updating version to $VERSION..."
     sed -i '' "s/APP_VERSION:String = \".*\"/APP_VERSION:String = \"$VERSION\"/" loader/src/Config.as
 fi
 
-# Update Resolusi ke FHD (1920x1080)
+# Update resolution to FHD (1920x1080)
 if [ -f "loader/app.xml" ]; then
     sed -i '' "s/<versionNumber>.*<\/versionNumber>/<versionNumber>${VERSION_PREFIX}.${RUN_NUMBER}<\/versionNumber>/" loader/app.xml
     sed -i '' "s/<versionLabel>.*<\/versionLabel>/<versionLabel>${VERSION_PREFIX}.${RUN_NUMBER}<\/versionLabel>/" loader/app.xml
@@ -78,7 +78,7 @@ fi
 
 # 3. Compile Loader (ActionScript)
 echo ""
-echo "[Tahap 3/5] Compiling Loader.swf (Optimized)..."
+echo "[Step 3/5] Compiling Loader.swf (Optimized)..."
 "$AIR_SDK_PATH/bin/amxmlc" \
     -optimize=true \
     -inline=true \
@@ -88,22 +88,22 @@ echo "[Tahap 3/5] Compiling Loader.swf (Optimized)..."
     loader/src/Main.as
 
 if [ $? -ne 0 ]; then
-    echo "ERROR: Gagal meng-compile Loader.swf"
-    read -p "Tekan Enter untuk keluar..."
+    echo "ERROR: Failed to compile Loader.swf!"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
-# 4. Buat Sertifikat Self-Signed jika belum ada
+# 4. Generate self-signed certificate if missing
 if [ ! -f "$CERT_NAME" ]; then
-    echo "Membuat sertifikat self-signed (2048-RSA)..."
+    echo "Generating self-signed certificate (2048-RSA)..."
     "$AIR_SDK_PATH/bin/adt" -certificate -cn SelfSigned 2048-RSA "$CERT_NAME" "$CERT_PASS"
 fi
 
 # 5. Packaging
 echo ""
-echo "[Tahap 4/5] Packaging file temporary .air..."
-# Buat descriptor sementara khusus macOS tanpa tag <extensions>
-# (karena target format .air adalah desktop runtime yang tidak mendukung native extensions Android)
+echo "[Step 4/5] Packaging temporary .air file..."
+# Create temporary descriptor for macOS without <extensions> tags
+# (because .air format targets desktop runtime which does not support Android native extensions)
 APP_XML_MAC="loader/app_mac_temp.xml"
 sed '/<extensions>/,/<\/extensions>/d' loader/app.xml > "$APP_XML_MAC"
 
@@ -119,13 +119,13 @@ AIR_STATUS=$?
 rm -f "$APP_XML_MAC"
 
 if [ $AIR_STATUS -ne 0 ]; then
-    echo "ERROR: Gagal membuat file .air"
-    read -p "Tekan Enter untuk keluar..."
+    echo "ERROR: Failed to create .air file!"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
 echo ""
-echo "[Tahap 5/5] Mengonversi .air menjadi .app ($ARCH_TYPE) di folder $DIST_DIR..."
+echo "[Step 5/5] Converting .air to .app ($ARCH_TYPE) in folder $DIST_DIR..."
 mkdir -p "$DIST_DIR"
 rm -rf "$DIST_DIR/$APP_NAME"
 
@@ -138,7 +138,7 @@ rm -rf "$DIST_DIR/$APP_NAME"
 if [ $? -eq 0 ]; then
     rm -f "temp_package.air"
 
-    echo "Menambahkan izin folder macOS (Documents, Downloads, Desktop)..."
+    echo "Adding macOS folder permissions (Documents, Downloads, Desktop)..."
     PLIST="$DIST_DIR/$APP_NAME/Contents/Info.plist"
     if [ -f "$PLIST" ]; then
         /usr/libexec/PlistBuddy -c "Add :NSDocumentsFolderUsageDescription string 'YouMadBro requires access to your Documents folder to load and save bot scripts and accounts.'" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :NSDocumentsFolderUsageDescription 'YouMadBro requires access to your Documents folder to load and save bot scripts and accounts.'" "$PLIST" 2>/dev/null || true
@@ -146,7 +146,7 @@ if [ $? -eq 0 ]; then
         /usr/libexec/PlistBuddy -c "Add :NSDesktopFolderUsageDescription string 'YouMadBro requires access to your Desktop folder to load bot scripts.'" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :NSDesktopFolderUsageDescription 'YouMadBro requires access to your Desktop folder to load bot scripts.'" "$PLIST" 2>/dev/null || true
     fi
     
-    echo "Menghapus batasan sistem (Fixing Damaged App Error)..."
+    echo "Removing quarantine attributes (Fixing Damaged App Error)..."
     xattr -cr "$DIST_DIR/$APP_NAME"
     
     echo "Re-signing .app bundle (Fixing macOS TCC & Designated Requirement)..."
@@ -154,12 +154,12 @@ if [ $? -eq 0 ]; then
 
     echo ""
     echo "======================================="
-    echo "BUILD BERHASIL!"
+    echo "BUILD SUCCESSFUL!"
     echo "Output: $DIST_DIR/$APP_NAME"
     echo "======================================="
 else
-    echo "BUILD GAGAL saat membuat .app bundle!"
+    echo "BUILD FAILED while creating .app bundle!"
 fi
 
 echo ""
-read -p "Tekan [Enter] untuk menutup jendela ini..."
+read -p "Press [Enter] to close this window..."

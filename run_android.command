@@ -1,53 +1,53 @@
 #!/bin/bash
 
-# Berpindah ke direktori tempat file .command berada
+# Change directory to script location
 cd "$(dirname "$0")"
 
 echo "======================================="
 echo "     YouMadBro - Android Build & Run   "
 echo "======================================="
 
-# 1. Paksa menggunakan Java 17 (Penting untuk Adobe AIR di macOS)
+# 1. Enforce Java 17 (Required for Adobe AIR on macOS)
 if /usr/libexec/java_home -v 17 >/dev/null 2>&1; then
     export JAVA_HOME=$(/usr/libexec/java_home -v 17)
     export PATH="$JAVA_HOME/bin:$PATH"
     echo "[1/5] Java: $(java -version 2>&1 | head -n 1)"
 else
-    echo "ERROR: JDK 17 tidak ditemukan. Silakan jalankan 'brew install openjdk@17'"
-    read -p "Tekan [Enter] untuk keluar..."
+    echo "ERROR: JDK 17 not found. Please run 'brew install openjdk@17'"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
-# 2. Cek ADB & Device Terkoneksi
-echo "[2/5] Memeriksa koneksi ADB..."
+# 2. Check ADB & Connected Devices
+echo "[2/5] Checking ADB connection..."
 if ! command -v adb >/dev/null 2>&1; then
-    # Cek Android SDK platform-tools default jika adb belum di PATH
+    # Check default Android SDK platform-tools if adb is not in PATH
     if [ -f "$HOME/Library/Android/sdk/platform-tools/adb" ]; then
         export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
     fi
 fi
 
 if ! command -v adb >/dev/null 2>&1; then
-    echo "ERROR: 'adb' tidak ditemukan di PATH. Pastikan Android SDK platform-tools terinstall."
-    read -p "Tekan [Enter] untuk keluar..."
+    echo "ERROR: 'adb' not found in PATH. Make sure Android SDK platform-tools is installed."
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
 DEVICE_COUNT=$(adb devices | grep -v "List of devices" | grep -v "^$" | grep "device$" | wc -l | tr -d ' ')
 if [ "$DEVICE_COUNT" -eq 0 ]; then
-    echo "ERROR: Tidak ada device Android yang terdeteksi via ADB."
-    echo "Pastikan:"
-    echo " - HP terhubung via kabel USB / WiFi debugging."
-    echo " - USB Debugging telah diaktifkan di Opsi Pengembang (Developer Options)."
-    echo " - Izin otorisasi debugging telah disetujui di layar HP."
-    read -p "Tekan [Enter] untuk keluar..."
+    echo "ERROR: No Android devices detected via ADB."
+    echo "Please ensure:"
+    echo " - Device is connected via USB cable or wireless debugging."
+    echo " - USB Debugging is enabled in Developer Options."
+    echo " - Debugging authorization prompt has been accepted on the device."
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
 DEVICE_MODEL=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
-echo "Device terdeteksi: $DEVICE_MODEL ($DEVICE_COUNT device aktif)"
+echo "Device detected: $DEVICE_MODEL ($DEVICE_COUNT active device(s))"
 
-# 3. Konfigurasi Path & Info
+# 3. Configure Paths & Info
 AIR_SDK_PATH="$HOME/AIRSDK_51.3.1"
 VERSION_PREFIX="1.1"
 RUN_NUMBER="0"
@@ -58,7 +58,7 @@ OUTPUT_APK="${DIST_DIR}/YouMadBro_${ARCH}-${VERSION_PREFIX}.${RUN_NUMBER}.apk"
 PACKAGE_NAME="air.com.aqw.mobile.mod"
 ACTIVITY_NAME="air.com.aqw.mobile.mod.AIRAppEntry"
 
-# Update Versi di Config.as & app.xml
+# Update version in Config.as & app.xml
 sed -i '' "s/APP_VERSION:String = \".*\"/APP_VERSION:String = \"$VERSION\"/" loader/src/Config.as
 sed -i '' "s/<versionNumber>.*<\/versionNumber>/<versionNumber>${VERSION_PREFIX}.${RUN_NUMBER}<\/versionNumber>/" loader/app.xml
 sed -i '' "s/<versionLabel>.*<\/versionLabel>/<versionLabel>${VERSION_PREFIX}.${RUN_NUMBER}<\/versionLabel>/" loader/app.xml
@@ -70,9 +70,9 @@ else
   <\/initialWindow>/" loader/app.xml
 fi
 
-# 4. Kompilasi Loader.swf
+# 4. Compile Loader.swf
 echo ""
-echo "[3/5] Mengompilasi Loader.swf (Optimized)..."
+echo "[3/5] Compiling Loader.swf (Optimized)..."
 if [ ! -f "ane/com.aqw.battery.ane" ] || [ ! -f "ane/BatteryOptimizer.swc" ]; then
     echo "Building ANE dependency..."
     bash scripts/build-ane.sh
@@ -87,14 +87,14 @@ fi
     loader/src/Main.as
 
 if [ $? -ne 0 ]; then
-    echo "ERROR: Kompilasi Loader.swf gagal!"
-    read -p "Tekan [Enter] untuk keluar..."
+    echo "ERROR: Loader.swf compilation failed!"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
-# 5. Packaging APK
+# 5. Package APK
 echo ""
-echo "[4/5] Packaging APK ke $OUTPUT_APK..."
+echo "[4/5] Packaging APK to $OUTPUT_APK..."
 mkdir -p "$DIST_DIR"
 "$AIR_SDK_PATH/bin/adt" -package \
     -target apk-captive-runtime \
@@ -110,33 +110,33 @@ mkdir -p "$DIST_DIR"
     -C loader Loader.swf icons gamefiles
 
 if [ $? -ne 0 ]; then
-    echo "ERROR: Packaging APK gagal!"
-    read -p "Tekan [Enter] untuk keluar..."
+    echo "ERROR: Packaging APK failed!"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
-# 6. Install & Run ke Device via ADB
+# 6. Install & Run on Device via ADB
 echo ""
-echo "[5/5] Menginstall & Menjalankan di $DEVICE_MODEL..."
+echo "[5/5] Installing & Running on $DEVICE_MODEL..."
 adb install -r "$OUTPUT_APK"
 if [ $? -ne 0 ]; then
-    echo "ERROR: Gagal menginstall APK ke device!"
-    read -p "Tekan [Enter] untuk keluar..."
+    echo "ERROR: Failed to install APK on device!"
+    read -p "Press [Enter] to exit..."
     exit 1
 fi
 
-echo "Menghentikan instance lama..."
+echo "Stopping existing instance..."
 adb shell am force-stop "$PACKAGE_NAME"
 
-echo "Menjalankan aplikasi..."
+echo "Launching application..."
 adb shell am start -n "$PACKAGE_NAME/$ACTIVITY_NAME"
 
 echo ""
 echo "======================================="
-echo "   Aplikasi Berhasil Dijalankan!       "
+echo "   Application Launched Successfully!  "
 echo "======================================="
-echo "APK Terpasang: $OUTPUT_APK"
+echo "Installed APK: $OUTPUT_APK"
 echo "Device: $DEVICE_MODEL"
 echo ""
 
-read -p "Tekan [Enter] untuk keluar..."
+read -p "Press [Enter] to exit..."
