@@ -1,0 +1,161 @@
+{
+  "name": "Forge Weapon Enhancement",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "1st Lord Of Chaos Helm",
+    "Chaos Dragonlord Helm",
+    "Chaos Shogun Helmet",
+    "Wolfwing Mask"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 8738
+    },
+    {
+      "type": "label",
+      "labelName": "1ST_LORD_OF_CHAOS_HELM"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "1st Lord Of Chaos Helm",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CHAOS_DRAGONLORD_HELM"
+    },
+    {
+      "type": "join",
+      "map": "escherion",
+      "cell": "Boss",
+      "pad": "Left"
+    },
+    {
+      "type": "kill",
+      "monster": "Staff of Inversion",
+      "killMode": "count",
+      "killCount": 1
+    },
+    {
+      "type": "kill",
+      "monster": "Escherion",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "1st Lord Of Chaos Helm",
+      "itemQty": 1
+    },
+    {
+      "type": "goto_label",
+      "labelName": "1ST_LORD_OF_CHAOS_HELM"
+    },
+    {
+      "type": "label",
+      "labelName": "CHAOS_DRAGONLORD_HELM"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Chaos Dragonlord Helm",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CHAOS_SHOGUN_HELMET"
+    },
+    {
+      "type": "join",
+      "map": "stalagbite",
+      "cell": "Boss",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Vath",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Chaos Dragonlord Helm",
+      "itemQty": 1
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CHAOS_DRAGONLORD_HELM"
+    },
+    {
+      "type": "label",
+      "labelName": "CHAOS_SHOGUN_HELMET"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Chaos Shogun Helmet",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "WOLFWING_MASK"
+    },
+    {
+      "type": "join",
+      "map": "kitsune",
+      "cell": "Boss",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Kitsune",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Chaos Shogun Helmet",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "WOLFWING_MASK"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Wolfwing Mask",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "wolfwing",
+      "cell": "Boss",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Wolfwing",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Wolfwing Mask",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "forge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_complete",
+      "questId": 8738,
+      "itemId": -1
+    },
+    {
+      "type": "notif",
+      "title": "Forge Weapon Enhancement",
+      "message": "Forge Weapon Enhancement unlocked successfully!"
+    }
+  ]
+}

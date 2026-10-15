@@ -12,7 +12,7 @@
     <systemChrome>standard</systemChrome>
     <transparent>false</transparent>
     <visible>true</visible>
-    <fullScreen>true</fullScreen>
+    <fullScreen>false</fullScreen>
     <aspectRatio>landscape</aspectRatio>
     <renderMode>auto</renderMode>
     <autoOrients>true</autoOrients>
@@ -21,7 +21,7 @@
     <maximizable>true</maximizable>
     <minimizable>true</minimizable>
     <resizable>true</resizable>
-    <requestedDisplayResolution>standard</requestedDisplayResolution>
+    <requestedDisplayResolution>high</requestedDisplayResolution>
   </initialWindow>
   <icon>
     <image36x36>icons/android-icon-36x36.png</image36x36>

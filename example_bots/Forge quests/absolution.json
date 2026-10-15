@@ -1,0 +1,116 @@
+{
+  "name": "Forge Cape - Absolution",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "Slimed Sigil",
+    "Ascended Paladin",
+    "Ascended Paladin Sword"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 8743
+    },
+    {
+      "type": "label",
+      "labelName": "ASCENDED_PALADIN"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Ascended Paladin",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "ASCENDED_PALADIN_SWORD"
+    },
+    {
+      "type": "join",
+      "map": "charredpath",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Plague Spreader",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Slimed Sigil",
+      "itemQty": 100
+    },
+    {
+      "type": "join",
+      "map": "therift",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1399,
+      "itemName": "Ascended Paladin",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "ASCENDED_PALADIN_SWORD"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Ascended Paladin Sword",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "charredpath",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Plague Spreader",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Slimed Sigil",
+      "itemQty": 50
+    },
+    {
+      "type": "join",
+      "map": "therift",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1399,
+      "itemName": "Ascended Paladin Sword",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "forge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_complete",
+      "questId": 8743,
+      "itemId": -1
+    },
+    {
+      "type": "notif",
+      "title": "Absolution Enhancement",
+      "message": "Absolution Enhancement unlocked successfully!"
+    }
+  ]
+}

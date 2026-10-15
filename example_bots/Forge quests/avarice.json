@@ -1,0 +1,358 @@
+{
+  "name": "Forge Cape - Avarice",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "Indulgence",
+    "Penance",
+    "Souls of Limbo",
+    "Essence of Luxuria",
+    "Essence of Gluttony",
+    "Essence of Avarice",
+    "Essence of Wrath",
+    "Essence of Violence",
+    "Essence of Treachery",
+    "Souls of Heresy"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 8745
+    },
+    {
+      "type": "label",
+      "labelName": "INDULGENCE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Indulgence",
+      "var2": "50"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "PENANCE"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_INDULGENCE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Indulgence",
+      "var2": "50"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "PENANCE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7978
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r2",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Limbo Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Souls of Limbo",
+      "itemQty": 25
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r4",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Luxuria",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Essence of Luxuria",
+      "itemQty": 1
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r6",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Gluttony",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Essence of Gluttony",
+      "itemQty": 1
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r8",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Avarice",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Essence of Avarice",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7978,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_INDULGENCE"
+    },
+    {
+      "type": "label",
+      "labelName": "PENANCE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Penance",
+      "var2": "50"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_PENANCE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Penance",
+      "var2": "50"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "label",
+      "labelName": "ESSENCE_OF_WRATH"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Essence of Wrath",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "ESSENCE_OF_VIOLENCE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7979
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Wrath Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Wrath Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7979,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "ESSENCE_OF_VIOLENCE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Essence of Violence",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "ESSENCE_OF_TREACHERY"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7985
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r9",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Violence Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Violence Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7985,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "ESSENCE_OF_TREACHERY"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Essence of Treachery",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "SOULS_OF_HERESY"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7988
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r13",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Treachery Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Treachery Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7988,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "SOULS_OF_HERESY"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Souls of Heresy",
+      "var2": "15"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BUY_PENANCE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7983
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r7",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Heresy Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Heresy Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7983,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "SOULS_OF_HERESY"
+    },
+    {
+      "type": "label",
+      "labelName": "BUY_PENANCE"
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1984,
+      "itemName": "Penance",
+      "qty": 1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_PENANCE"
+    },
+    {
+      "type": "label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "forge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_complete",
+      "questId": 8745,
+      "itemId": -1
+    },
+    {
+      "type": "notif",
+      "title": "Avarice Enhancement",
+      "message": "Avarice Enhancement unlocked successfully!"
+    }
+  ]
+}

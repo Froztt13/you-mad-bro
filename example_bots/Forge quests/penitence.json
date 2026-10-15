@@ -1,0 +1,165 @@
+{
+  "name": "Forge Cape - Penitence",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "Night Mare Scythe",
+    "Yulgar's Lost Scythe",
+    "Sapphire Orb",
+    "Boreal Cavalier Bardiche",
+    "Void Scale"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 8822
+    },
+    {
+      "type": "label",
+      "labelName": "NIGHT_MARE_SCYTHE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Night Mare Scythe",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "SAPPHIRE_ORB"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 3270
+    },
+    {
+      "type": "join",
+      "map": "doomvault",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Binky",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Yulgar's Lost Scythe",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 3270,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.5
+    },
+    {
+      "type": "goto_label",
+      "labelName": "NIGHT_MARE_SCYTHE"
+    },
+    {
+      "type": "label",
+      "labelName": "SAPPHIRE_ORB"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Sapphire Orb",
+      "var2": "100"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BOREAL_CAVALIER_BARDICHE"
+    },
+    {
+      "type": "join",
+      "map": "frozenlair",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Legion Lich Lord",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Sapphire Orb",
+      "itemQty": 100
+    },
+    {
+      "type": "label",
+      "labelName": "BOREAL_CAVALIER_BARDICHE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Boreal Cavalier Bardiche",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "VOID_SCALE"
+    },
+    {
+      "type": "join",
+      "map": "icewing",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Warlord Icewing",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Boreal Cavalier Bardiche",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "VOID_SCALE"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Void Scale",
+      "var2": "13"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "underlair",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "ArchFiend DragonLord",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Void Scale",
+      "itemQty": 13
+    },
+    {
+      "type": "label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "forge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_complete",
+      "questId": 8822,
+      "itemId": -1
+    },
+    {
+      "type": "notif",
+      "title": "Penitence Enhancement",
+      "message": "Penitence Enhancement unlocked successfully!"
+    }
+  ]
+}

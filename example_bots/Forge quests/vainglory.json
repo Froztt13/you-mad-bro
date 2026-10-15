@@ -1,0 +1,415 @@
+{
+  "name": "Forge Cape - Vainglory",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "Pauldron Relic",
+    "Pauldron Fragment",
+    "Pauldron Shard",
+    "Breastplate Relic",
+    "Breastplate Fragment",
+    "Breastplate Shard",
+    "Vambrace Relic",
+    "Vambrace Fragment",
+    "Vambrace Shard",
+    "Gauntlet Relic",
+    "Gauntlet Fragment",
+    "Gauntlet Shard",
+    "Greaves Relic",
+    "Greaves Fragment",
+    "Greaves Shard"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 8744
+    },
+    {
+      "type": "label",
+      "labelName": "PAULDRON_RELIC"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Pauldron Relic",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BREASTPLATE_RELIC"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_PAULDRON_FRAGMENT"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Pauldron Fragment",
+      "var2": "15"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BUY_PAULDRON_RELIC"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 4162
+    },
+    {
+      "type": "join",
+      "map": "gravestrike",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Ultra Akriloth",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Pauldron Shard",
+      "itemQty": 15
+    },
+    {
+      "type": "quest_complete",
+      "questId": 4162,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_PAULDRON_FRAGMENT"
+    },
+    {
+      "type": "label",
+      "labelName": "BUY_PAULDRON_RELIC"
+    },
+    {
+      "type": "join",
+      "map": "museum",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1129,
+      "itemName": "Pauldron Relic",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "BREASTPLATE_RELIC"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Breastplate Relic",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "VAMBRACE_RELIC"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_BREASTPLATE_FRAGMENT"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Breastplate Fragment",
+      "var2": "10"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BUY_BREASTPLATE_RELIC"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 4165
+    },
+    {
+      "type": "join",
+      "map": "aqlesson",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Carnax",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Breastplate Shard",
+      "itemQty": 10
+    },
+    {
+      "type": "quest_complete",
+      "questId": 4165,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_BREASTPLATE_FRAGMENT"
+    },
+    {
+      "type": "label",
+      "labelName": "BUY_BREASTPLATE_RELIC"
+    },
+    {
+      "type": "join",
+      "map": "museum",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1129,
+      "itemName": "Breastplate Relic",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "VAMBRACE_RELIC"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Vambrace Relic",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GAUNTLET_RELIC"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_VAMBRACE_FRAGMENT"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Vambrace Fragment",
+      "var2": "15"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BUY_VAMBRACE_RELIC"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 4168
+    },
+    {
+      "type": "join",
+      "map": "bloodtitan",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Ultra Blood Titan",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Vambrace Shard",
+      "itemQty": 15
+    },
+    {
+      "type": "quest_complete",
+      "questId": 4168,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_VAMBRACE_FRAGMENT"
+    },
+    {
+      "type": "label",
+      "labelName": "BUY_VAMBRACE_RELIC"
+    },
+    {
+      "type": "join",
+      "map": "museum",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1129,
+      "itemName": "Vambrace Relic",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "GAUNTLET_RELIC"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Gauntlet Relic",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GREAVES_RELIC"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_GAUNTLET_FRAGMENT"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Gauntlet Fragment",
+      "var2": "25"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BUY_GAUNTLET_RELIC"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 4171
+    },
+    {
+      "type": "join",
+      "map": "alteonbattle",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "ULTRA Alteon",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Gauntlet Shard",
+      "itemQty": 5
+    },
+    {
+      "type": "quest_complete",
+      "questId": 4171,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_GAUNTLET_FRAGMENT"
+    },
+    {
+      "type": "label",
+      "labelName": "BUY_GAUNTLET_RELIC"
+    },
+    {
+      "type": "join",
+      "map": "museum",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1129,
+      "itemName": "Gauntlet Relic",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "GREAVES_RELIC"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Greaves Relic",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "label",
+      "labelName": "FARM_GREAVES_FRAGMENT"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Greaves Fragment",
+      "var2": "10"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BUY_GREAVES_RELIC"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 4174
+    },
+    {
+      "type": "join",
+      "map": "bosschallenge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Mutated Void Dragon",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Greaves Shard",
+      "itemQty": 15
+    },
+    {
+      "type": "quest_complete",
+      "questId": 4174,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "goto_label",
+      "labelName": "FARM_GREAVES_FRAGMENT"
+    },
+    {
+      "type": "label",
+      "labelName": "BUY_GREAVES_RELIC"
+    },
+    {
+      "type": "join",
+      "map": "museum",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "buy_item",
+      "shopId": 1129,
+      "itemName": "Greaves Relic",
+      "qty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "forge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_complete",
+      "questId": 8744,
+      "itemId": -1
+    },
+    {
+      "type": "notif",
+      "title": "Vainglory Enhancement",
+      "message": "Vainglory Enhancement unlocked successfully!"
+    }
+  ]
+}

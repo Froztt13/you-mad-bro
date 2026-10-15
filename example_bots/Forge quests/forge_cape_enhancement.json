@@ -1,0 +1,147 @@
+{
+  "name": "Forge Cape Enhancement",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "Prismatic Celestial Wings",
+    "Broken Wings",
+    "Shadow's Wings",
+    "Wings Of Destruction"
+  ],
+  "commands": [
+    {
+      "type": "quest_accept",
+      "questId": 8758
+    },
+    {
+      "type": "label",
+      "labelName": "PRISMATIC_CELESTIAL_WINGS"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Prismatic Celestial Wings",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BROKEN_WINGS"
+    },
+    {
+      "type": "join",
+      "map": "lostruinswar",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Diabolical Warlord",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Prismatic Celestial Wings",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "BROKEN_WINGS"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Broken Wings",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "SHADOWS_WINGS"
+    },
+    {
+      "type": "join",
+      "map": "lostruins",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Infernal Warlord",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Broken Wings",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "SHADOWS_WINGS"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Shadow's Wings",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "WINGS_OF_DESTRUCTION"
+    },
+    {
+      "type": "join",
+      "map": "infernalspire",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Azkorath",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Shadow's Wings",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "WINGS_OF_DESTRUCTION"
+    },
+    {
+      "type": "is_item_in_inventory",
+      "var1": "Wings Of Destruction",
+      "var2": "1"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "infernalspire",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Malxas",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Wings Of Destruction",
+      "itemQty": 1
+    },
+    {
+      "type": "label",
+      "labelName": "TURNIN"
+    },
+    {
+      "type": "join",
+      "map": "forge",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "quest_complete",
+      "questId": 8758,
+      "itemId": -1
+    },
+    {
+      "type": "notif",
+      "title": "Forge Cape Enhancement",
+      "message": "Forge Cape Enhancement unlocked successfully!"
+    }
+  ]
+}
