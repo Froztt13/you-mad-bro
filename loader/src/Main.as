@@ -90,6 +90,22 @@ package {
 		private var windowCentered:Boolean = false;
 		private var appStage:Stage;
 
+		public function get sFilePath():String {
+			return "https://game.aq.com/game/gamefiles/";
+		}
+
+		public function get world():* {
+			return gameMovieClip != null && "world" in gameMovieClip ? gameMovieClip.world : null;
+		}
+
+		public function get objWorldMap():* {
+			return gameMovieClip != null && "objWorldMap" in gameMovieClip ? gameMovieClip.objWorldMap : null;
+		}
+
+		public function get game():* {
+			return gameMovieClip;
+		}
+
 		public function Main() {
 			var _uiDeps:Array = [BaseModal, BotManagerUI, ChipTag, MyButton, MyCheckbox, MyTextField, ScrollContainer, UIUtils];
 			NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
