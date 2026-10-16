@@ -5,6 +5,7 @@ package input.bot_manager.tabs {
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
+	import flash.text.TextFormatAlign;
 
 	import commands.BotCommand;
 	import commands.GotoLabelCommand;
@@ -14,7 +15,6 @@ package input.bot_manager.tabs {
 	import commands.conditions.BaseConditionalCommand;
 	import input.bot_manager.BotManagerUI;
 	import ui.MyButton;
-	import ui.MyDropdown;
 	import ui.MyTextField;
 	import ui.UIUtils;
 
@@ -23,7 +23,9 @@ package input.bot_manager.tabs {
 		private var manager:BotManagerUI;
 
 		private var miscLabelInput:MyTextField;
-		private var miscCondDropdown:MyDropdown;
+		private var selectedCondType:String = BotCommand.TYPE_IS_ITEM_IN_INV;
+		private var miscCondSelector:Sprite;
+		private var miscCondLabel:TextField;
 		private var miscCondVar1Label:TextField;
 		private var miscCondVar1Input:MyTextField;
 		private var miscCondVar2Label:TextField;
@@ -52,7 +54,7 @@ package input.bot_manager.tabs {
 			currentLabelsBtn.x = 42;
 			currentLabelsBtn.y = 4;
 
-			const currentLabelsLink:TextField = UIUtils.createLabel("[Current Labels]", 0x38bdf8, 9.5, false);
+			const currentLabelsLink:TextField = UIUtils.createLabel("[Browse Labels]", 0x38bdf8, 9.5, false);
 			currentLabelsLink.selectable = false;
 			currentLabelsLink.mouseEnabled = false;
 			currentLabelsBtn.addChild(currentLabelsLink);
@@ -137,12 +139,65 @@ package input.bot_manager.tabs {
 			condTitle.y = 130;
 			addChild(condTitle);
 
-			const condItems:Array = BaseConditionalCommand.getAvailableConditions();
+			const browseCondBtn:Sprite = new Sprite();
+			browseCondBtn.buttonMode = true;
+			browseCondBtn.useHandCursor = true;
+			browseCondBtn.x = 188;
+			browseCondBtn.y = 130;
 
-			miscCondDropdown = new MyDropdown(244, 24, condItems, onMiscConditionChange);
-			miscCondDropdown.x = 0;
-			miscCondDropdown.y = 150;
-			addChild(miscCondDropdown);
+			const browseCondLink:TextField = UIUtils.createLabel("[Browse Conditions]", 0x38bdf8, 9.5, false);
+			browseCondLink.selectable = false;
+			browseCondLink.mouseEnabled = false;
+			browseCondBtn.addChild(browseCondLink);
+
+			browseCondBtn.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent):void {
+					browseCondLink.textColor = 0x93c5fd;
+				});
+			browseCondBtn.addEventListener(MouseEvent.MOUSE_OUT, function(e:MouseEvent):void {
+					browseCondLink.textColor = 0x38bdf8;
+				});
+			browseCondBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					manager.openConditionsModal();
+				});
+			addChild(browseCondBtn);
+
+			// Clickable Condition Selector Box
+			miscCondSelector = new Sprite();
+			miscCondSelector.buttonMode = true;
+			miscCondSelector.useHandCursor = true;
+			miscCondSelector.x = 0;
+			miscCondSelector.y = 150;
+
+			const selectorBg:Shape = new Shape();
+			UIUtils.drawRoundedRect(selectorBg.graphics, 0, 0, 244, 24, 4, UIUtils.BG_RECESSED, 1.0, UIUtils.BORDER_NORMAL, 1);
+			miscCondSelector.addChild(selectorBg);
+
+			miscCondLabel = UIUtils.createLabel("", UIUtils.TEXT_MAIN, 11, false, TextFormatAlign.LEFT);
+			miscCondLabel.x = 8;
+			miscCondLabel.y = int((24 - 16) / 2);
+			miscCondLabel.width = 216;
+			miscCondLabel.mouseEnabled = false;
+			miscCondSelector.addChild(miscCondLabel);
+
+			const selectorArrow:TextField = UIUtils.createLabel("▾", UIUtils.TEXT_MUTED, 10, false, TextFormatAlign.CENTER);
+			selectorArrow.x = 224;
+			selectorArrow.y = int((24 - 14) / 2);
+			selectorArrow.width = 16;
+			selectorArrow.mouseEnabled = false;
+			miscCondSelector.addChild(selectorArrow);
+
+			miscCondSelector.addEventListener(MouseEvent.MOUSE_OVER, function(e:MouseEvent):void {
+					UIUtils.drawRoundedRect(selectorBg.graphics, 0, 0, 244, 24, 4, UIUtils.BG_HOVER, 1.0, UIUtils.BORDER_HOVER, 1);
+					selectorArrow.textColor = 0x93c5fd;
+				});
+			miscCondSelector.addEventListener(MouseEvent.MOUSE_OUT, function(e:MouseEvent):void {
+					UIUtils.drawRoundedRect(selectorBg.graphics, 0, 0, 244, 24, 4, UIUtils.BG_RECESSED, 1.0, UIUtils.BORDER_NORMAL, 1);
+					selectorArrow.textColor = UIUtils.TEXT_MUTED;
+				});
+			miscCondSelector.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+					manager.openConditionsModal();
+				});
+			addChild(miscCondSelector);
 
 			const addCondBtn:MyButton = new MyButton("Add", 76, 24, MyButton.TYPE_PRIMARY, onAddConditionClick);
 			addCondBtn.x = 252;
@@ -172,7 +227,7 @@ package input.bot_manager.tabs {
 			miscCondVar2Input.restrict = "0-9";
 			addChild(miscCondVar2Input);
 
-			updateConditionInputs(BotCommand.TYPE_IS_ITEM_IN_INV);
+			setSelectedCondition(BotCommand.TYPE_IS_ITEM_IN_INV);
 		}
 
 		public function setLabelText(text:String):void {
@@ -181,10 +236,17 @@ package input.bot_manager.tabs {
 			}
 		}
 
-		private function onMiscConditionChange(item:Object):void {
-			if (item != null && item.value != null) {
-				updateConditionInputs(String(item.value));
+		public function setSelectedCondition(condType:String):void {
+			selectedCondType = condType;
+			var def:Object = BaseConditionalCommand.getDefinition(condType);
+			if (def != null && miscCondLabel != null) {
+				miscCondLabel.text = def.label;
 			}
+			updateConditionInputs(condType);
+		}
+
+		public function get selectedConditionType():String {
+			return selectedCondType;
 		}
 
 		private function updateConditionInputs(condType:String):void {
@@ -221,10 +283,9 @@ package input.bot_manager.tabs {
 		}
 
 		private function onAddConditionClick(e:MouseEvent):void {
-			if (miscCondDropdown == null)
+			if (selectedCondType == null)
 				return;
-			var condType:String = String(miscCondDropdown.selectedValue);
-			var def:Object = BaseConditionalCommand.getDefinition(condType);
+			var def:Object = BaseConditionalCommand.getDefinition(selectedCondType);
 			if (def == null)
 				return;
 
@@ -233,7 +294,7 @@ package input.bot_manager.tabs {
 			}
 
 			var cmd:BaseConditionalCommand = BaseConditionalCommand.createCommand(
-					condType,
+					selectedCondType,
 					miscCondVar1Input.trimmedText,
 					miscCondVar2Input.trimmedText
 				);

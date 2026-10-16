@@ -99,23 +99,43 @@ package commands.conditions {
 		// Registry & Metadata Helpers for UI
 		// =========================================================================
 
+		public static const CATEGORY_ALL:String = "All";
+		public static const CATEGORY_ITEM:String = "Item";
+		public static const CATEGORY_PLAYER:String = "Player";
+		public static const CATEGORY_MAP:String = "Map";
+		public static const CATEGORY_QUEST:String = "Quest";
+
 		public static function getAvailableConditions():Array {
 			return [
-					{label: IsItemInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_IN_INV},
-					{label: IsItemNotInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_IN_INV},
-					{label: IsItemEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_EQUIPED},
-					{label: IsItemNotEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_EQUIPED},
-					{label: IsQuestAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_AVAILABLE},
-					{label: IsQuestNotAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE},
-					{label: IsQuestCanBeTurnedInCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN},
-					{label: IsGoldGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_GREATER},
-					{label: IsGoldLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_LESS},
-					{label: IsMapCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP},
-					{label: IsMapNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP_NOT},
-					{label: IsCellCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL},
-					{label: IsCellNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL_NOT},
-					{label: IsPlayerMemberCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_MEMBER}
+					{label: IsItemInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_IN_INV, category: CATEGORY_ITEM, description: "Check if item is in inventory (optional count)"},
+					{label: IsItemNotInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_IN_INV, category: CATEGORY_ITEM, description: "Check if item is NOT in inventory (or below count)"},
+					{label: IsItemEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_EQUIPED, category: CATEGORY_ITEM, description: "Check if item is currently equipped"},
+					{label: IsItemNotEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_EQUIPED, category: CATEGORY_ITEM, description: "Check if item is NOT currently equipped"},
+					{label: IsQuestAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_AVAILABLE, category: CATEGORY_QUEST, description: "Check if quest is available to accept"},
+					{label: IsQuestNotAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE, category: CATEGORY_QUEST, description: "Check if quest is NOT available to accept"},
+					{label: IsQuestCanBeTurnedInCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN, category: CATEGORY_QUEST, description: "Check if quest requirements are met & ready to turn in"},
+					{label: IsGoldGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_GREATER, category: CATEGORY_PLAYER, description: "Check if player gold is greater than amount"},
+					{label: IsGoldLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_LESS, category: CATEGORY_PLAYER, description: "Check if player gold is less than amount"},
+					{label: IsPlayerMemberCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_MEMBER, category: CATEGORY_PLAYER, description: "Check if player has an active membership / upgrade"},
+					{label: IsMapCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP, category: CATEGORY_MAP, description: "Check if current map matches specified name"},
+					{label: IsMapNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP_NOT, category: CATEGORY_MAP, description: "Check if current map does NOT match name"},
+					{label: IsCellCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL, category: CATEGORY_MAP, description: "Check if player is in specified cell"},
+					{label: IsCellNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL_NOT, category: CATEGORY_MAP, description: "Check if player is NOT in specified cell"}
 				];
+		}
+
+		public static function getConditionsByCategory(category:String = null):Array {
+			var all:Array = getAvailableConditions();
+			if (category == null || category == "" || category == CATEGORY_ALL) {
+				return all;
+			}
+			var filtered:Array = [];
+			for (var i:int = 0; i < all.length; i++) {
+				if (all[i].category == category) {
+					filtered.push(all[i]);
+				}
+			}
+			return filtered;
 		}
 
 		public static function getDefinition(type:String):Object {
@@ -124,6 +144,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsItemInInventoryCommand.COMMAND_LABEL,
+							category: CATEGORY_ITEM,
+							description: "Check if item is in inventory (optional count)",
 							var1Label: IsItemInInventoryCommand.VAR1_LABEL,
 							var1Restrict: IsItemInInventoryCommand.VAR1_RESTRICT,
 							var1Default: IsItemInInventoryCommand.VAR1_DEFAULT,
@@ -135,6 +157,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsItemNotInInventoryCommand.COMMAND_LABEL,
+							category: CATEGORY_ITEM,
+							description: "Check if item is NOT in inventory (or below count)",
 							var1Label: IsItemNotInInventoryCommand.VAR1_LABEL,
 							var1Restrict: IsItemNotInInventoryCommand.VAR1_RESTRICT,
 							var1Default: IsItemNotInInventoryCommand.VAR1_DEFAULT,
@@ -146,6 +170,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsItemEquipedCommand.COMMAND_LABEL,
+							category: CATEGORY_ITEM,
+							description: "Check if item is currently equipped",
 							var1Label: IsItemEquipedCommand.VAR1_LABEL,
 							var1Restrict: IsItemEquipedCommand.VAR1_RESTRICT,
 							var1Default: IsItemEquipedCommand.VAR1_DEFAULT,
@@ -157,6 +183,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsItemNotEquipedCommand.COMMAND_LABEL,
+							category: CATEGORY_ITEM,
+							description: "Check if item is NOT currently equipped",
 							var1Label: IsItemNotEquipedCommand.VAR1_LABEL,
 							var1Restrict: IsItemNotEquipedCommand.VAR1_RESTRICT,
 							var1Default: IsItemNotEquipedCommand.VAR1_DEFAULT,
@@ -168,6 +196,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsQuestAvailableCommand.COMMAND_LABEL,
+							category: CATEGORY_QUEST,
+							description: "Check if quest is available to accept",
 							var1Label: IsQuestAvailableCommand.VAR1_LABEL,
 							var1Restrict: IsQuestAvailableCommand.VAR1_RESTRICT,
 							var1Default: IsQuestAvailableCommand.VAR1_DEFAULT,
@@ -179,6 +209,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsQuestNotAvailableCommand.COMMAND_LABEL,
+							category: CATEGORY_QUEST,
+							description: "Check if quest is NOT available to accept",
 							var1Label: IsQuestNotAvailableCommand.VAR1_LABEL,
 							var1Restrict: IsQuestNotAvailableCommand.VAR1_RESTRICT,
 							var1Default: IsQuestNotAvailableCommand.VAR1_DEFAULT,
@@ -190,6 +222,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsQuestCanBeTurnedInCommand.COMMAND_LABEL,
+							category: CATEGORY_QUEST,
+							description: "Check if quest requirements are met & ready to turn in",
 							var1Label: IsQuestCanBeTurnedInCommand.VAR1_LABEL,
 							var1Restrict: IsQuestCanBeTurnedInCommand.VAR1_RESTRICT,
 							var1Default: IsQuestCanBeTurnedInCommand.VAR1_DEFAULT,
@@ -201,6 +235,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsGoldGreaterThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player gold is greater than amount",
 							var1Label: IsGoldGreaterThanCommand.VAR1_LABEL,
 							var1Restrict: IsGoldGreaterThanCommand.VAR1_RESTRICT,
 							var1Default: IsGoldGreaterThanCommand.VAR1_DEFAULT,
@@ -212,6 +248,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsGoldLessThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player gold is less than amount",
 							var1Label: IsGoldLessThanCommand.VAR1_LABEL,
 							var1Restrict: IsGoldLessThanCommand.VAR1_RESTRICT,
 							var1Default: IsGoldLessThanCommand.VAR1_DEFAULT,
@@ -223,6 +261,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsMapCommand.COMMAND_LABEL,
+							category: CATEGORY_MAP,
+							description: "Check if current map matches specified name",
 							var1Label: IsMapCommand.VAR1_LABEL,
 							var1Restrict: IsMapCommand.VAR1_RESTRICT,
 							var1Default: IsMapCommand.VAR1_DEFAULT,
@@ -234,6 +274,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsMapNotCommand.COMMAND_LABEL,
+							category: CATEGORY_MAP,
+							description: "Check if current map does NOT match name",
 							var1Label: IsMapNotCommand.VAR1_LABEL,
 							var1Restrict: IsMapNotCommand.VAR1_RESTRICT,
 							var1Default: IsMapNotCommand.VAR1_DEFAULT,
@@ -245,6 +287,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsCellCommand.COMMAND_LABEL,
+							category: CATEGORY_MAP,
+							description: "Check if player is in specified cell",
 							var1Label: IsCellCommand.VAR1_LABEL,
 							var1Restrict: IsCellCommand.VAR1_RESTRICT,
 							var1Default: IsCellCommand.VAR1_DEFAULT,
@@ -256,6 +300,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsCellNotCommand.COMMAND_LABEL,
+							category: CATEGORY_MAP,
+							description: "Check if player is NOT in specified cell",
 							var1Label: IsCellNotCommand.VAR1_LABEL,
 							var1Restrict: IsCellNotCommand.VAR1_RESTRICT,
 							var1Default: IsCellNotCommand.VAR1_DEFAULT,
@@ -267,6 +313,8 @@ package commands.conditions {
 					return {
 							type: type,
 							label: IsPlayerMemberCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player has active membership / upgrade",
 							var1Label: IsPlayerMemberCommand.VAR1_LABEL,
 							var1Restrict: IsPlayerMemberCommand.VAR1_RESTRICT,
 							var1Default: IsPlayerMemberCommand.VAR1_DEFAULT,
@@ -279,94 +327,60 @@ package commands.conditions {
 			}
 		}
 
+		// =========================================================================
+		// Class Registry (Dynamic Factory Dispatch)
+		// =========================================================================
+
+		private static var _classRegistry:Object = null;
+
+		private static function getClassRegistry():Object {
+			if (_classRegistry == null) {
+				_classRegistry = {};
+				_classRegistry[BotCommand.TYPE_IS_ITEM_IN_INV] = IsItemInInventoryCommand;
+				_classRegistry[BotCommand.TYPE_IS_ITEM_NOT_IN_INV] = IsItemNotInInventoryCommand;
+				_classRegistry[BotCommand.TYPE_IS_ITEM_EQUIPED] = IsItemEquipedCommand;
+				_classRegistry[BotCommand.TYPE_IS_ITEM_NOT_EQUIPED] = IsItemNotEquipedCommand;
+				_classRegistry[BotCommand.TYPE_IS_QUEST_AVAILABLE] = IsQuestAvailableCommand;
+				_classRegistry[BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE] = IsQuestNotAvailableCommand;
+				_classRegistry[BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN] = IsQuestCanBeTurnedInCommand;
+				_classRegistry[BotCommand.TYPE_IS_GOLD_GREATER] = IsGoldGreaterThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_GOLD_LESS] = IsGoldLessThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_MAP] = IsMapCommand;
+				_classRegistry[BotCommand.TYPE_IS_MAP_NOT] = IsMapNotCommand;
+				_classRegistry[BotCommand.TYPE_IS_CELL] = IsCellCommand;
+				_classRegistry[BotCommand.TYPE_IS_CELL_NOT] = IsCellNotCommand;
+				_classRegistry[BotCommand.TYPE_IS_PLAYER_MEMBER] = IsPlayerMemberCommand;
+			}
+			return _classRegistry;
+		}
+
+		public static function getCommandClass(type:String):Class {
+			if (type == null)
+				return null;
+			var registry:Object = getClassRegistry();
+			return registry[type] as Class;
+		}
+
 		public static function isConditionType(type:String):Boolean {
-			return getDefinition(type) != null;
+			return getCommandClass(type) != null;
 		}
 
 		public static function fromJSON(data:Object):BaseConditionalCommand {
 			if (data == null || data.type == null)
 				return null;
-			var type:String = String(data.type);
-			switch (type) {
-				case BotCommand.TYPE_IS_ITEM_IN_INV:
-					return IsItemInInventoryCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_ITEM_NOT_IN_INV:
-					return IsItemNotInInventoryCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_ITEM_EQUIPED:
-					return IsItemEquipedCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_ITEM_NOT_EQUIPED:
-					return IsItemNotEquipedCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_QUEST_AVAILABLE:
-					return IsQuestAvailableCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE:
-					return IsQuestNotAvailableCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN:
-					return IsQuestCanBeTurnedInCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_GOLD_GREATER:
-					return IsGoldGreaterThanCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_GOLD_LESS:
-					return IsGoldLessThanCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_MAP:
-					return IsMapCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_MAP_NOT:
-					return IsMapNotCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_CELL:
-					return IsCellCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_CELL_NOT:
-					return IsCellNotCommand.fromJSON(data);
-				case BotCommand.TYPE_IS_PLAYER_MEMBER:
-					return IsPlayerMemberCommand.fromJSON(data);
-				default:
-					return null;
+			var cmdClass:Class = getCommandClass(String(data.type));
+			if (cmdClass != null) {
+				return cmdClass.fromJSON(data);
 			}
+			return null;
 		}
 
 		public static function createCommand(type:String, var1:String, var2:String):BaseConditionalCommand {
-			switch (type) {
-				case BotCommand.TYPE_IS_ITEM_IN_INV:
-					var qty1:int = parseInt(var2);
-					if (isNaN(qty1) || qty1 <= 0) {
-						qty1 = 1;
-					}
-					return new IsItemInInventoryCommand(var1, qty1);
-				case BotCommand.TYPE_IS_ITEM_NOT_IN_INV:
-					var qty2:int = parseInt(var2);
-					if (isNaN(qty2) || qty2 <= 0) {
-						qty2 = 1;
-					}
-					return new IsItemNotInInventoryCommand(var1, qty2);
-				case BotCommand.TYPE_IS_ITEM_EQUIPED:
-					return new IsItemEquipedCommand(var1);
-				case BotCommand.TYPE_IS_ITEM_NOT_EQUIPED:
-					return new IsItemNotEquipedCommand(var1);
-				case BotCommand.TYPE_IS_QUEST_AVAILABLE:
-					var qId1:int = parseInt(var1);
-					return new IsQuestAvailableCommand(qId1);
-				case BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE:
-					var qId2:int = parseInt(var1);
-					return new IsQuestNotAvailableCommand(qId2);
-				case BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN:
-					var qId3:int = parseInt(var1);
-					return new IsQuestCanBeTurnedInCommand(qId3);
-				case BotCommand.TYPE_IS_GOLD_GREATER:
-					var gAmt1:int = parseInt(var1);
-					return new IsGoldGreaterThanCommand(gAmt1);
-				case BotCommand.TYPE_IS_GOLD_LESS:
-					var gAmt2:int = parseInt(var1);
-					return new IsGoldLessThanCommand(gAmt2);
-				case BotCommand.TYPE_IS_MAP:
-					return new IsMapCommand(var1);
-				case BotCommand.TYPE_IS_MAP_NOT:
-					return new IsMapNotCommand(var1);
-				case BotCommand.TYPE_IS_CELL:
-					return new IsCellCommand(var1);
-				case BotCommand.TYPE_IS_CELL_NOT:
-					return new IsCellNotCommand(var1);
-				case BotCommand.TYPE_IS_PLAYER_MEMBER:
-					return new IsPlayerMemberCommand();
-				default:
-					return null;
-			}
+			return fromJSON({
+					"type": type,
+					"var1": var1,
+					"var2": var2
+				});
 		}
 	}
 }

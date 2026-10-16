@@ -75,6 +75,7 @@ package input.bot_manager {
 		private var whitelistModal:BotWhitelistModal;
 		private var labelsModal:BotLabelsModal;
 		private var editModal:BotEditCommandModal;
+		private var conditionsModal:BotConditionsModal;
 
 		public function BotManagerUI(game:Object = null) {
 			super(MODAL_W, MODAL_H, "Bot Manager", "Script Builder");
@@ -101,6 +102,9 @@ package input.bot_manager {
 
 			labelsModal = new BotLabelsModal(botEngine, onLabelSelected);
 			addChild(labelsModal);
+
+			conditionsModal = new BotConditionsModal(onConditionSelected);
+			addChild(conditionsModal);
 
 			editModal = new BotEditCommandModal(botEngine, function():void {
 					refreshCommandList();
@@ -376,6 +380,13 @@ package input.bot_manager {
 			}
 		}
 
+		public function openConditionsModal():void {
+			if (conditionsModal != null) {
+				var curType:String = (miscTab != null) ? miscTab.selectedConditionType : null;
+				conditionsModal.open(curType);
+			}
+		}
+
 		public function openEditCommandModal(index:int, cmd:BotCommand):void {
 			if (editModal != null) {
 				editModal.open(index, cmd);
@@ -385,6 +396,12 @@ package input.bot_manager {
 		private function onLabelSelected(labelName:String):void {
 			if (miscTab != null) {
 				miscTab.setLabelText(labelName);
+			}
+		}
+
+		private function onConditionSelected(condType:String):void {
+			if (miscTab != null) {
+				miscTab.setSelectedCondition(condType);
 			}
 		}
 

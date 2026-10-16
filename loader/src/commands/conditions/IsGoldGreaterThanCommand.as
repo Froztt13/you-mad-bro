@@ -14,7 +14,7 @@ package commands.conditions {
 		public static const COMMAND_LABEL:String = "If Gold Greater Than";
 		public static const VAR1_LABEL:String = "Amount:";
 		public static const VAR1_RESTRICT:String = "0-9";
-		public static const VAR1_DEFAULT:String = "1000";
+		public static const VAR1_DEFAULT:String = "10000000";
 		public static const VAR2_LABEL:String = null;
 		public static const VAR2_RESTRICT:String = null;
 		public static const VAR2_DEFAULT:String = "";

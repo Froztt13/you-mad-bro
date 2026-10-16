@@ -58,7 +58,7 @@ package input.bot_manager.modals {
 			addChild(boxBg);
 
 			// Title & Subtitle
-			const title:TextField = UIUtils.createLabel("CURRENT LABELS", UIUtils.TEXT_WHITE, 12, true);
+			const title:TextField = UIUtils.createLabel("SELECT LABEL", UIUtils.TEXT_WHITE, 12, true);
 			title.x = boxX + 16;
 			title.y = boxY + 12;
 			addChild(title);
@@ -114,9 +114,9 @@ package input.bot_manager.modals {
 				var cmd:BotCommand = cmds[i] as BotCommand;
 				if (cmd is LabelCommand) {
 					labels.push({
-							step: i + 1,
-							name: LabelCommand(cmd).labelName
-						});
+								step: i + 1,
+								name: LabelCommand(cmd).labelName
+							});
 				}
 			}
 
