@@ -84,7 +84,7 @@ package input {
 
 			trace("[" + type.toUpperCase() + "] [" + timeStr + "] " + msg);
 
-			if (instance != null) {
+			if (instance != null && instance.stage != null && instance.visible) {
 				instance.refresh();
 			}
 		}
@@ -110,14 +110,13 @@ package input {
 		}
 
 		public static function toggle(parentContainer:DisplayObjectContainer = null):void {
-			if (instance == null) {
-				instance = new AppLogUI();
+			if (instance != null) {
+				kill();
+				return;
 			}
 
-			if (instance.parent != null) {
-				instance.parent.removeChild(instance);
-			}
-			else if (parentContainer != null) {
+			if (parentContainer != null) {
+				instance = new AppLogUI();
 				parentContainer.addChild(instance);
 				instance.visible = true;
 				if (instance.stage != null) {
@@ -125,6 +124,34 @@ package input {
 					instance.y = Math.max(10, (instance.stage.stageHeight - UI_HEIGHT) / 2);
 				}
 				instance.refresh();
+			}
+		}
+
+		public static function kill():void {
+			if (instance != null) {
+				instance.destroy();
+				instance = null;
+			}
+		}
+
+		public function destroy():void {
+			removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+			removeEventListener(MouseEvent.MOUSE_DOWN, onPanelMouseDown);
+			if (stage != null) {
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, onStageMouseMove);
+				stage.removeEventListener(MouseEvent.MOUSE_UP, onStageMouseUp);
+				stage.removeEventListener(MouseEvent.MOUSE_UP, onPanelMouseUp);
+			}
+			if (listContainer != null) {
+				listContainer.removeEventListener(MouseEvent.MOUSE_WHEEL, onMouseWheel);
+			}
+			if (scrollContent != null) {
+				while (scrollContent.numChildren > 0) {
+					scrollContent.removeChildAt(0);
+				}
+			}
+			if (parent != null) {
+				parent.removeChild(this);
 			}
 		}
 
@@ -220,14 +247,12 @@ package input {
 			clearBtn.addEventListener(MouseEvent.CLICK, onClearClick);
 			headerBar.addChild(clearBtn);
 
-			// Close Button
+			// Close Button (Directly kills/destroys instance to prevent background lag)
 			const closeBtn:CloseButton = new CloseButton();
 			closeBtn.x = UI_WIDTH - PADDING - 22; // 526
 			closeBtn.y = 7;
 			closeBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
-					if (parent != null) {
-						parent.removeChild(instance);
-					}
+					kill();
 				});
 			headerBar.addChild(closeBtn);
 
