@@ -975,5 +975,21 @@ package {
 				}
 			}
 		}
+
+		public function openBotManager():void {
+			MainMenuUI.sOpenBotManager();
+		}
+
+		public function openQuestTree():void {
+			MainMenuUI.sOpenQuestTree();
+		}
+
+		public function openCellJump():void {
+			MainMenuUI.sOpenCellJump();
+		}
+
+		public function toggleAutoBattle():void {
+			MainMenuUI.sToggleAutoBattle();
+		}
 	}
 }

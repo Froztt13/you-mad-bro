@@ -22,21 +22,19 @@ echo "======================================="
 echo "      YouMadBro - Run ADL & Logs       "
 echo "======================================="
 
-# 3. Compile Loader.swf if missing
-if [ ! -f "loader/Loader.swf" ]; then
-    echo "Loader.swf not found, compiling..."
-    "$AIR_SDK_PATH/bin/amxmlc" \
-        -optimize=true \
-        -inline=true \
-        -omit-trace-statements=true \
-        -library-path+=ane/BatteryOptimizer.swc \
-        -output loader/Loader.swf \
-        loader/src/Main.as
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Failed to compile Loader.swf!"
-        read -p "Press [Enter] to exit..."
-        exit 1
-    fi
+# 3. Compile Loader.swf
+echo "Compiling Loader.swf..."
+"$AIR_SDK_PATH/bin/amxmlc" \
+    -optimize=true \
+    -inline=true \
+    -omit-trace-statements=true \
+    -library-path+=ane/BatteryOptimizer.swc \
+    -output loader/Loader.swf \
+    loader/src/Main.as
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to compile Loader.swf!"
+    read -p "Press [Enter] to exit..."
+    exit 1
 fi
 
 # 4. Prepare temporary descriptor for ADL on macOS

@@ -22,11 +22,24 @@ if [ -f "assets/charselect.swf" ]; then
     cp assets/charselect.swf loader/gamefiles/charselect.swf
 fi
 
+AIR_SDK_PATH="${AIR_SDK_PATH:-$HOME/AIRSDK_51.3.1}"
+if [ -f "$AIR_SDK_PATH/bin/amxmlc" ]; then
+    echo "[3/3] Compiling Loader.swf..."
+    "$AIR_SDK_PATH/bin/amxmlc" \
+        -optimize=true \
+        -inline=true \
+        -omit-trace-statements=true \
+        -library-path+=ane/BatteryOptimizer.swc \
+        -output loader/Loader.swf \
+        loader/src/Main.as
+fi
+
 echo ""
 echo "========================================================"
-echo "GAME.SWF, SPIDERBOOK3.SWF, MAP-UI_R38.SWF & CHARSELECT.SWF BUILD SUCCESSFUL!"
+echo "GAME.SWF, LOADER.SWF, SPIDERBOOK3.SWF, MAP-UI_R38.SWF & CHARSELECT.SWF BUILD SUCCESSFUL!"
 echo "Output files:"
 echo "  - assets/Game.swf"
+echo "  - loader/Loader.swf"
 echo "  - loader/gamefiles/Game.swf"
 echo "  - loader/gamefiles/Map-UI_r38.swf"
 echo "  - loader/gamefiles/spiderbook3.swf"

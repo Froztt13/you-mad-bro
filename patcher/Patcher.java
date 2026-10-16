@@ -22,6 +22,7 @@ public class Patcher {
         sanitizeSecurity(targetDir);
         patchServerPaths(targetDir);
         patchAssetLoaders(targetDir);
+        patchYourHeroMenu(targetDir);
 
         build();
 
@@ -920,6 +921,118 @@ public class Patcher {
                 }
             }
 
+            // 8h. Add toggleLagKiller and menu action methods to Game.class.asasm
+            String nsGame = "[PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")]";
+            StringBuilder extraGameMethods = new StringBuilder();
+
+            if (!gameContent.contains("refid \"Game/instance/toggleLagKiller\"")) {
+                String lagKillerMethod =
+                    "  trait method QName(PackageNamespace(\"\"), \"toggleLagKiller\")\n"
+                    + "   method\n"
+                    + "    refid \"Game/instance/toggleLagKiller\"\n"
+                    + "    returns QName(PackageNamespace(\"\"), \"void\")\n"
+                    + "    body\n"
+                    + "     maxstack 10\n"
+                    + "     localcount 1\n"
+                    + "     initscopedepth 10\n"
+                    + "     maxscopedepth 11\n"
+                    + "     code\n"
+                    + "      getlocal0\n"
+                    + "      pushscope\n\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"world\", " + nsGame + ")\n"
+                    + "      pushnull\n"
+                    + "      ifeq                L_LAG_END\n\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"world\", " + nsGame + ")\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"world\", " + nsGame + ")\n"
+                    + "      getproperty         Multiname(\"visible\", " + nsGame + ")\n"
+                    + "      not\n"
+                    + "      setproperty         Multiname(\"visible\", " + nsGame + ")\n\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"chatF\", " + nsGame + ")\n"
+                    + "      pushnull\n"
+                    + "      ifeq                L_LAG_END\n\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"chatF\", " + nsGame + ")\n"
+                    + "      pushstring          \"server\"\n"
+                    + "      pushstring          \"Lag Killer: \"\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"world\", " + nsGame + ")\n"
+                    + "      getproperty         Multiname(\"visible\", " + nsGame + ")\n"
+                    + "      iffalse             L_LAG_ON\n"
+                    + "      pushstring          \"DISABLED\"\n"
+                    + "      jump                L_LAG_MSG\n"
+                    + "L_LAG_ON:\n"
+                    + "      pushstring          \"ENABLED\"\n"
+                    + "L_LAG_MSG:\n"
+                    + "      add\n"
+                    + "      pushstring          \"SERVER\"\n"
+                    + "      pushstring          \"\"\n"
+                    + "      pushbyte            0\n"
+                    + "      callpropvoid        Multiname(\"pushMsg\", " + nsGame + "), 5\n\n"
+                    + "L_LAG_END:\n"
+                    + "      returnvoid\n"
+                    + "     end ; code\n"
+                    + "    end ; body\n"
+                    + "   end ; method\n"
+                    + "  end ; trait\n";
+                extraGameMethods.append(lagKillerMethod);
+                System.out.println("  -> Game.toggleLagKiller method prepared");
+            }
+
+            String[] customPocketMethods = {"openBotManager", "openQuestTree", "openCellJump", "toggleAutoBattle"};
+            for (String mName : customPocketMethods) {
+                // If old implementation exists, remove it so we can re-insert the pocket-based version
+                Pattern pOld = Pattern.compile("(?s)\\s*trait method QName\\(PackageNamespace\\(\"\"\\), \"" + mName + "\"\\).*?end ; trait");
+                Matcher mOld = pOld.matcher(gameContent);
+                if (mOld.find()) {
+                    gameContent = mOld.replaceAll("");
+                    gameModified = true;
+                }
+
+                String pocketMethod =
+                    "  trait method QName(PackageNamespace(\"\"), \"" + mName + "\")\n"
+                    + "   method\n"
+                    + "    name \"" + mName + "\"\n"
+                    + "    refid \"Game/instance/" + mName + "\"\n"
+                    + "    returns QName(PackageNamespace(\"\"), \"void\")\n"
+                    + "    body\n"
+                    + "     maxstack 4\n"
+                    + "     localcount 1\n"
+                    + "     initscopedepth 10\n"
+                    + "     maxscopedepth 11\n"
+                    + "     code\n"
+                    + "      getlocal0\n"
+                    + "      pushscope\n\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"pocket\", " + nsGame + ")\n"
+                    + "      pushnull\n"
+                    + "      ifeq                L_" + mName + "_END\n\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         Multiname(\"pocket\", " + nsGame + ")\n"
+                    + "      callpropvoid        Multiname(\"" + mName + "\", [PackageNamespace(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\")]), 0\n\n"
+                    + "L_" + mName + "_END:\n"
+                    + "      returnvoid\n"
+                    + "     end ; code\n"
+                    + "    end ; body\n"
+                    + "   end ; method\n"
+                    + "  end ; trait\n";
+                extraGameMethods.append(pocketMethod);
+                System.out.println("  -> Game." + mName + " method prepared (calls pocket." + mName + ")");
+            }
+
+            if (extraGameMethods.length() > 0) {
+                Pattern pEndInst = Pattern.compile("(?m)^\\s*end ; instance");
+                Matcher mEndInst = pEndInst.matcher(gameContent);
+                if (mEndInst.find()) {
+                    gameContent = gameContent.substring(0, mEndInst.start()) + extraGameMethods.toString() + mEndInst.group() + gameContent.substring(mEndInst.end());
+                    System.out.println("  -> Custom Game methods appended");
+                    gameModified = true;
+                }
+            }
+
             if (gameModified) {
                 Files.writeString(gameAsasm, gameContent);
             }
@@ -1237,6 +1350,164 @@ public class Patcher {
 
         if (modified) {
             Files.writeString(popupFile, content);
+        }
+    }
+
+    private static void patchYourHeroMenu(Path targetDir) throws IOException {
+        String[] heroClasses = {
+            "charicon_322",
+            "Symbol23copy_65",
+            "Symbol23copy3_78",
+            "Symbol23copy8_83",
+            "Symbol23copy2_38"
+        };
+
+        for (String cls : heroClasses) {
+            Path clsFile = targetDir.resolve("spider_fla").resolve(cls + ".class.asasm");
+            if (Files.exists(clsFile)) {
+                patchHeroButtonClass(clsFile, cls);
+            }
+        }
+
+        patchInterfaceMenuNullGuard(targetDir);
+    }
+
+    private static void patchHeroButtonClass(Path clsFile, String cls) throws IOException {
+        String content = Files.readString(clsFile).replace("\r\n", "\n");
+        boolean modified = false;
+
+        // 1. Replace entire buttons array construction in frame1
+        Pattern pArray = Pattern.compile(
+            "(?s)(findpropstrict\\s+Multiname\\(\"Array\",\\s*(\\[.*?\\])\\)\\s+).*?(constructprop\\s+Multiname\\(\"Array\",\\s*\\[.*?\\]\\),\\s*\\d+)"
+        );
+        Matcher mArray = pArray.matcher(content);
+        if (mArray.find()) {
+            String nsArray = mArray.group(2);
+            String newButtons =
+                  "pushstring          \"txt\"\n"
+                + "      pushstring          \"Auto Battle\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.toggleAutoBattle\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Lag Killer\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.toggleLagKiller\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Stats Overview\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.toggleStatspanel\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Class Overview\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.toggleCharpanel\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Reputations\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.showFactionInterface\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Friendships\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.showFriendshipUI\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Friends\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.world.showFriendsList\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Guild\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.world.showGuildList\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Outfits\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.toggleOutfits\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Bank\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.world.toggleBank\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Cell Jump\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.openCellJump\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Loader / Grabber\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.openQuestTree\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Bot Manager\"\n"
+                + "      pushstring          \"fct\"\n"
+                + "      pushstring          \"rootClass.openBotManager\"\n"
+                + "      newobject           2\n"
+                + "      pushstring          \"txt\"\n"
+                + "      pushstring          \"Your Hero\"\n"
+                + "      newobject           1\n"
+                + "      constructprop       Multiname(\"Array\", " + nsArray + "), 14";
+
+            content = mArray.replaceFirst("$1" + Matcher.quoteReplacement(newButtons));
+            modified = true;
+            System.out.println("  -> " + cls + " buttons array replaced with custom order (14 items)");
+        }
+
+        // 2. Ensure frame1 maxstack is large enough (at least 30)
+        Pattern pFrame1Stack = Pattern.compile("(?s)(refid\\s+\"[^\"]*frame1\"\\s+body\\s+maxstack\\s+)\\d+");
+        Matcher mFrame1Stack = pFrame1Stack.matcher(content);
+        if (mFrame1Stack.find()) {
+            content = mFrame1Stack.replaceFirst("$130");
+            modified = true;
+            System.out.println("  -> " + cls + " frame1 maxstack set to 30");
+        }
+
+        // 3. Invoke frame1() inside init() so buttons array is populated immediately
+        if (!content.contains("callpropvoid        Multiname(\"frame1\"")) {
+            Pattern pInit = Pattern.compile("(?s)(refid\\s+\"spider_fla:" + cls + "/instance/init\"[^\"]*?constructsuper\\s+0)");
+            Matcher mInit = pInit.matcher(content);
+            if (mInit.find()) {
+                Pattern pMset = Pattern.compile("(?s)getproperty\\s+Multiname\\(\"frame1\",\\s*(\\[.*?\\])\\)");
+                Matcher mMset = pMset.matcher(content);
+                String mset = mMset.find() ? mMset.group(1) : "[]";
+
+                String callFrame1 = "\n\n      getlocal0\n      callpropvoid        Multiname(\"frame1\", " + mset + "), 0";
+                content = mInit.replaceFirst("$1" + Matcher.quoteReplacement(callFrame1));
+                modified = true;
+                System.out.println("  -> " + cls + " init patched to invoke frame1() directly");
+            }
+        }
+
+        if (modified) {
+            Files.writeString(clsFile, content);
+        }
+    }
+
+    private static void patchInterfaceMenuNullGuard(Path targetDir) throws IOException {
+        Path imFile = targetDir.resolve("interfaceMenu.class.asasm");
+        if (!Files.exists(imFile)) return;
+        String content = Files.readString(imFile).replace("\r\n", "\n");
+        if (content.contains("L_GUARD_BTNS_OK")) return;
+
+        Pattern pInit = Pattern.compile("(?s)(refid\\s+\"interfaceMenu/instance/init\".*?constructsuper\\s+0)");
+        Matcher mInit = pInit.matcher(content);
+        if (mInit.find()) {
+            String guard =
+                  "\n\n"
+                + "      getlocal1\n"
+                + "      pushnull\n"
+                + "      ifne                L_GUARD_BTNS_OK\n"
+                + "      returnvoid\n"
+                + "L_GUARD_BTNS_OK:\n";
+            content = mInit.replaceFirst("$1" + Matcher.quoteReplacement(guard));
+            Files.writeString(imFile, content);
+            System.out.println("  -> interfaceMenu patched with null buttons guard");
         }
     }
 

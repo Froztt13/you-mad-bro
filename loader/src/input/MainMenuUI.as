@@ -40,7 +40,10 @@ package input {
 		private static const MENU_ITH:Number = 28;
 		private static const MENU_RADIUS:Number = 8;
 
+		public static var instance:MainMenuUI;
+
 		public function MainMenuUI(game:MovieClip) {
+			instance = this;
 			this.game = game;
 			addEventListener(Event.ADDED_TO_STAGE, onAdded);
 		}
@@ -929,7 +932,29 @@ package input {
 			}
 		}
 
-		private function openQuestTree():void {
+		public static function sOpenBotManager():void {
+			if (instance != null) instance.openBotManager();
+		}
+
+		public static function sOpenQuestTree():void {
+			if (instance != null) instance.openQuestTree();
+		}
+
+		public static function sOpenCellJump():void {
+			if (instance != null) instance.openCellJump();
+		}
+
+		public static function sToggleAutoBattle():void {
+			if (instance != null) instance.toggleAutoBattle();
+		}
+
+		public function toggleAutoBattle():void {
+			if (autoBattle != null) {
+				autoBattle.toggle();
+			}
+		}
+
+		public function openQuestTree():void {
 			if (questUI == null)
 				return;
 
@@ -957,7 +982,7 @@ package input {
 			openQuestTree();
 		}
 
-		private function openBotManager():void {
+		public function openBotManager():void {
 			if (botManagerUI == null)
 				return;
 
@@ -1000,7 +1025,7 @@ package input {
 			}
 		}
 
-		private function openCellJump():void {
+		public function openCellJump():void {
 			if (cellJumpUI != null && cellJumpUI.visible) {
 				cellJumpUI.visible = false;
 				return;
@@ -1076,6 +1101,19 @@ package input {
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 0, true);
 
 			initRestButtonHook();
+
+			if (game != null) {
+				game.addEventListener("openBotManager", function(e:Event):void { openBotManager(); }, false, 0, true);
+				game.addEventListener("openQuestTree", function(e:Event):void { openQuestTree(); }, false, 0, true);
+				game.addEventListener("openCellJump", function(e:Event):void { openCellJump(); }, false, 0, true);
+				game.addEventListener("toggleAutoBattle", function(e:Event):void { if (autoBattle != null) autoBattle.toggle(); }, false, 0, true);
+			}
+			if (stage != null) {
+				stage.addEventListener("openBotManager", function(e:Event):void { openBotManager(); }, false, 0, true);
+				stage.addEventListener("openQuestTree", function(e:Event):void { openQuestTree(); }, false, 0, true);
+				stage.addEventListener("openCellJump", function(e:Event):void { openCellJump(); }, false, 0, true);
+				stage.addEventListener("toggleAutoBattle", function(e:Event):void { if (autoBattle != null) autoBattle.toggle(); }, false, 0, true);
+			}
 
 			AppUpdater.checkUpdate(stage, false);
 		}
