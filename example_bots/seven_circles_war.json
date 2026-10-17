@@ -1,0 +1,977 @@
+{
+  "name": "Story - Seven Circles & Seven Circles War",
+  "loop": false,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [],
+  "whitelist": [
+    "Indulgence",
+    "Essence of Wrath",
+    "Souls of Heresy",
+    "Essence of Violence",
+    "Essence of Treachery",
+    "War Medal",
+    "Mega War Medal",
+    "Beast Soul"
+  ],
+  "commands": [
+    {
+      "type": "label",
+      "labelName": "CHECK_QUESTS"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7990",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "THE_BEAST"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7989",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "HANGED_FOR_TREASON"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7988",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "WHERE_THE_TREA_SUN_DONT_SHINE"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7987",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "VIOLENCE"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7986",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GERYON_NOT_GARY_ON"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7985",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "MEANINGLESS_VIOLENCE"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7984",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "VIOLENCES_GATEKEEPER"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7983",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "BLASPHEMY_BLASPHE_YOU"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7982",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "WRATH_AGAINST_THE_MACHINE"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7981",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "MEGA_WAR_MEDALS"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7980",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "WAR_MEDALS"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7979",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GUARDS_OF_WRATH"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7977",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "AVA_RISKY_BUSINESS"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7976",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GREED_THE_ROOM"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7975",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CANTO_VII"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7974",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GLUTTON_FOR_PUNISHMENT"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7973",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "HECKHOUND"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7972",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CANTO_VI"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7971",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "LEST_YE_BE_DESTROYED"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7970",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "GONE_WITH_THE_WIND"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7969",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CANTO_V"
+    },
+    {
+      "type": "is_quest_available",
+      "var1": "7968",
+      "var2": ""
+    },
+    {
+      "type": "goto_label",
+      "labelName": "CANTO_IV"
+    },
+    {
+      "type": "goto_label",
+      "labelName": "STORY_COMPLETED"
+    },
+    {
+      "type": "label",
+      "labelName": "CANTO_IV"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7968
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r2",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Limbo Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Limbo Guards Defeated",
+      "itemQty": 4
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7968,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "CANTO_V"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7969
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r3",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Luxuria Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Luxuria Guards Defeated",
+      "itemQty": 3
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7969,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "GONE_WITH_THE_WIND"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7970
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r2",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Limbo Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Aura of Happiness",
+      "itemQty": 4
+    },
+    {
+      "type": "hunt",
+      "monster": "Limbo Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Aura of Power",
+      "itemQty": 1
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r3",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Luxuria Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Aura of Pleasure",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7970,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "LEST_YE_BE_DESTROYED"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7971
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r4",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Luxuria",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Luxuria Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7971,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "CANTO_VI"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7972
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "get_map_item",
+      "itemId": 8206,
+      "qty": 3
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7972,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "HECKHOUND"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7973
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Gluttony Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Gluttony Guard Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7973,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "GLUTTON_FOR_PUNISHMENT"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7974
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r6",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Gluttony",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Gluttony Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7974,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "CANTO_VII"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7975
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r7",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Avarice Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Avarice Guards Defeated",
+      "itemQty": 3
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7975,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "GREED_THE_ROOM"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7976
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r2",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Limbo Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Limbo Guards Defeated",
+      "itemQty": 2
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r3",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Luxuria Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Lust Guards Defeated",
+      "itemQty": 2
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Gluttony Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Gluttony Guard Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r7",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Avarice Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Avarice Guards Defeated",
+      "itemQty": 2
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7976,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "AVA_RISKY_BUSINESS"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7977
+    },
+    {
+      "type": "join",
+      "map": "sevencircles",
+      "cell": "r8",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Avarice",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Avarice Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7977,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "GUARDS_OF_WRATH"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7979
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Wrath Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Wrath Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7979,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "WAR_MEDALS"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7980
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Wrath Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "War Medal",
+      "itemQty": 5
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7980,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "MEGA_WAR_MEDALS"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7981
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Wrath Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Mega War Medal",
+      "itemQty": 3
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7981,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "WRATH_AGAINST_THE_MACHINE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7982
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r5",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Wrath",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Wrath Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7982,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "BLASPHEMY_BLASPHE_YOU"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7983
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r7",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Heresy Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Heresy Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7983,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "VIOLENCES_GATEKEEPER"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7984
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r9",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Violence's Gatekeeper",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Gatekeeper of Violence Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7984,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "MEANINGLESS_VIOLENCE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7985
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r9",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Violence Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Violence Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7985,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "GERYON_NOT_GARY_ON"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7986
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r11",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Geryon",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Geryon Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7986,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "VIOLENCE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7987
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r13",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Violence",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Violence Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7987,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "WHERE_THE_TREA_SUN_DONT_SHINE"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7988
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r13",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Treachery Guard",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Treachery Guards Defeated",
+      "itemQty": 12
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7988,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "HANGED_FOR_TREASON"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7989
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r15",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "Treachery",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Treachery Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7989,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "THE_BEAST"
+    },
+    {
+      "type": "quest_accept",
+      "questId": 7990
+    },
+    {
+      "type": "join",
+      "map": "sevencircleswar",
+      "cell": "r17",
+      "pad": "Left"
+    },
+    {
+      "type": "hunt",
+      "monster": "The Beast",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "The Beast Defeated",
+      "itemQty": 1
+    },
+    {
+      "type": "quest_complete",
+      "questId": 7990,
+      "itemId": -1
+    },
+    {
+      "type": "delay",
+      "delaySeconds": 1.0
+    },
+    {
+      "type": "label",
+      "labelName": "STORY_COMPLETED"
+    },
+    {
+      "type": "notif",
+      "title": "Seven Circles Story",
+      "message": "Seven Circles & Seven Circles War story completed successfully!"
+    }
+  ]
+}
