@@ -7,6 +7,7 @@ package input {
 	import flash.system.System;
 	import flash.text.*;
 	import flash.ui.Keyboard;
+	import flash.utils.clearTimeout;
 	import flash.utils.setTimeout;
 
 	import engine.AutoQuest;
@@ -67,6 +68,12 @@ package input {
 		private var questIdInput:MyTextField;
 		private var countInput:MyTextField;
 		private var loadQuestBtn:MyButton;
+		private var acceptQuestBtn:MyButton;
+		private var questHelpTf:TextField;
+		private var acceptProgressBar:Sprite;
+		private var acceptProgressFill:Shape;
+		private var isAccepting:Boolean = false;
+		private var acceptTimerId:uint = 0;
 
 		// Shop Load Controls
 		private var shopLoadContainer:Sprite;
@@ -325,7 +332,7 @@ package input {
 
 			const inputHeight:Number = 26;
 
-			questIdInput = new MyTextField(110, inputHeight, 12);
+			questIdInput = new MyTextField(96, inputHeight, 12);
 			questIdInput.x = PADDING;
 			questIdInput.y = 16;
 			questIdInput.maxChars = 128;
@@ -334,38 +341,61 @@ package input {
 			questLoadContainer.addChild(questIdInput);
 
 			// Dec button (-)
-			const decBtn:Sprite = createSmallButton("-", 22, inputHeight, 0xef4444);
-			decBtn.x = 128;
+			const decBtn:Sprite = createSmallButton("-", 20, inputHeight, 0xef4444);
+			decBtn.x = 113;
 			decBtn.y = 16;
 			decBtn.addEventListener(MouseEvent.CLICK, onDecClick, false, 0, true);
 			questLoadContainer.addChild(decBtn);
 
 			// Count input
-			countInput = new MyTextField(36, inputHeight, 12, TextFormatAlign.CENTER, true);
+			countInput = new MyTextField(30, inputHeight, 12, TextFormatAlign.CENTER, true);
 			countInput.text = "0";
-			countInput.x = 152;
+			countInput.x = 137;
 			countInput.y = 16;
 			countInput.restrict = "0-9";
 			questLoadContainer.addChild(countInput);
 
 			// Inc button (+)
-			const incBtn:Sprite = createSmallButton("+", 22, inputHeight, 0x4ade80);
-			incBtn.x = 190;
+			const incBtn:Sprite = createSmallButton("+", 20, inputHeight, 0x4ade80);
+			incBtn.x = 171;
 			incBtn.y = 16;
 			incBtn.addEventListener(MouseEvent.CLICK, onIncClick, false, 0, true);
 			questLoadContainer.addChild(incBtn);
 
 			// Load button
-			loadQuestBtn = new MyButton("Load Quests", 118, inputHeight, MyButton.TYPE_SUCCESS, onLoadQuestClick);
-			loadQuestBtn.x = 220;
+			loadQuestBtn = new MyButton("Load", 68, inputHeight, MyButton.TYPE_SUCCESS, onLoadQuestClick);
+			loadQuestBtn.x = 198;
 			loadQuestBtn.y = 16;
 			questLoadContainer.addChild(loadQuestBtn);
 
-			const helpTf:TextField = createLabel("Enter Quest ID or ID + count for range", 0x475569, 8.5, false);
-			helpTf.x = PADDING;
-			helpTf.y = 46;
-			helpTf.width = 280;
-			questLoadContainer.addChild(helpTf);
+			// Accept button
+			acceptQuestBtn = new MyButton("Accept", 68, inputHeight, MyButton.TYPE_PRIMARY, onAcceptQuestClick);
+			acceptQuestBtn.x = 270;
+			acceptQuestBtn.y = 16;
+			questLoadContainer.addChild(acceptQuestBtn);
+
+			questHelpTf = createLabel("Enter Quest ID or ID + count for range", 0x475569, 8.5, false);
+			questHelpTf.x = PADDING;
+			questHelpTf.y = 45;
+			questHelpTf.width = UI_WIDTH - PADDING * 2;
+			questLoadContainer.addChild(questHelpTf);
+
+			// Progress bar for quest accepting
+			acceptProgressBar = new Sprite();
+			acceptProgressBar.x = PADDING;
+			acceptProgressBar.y = 63;
+			acceptProgressBar.visible = false;
+
+			const barWidth:Number = UI_WIDTH - PADDING * 2;
+			acceptProgressBar.graphics.beginFill(0x1e293b, 1.0);
+			acceptProgressBar.graphics.drawRoundRect(0, 0, barWidth, 4, 3, 3);
+			acceptProgressBar.graphics.endFill();
+
+			acceptProgressFill = new Shape();
+			acceptProgressBar.addChild(acceptProgressFill);
+			updateAcceptProgress(0);
+
+			questLoadContainer.addChild(acceptProgressBar);
 		}
 
 		private function buildShopLoadSection():void {
@@ -694,12 +724,12 @@ package input {
 				viewBtn.x = INNER_CONTENT_WIDTH - 66;
 				viewBtn.y = 3;
 				viewBtn.addEventListener(MouseEvent.CLICK, (function(s:Object):Function {
-						return function(e:MouseEvent):void {
-							selectedShop = s;
-							refresh();
-							e.stopImmediatePropagation();
-						};
-					})(shop));
+							return function(e:MouseEvent):void {
+								selectedShop = s;
+								refresh();
+								e.stopImmediatePropagation();
+							};
+						})(shop));
 				item.addChild(viewBtn);
 
 				// Option button (⋮)
@@ -719,10 +749,10 @@ package input {
 				optBtn.x = INNER_CONTENT_WIDTH - 22;
 				optBtn.y = 3;
 				optBtn.addEventListener(MouseEvent.CLICK, (function(s:Object):Function {
-						return function(e:MouseEvent):void {
-							onShopRowOptBtnClick(e, s);
-						};
-					})(shop));
+							return function(e:MouseEvent):void {
+								onShopRowOptBtnClick(e, s);
+							};
+						})(shop));
 				item.addChild(optBtn);
 
 				scrollContent.addChild(item);
@@ -845,10 +875,10 @@ package input {
 				optBtn.x = INNER_CONTENT_WIDTH - 22;
 				optBtn.y = 3;
 				optBtn.addEventListener(MouseEvent.CLICK, (function(it:Object):Function {
-						return function(e:MouseEvent):void {
-							onShopItemOptBtnClick(e, it);
-						};
-					})(shopItem));
+							return function(e:MouseEvent):void {
+								onShopItemOptBtnClick(e, it);
+							};
+						})(shopItem));
 				item.addChild(optBtn);
 
 				scrollContent.addChild(item);
@@ -989,6 +1019,11 @@ package input {
 			e.stopImmediatePropagation();
 		}
 
+		private function onAcceptQuestClick(e:MouseEvent):void {
+			acceptQuestsFromInput();
+			e.stopImmediatePropagation();
+		}
+
 		private function onQuestInputKeyDown(e:KeyboardEvent):void {
 			if (e.keyCode == Keyboard.ENTER) {
 				loadQuestsFromInput();
@@ -1069,6 +1104,132 @@ package input {
 						refresh();
 					}
 				}, 600);
+		}
+
+		private function acceptQuestsFromInput():void {
+			if (isAccepting)
+				return;
+			if (!questIdInput)
+				return;
+			var ids:String = questIdInput.text;
+			if (ids == null)
+				return;
+			ids = ids.replace(/\s+/g, "");
+			if (ids.length == 0)
+				return;
+
+			var targetIds:Array = [];
+			var count:int = int(countInput.text);
+			if (count > 0 && !isNaN(Number(ids))) {
+				var startId:int = int(ids);
+				for (var i:int = 0; i <= count; i++) {
+					targetIds.push(startId + i);
+				}
+			}
+			else {
+				var parts:Array = ids.split(",");
+				for each (var part:String in parts) {
+					var qId:int = int(part);
+					if (qId > 0 && targetIds.indexOf(qId) == -1) {
+						targetIds.push(qId);
+					}
+				}
+			}
+
+			if (targetIds.length == 0)
+				return;
+
+			isAccepting = true;
+			loadQuestBtn.enabled = false;
+			acceptQuestBtn.enabled = false;
+			acceptProgressBar.visible = true;
+			updateAcceptProgress(0);
+
+			// Load quests first before accepting
+			autoQuest.loadMultiple(targetIds.join(","));
+			questHelpTf.text = "Loading quest data...";
+			questHelpTf.textColor = 0x38bdf8;
+			acceptQuestBtn.label = "...";
+
+			var total:int = targetIds.length;
+			var currentIndex:int = 0;
+
+			var processNext:Function = function():void {
+				if (!isAccepting)
+					return;
+
+				if (currentIndex >= total) {
+					acceptQuestBtn.label = "Done";
+					updateAcceptProgress(1.0);
+					questHelpTf.text = "Accepted " + total + " quest(s) successfully.";
+					questHelpTf.textColor = 0x4ade80;
+
+					if (currentMode == MODE_QUEST) {
+						refresh();
+					}
+
+					acceptTimerId = setTimeout(function():void {
+							resetAcceptUI();
+						}, 1500);
+					return;
+				}
+
+				var currentQuestId:int = targetIds[currentIndex];
+				var displayIndex:int = currentIndex + 1;
+				var pct:int = int((displayIndex / total) * 100);
+
+				acceptQuestBtn.label = displayIndex + "/" + total;
+				questHelpTf.text = "Accepting (" + displayIndex + "/" + total + "): Quest [" + currentQuestId + "] " + pct + "%...";
+				questHelpTf.textColor = 0x38bdf8;
+				updateAcceptProgress(displayIndex / total);
+
+				autoQuest.accept(currentQuestId);
+				currentIndex++;
+
+				acceptTimerId = setTimeout(processNext, total > 1 ? 180 : 250);
+			};
+
+			acceptTimerId = setTimeout(processNext, 400);
+		}
+
+		private function updateAcceptProgress(ratio:Number):void {
+			if (!acceptProgressFill)
+				return;
+			if (ratio < 0)
+				ratio = 0;
+			if (ratio > 1)
+				ratio = 1;
+			const barWidth:Number = UI_WIDTH - PADDING * 2;
+			const fillW:Number = Math.max(0, barWidth * ratio);
+			acceptProgressFill.graphics.clear();
+			if (fillW > 0) {
+				acceptProgressFill.graphics.beginFill(0x38bdf8, 1.0);
+				acceptProgressFill.graphics.drawRoundRect(0, 0, fillW, 4, 3, 3);
+				acceptProgressFill.graphics.endFill();
+			}
+		}
+
+		private function resetAcceptUI():void {
+			isAccepting = false;
+			if (acceptTimerId != 0) {
+				clearTimeout(acceptTimerId);
+				acceptTimerId = 0;
+			}
+			if (acceptQuestBtn) {
+				acceptQuestBtn.label = "Accept";
+				acceptQuestBtn.enabled = true;
+			}
+			if (loadQuestBtn) {
+				loadQuestBtn.enabled = true;
+			}
+			if (acceptProgressBar) {
+				acceptProgressBar.visible = false;
+				updateAcceptProgress(0);
+			}
+			if (questHelpTf) {
+				questHelpTf.text = "Enter Quest ID or ID + count for range";
+				questHelpTf.textColor = 0x475569;
+			}
 		}
 
 		private function loadShopFromInput():void {
@@ -1183,77 +1344,77 @@ package input {
 
 			var pt:Point = btn.localToGlobal(new Point(0, 0));
 			showMenuWithButtons([
-				{
-					label: "Add to Auto",
-					color: 0x15803d,
-					hoverColor: 0x16a34a,
-					fn: function(ev:MouseEvent):void {
-						optionsMenu.visible = false;
-						var qName:String = "";
-						var qs:Array = autoQuest.getQuestTree();
-						if (qs != null) {
-							for (var j:int = 0; j < qs.length; j++) {
-								if (qs[j].QuestID == questID) {
-									qName = String(qs[j].sName);
-									break;
-								}
-							}
-						}
-						var displayMsg:String = "Add this quest to Auto Quest?\n\n[" + questID + "] " + (qName != "" ? qName : "Quest #" + questID);
-						showConfirmModal("ADD QUEST TO AUTO QUEST", displayMsg, "Add Quest", function():void {
-							if (AutoQuestUI.instance != null) {
-								AutoQuestUI.instance.addQuestId(String(questID));
-								for (var k:int = 0; k < scrollContent.numChildren; k++) {
-									var item:Sprite = scrollContent.getChildAt(k) as Sprite;
-									if (item != null) {
-										var b:Sprite = item.getChildByName("addBtn-" + questID) as Sprite;
-										if (b != null) {
-											b.visible = false;
+						{
+							label: "Add to Auto",
+							color: 0x15803d,
+							hoverColor: 0x16a34a,
+							fn: function(ev:MouseEvent):void {
+								optionsMenu.visible = false;
+								var qName:String = "";
+								var qs:Array = autoQuest.getQuestTree();
+								if (qs != null) {
+									for (var j:int = 0; j < qs.length; j++) {
+										if (qs[j].QuestID == questID) {
+											qName = String(qs[j].sName);
 											break;
 										}
 									}
 								}
+								var displayMsg:String = "Add this quest to Auto Quest?\n\n[" + questID + "] " + (qName != "" ? qName : "Quest #" + questID);
+								showConfirmModal("ADD QUEST TO AUTO QUEST", displayMsg, "Add Quest", function():void {
+										if (AutoQuestUI.instance != null) {
+											AutoQuestUI.instance.addQuestId(String(questID));
+											for (var k:int = 0; k < scrollContent.numChildren; k++) {
+												var item:Sprite = scrollContent.getChildAt(k) as Sprite;
+												if (item != null) {
+													var b:Sprite = item.getChildByName("addBtn-" + questID) as Sprite;
+													if (b != null) {
+														b.visible = false;
+														break;
+													}
+												}
+											}
+										}
+									});
 							}
-						});
-					}
-				},
-				{
-					label: "Accept",
-					color: 0x2563eb,
-					hoverColor: 0x3b82f6,
-					fn: function(ev:MouseEvent):void {
-						autoQuest.accept(questID);
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "Complete",
-					color: 0x0284c7,
-					hoverColor: 0x0ea5e9,
-					fn: function(ev:MouseEvent):void {
-						autoQuest.tryToComplete(questID);
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "Load",
-					color: 0xd97706,
-					hoverColor: 0xf59e0b,
-					fn: function(ev:MouseEvent):void {
-						autoQuest.load(String(questID));
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "Copy ID",
-					color: 0x334155,
-					hoverColor: 0x475569,
-					fn: function(ev:MouseEvent):void {
-						copyToClipboard(String(questID));
-						optionsMenu.visible = false;
-					}
-				}
-			], pt.x, pt.y);
+						},
+						{
+							label: "Accept",
+							color: 0x2563eb,
+							hoverColor: 0x3b82f6,
+							fn: function(ev:MouseEvent):void {
+								autoQuest.accept(questID);
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "Complete",
+							color: 0x0284c7,
+							hoverColor: 0x0ea5e9,
+							fn: function(ev:MouseEvent):void {
+								autoQuest.tryToComplete(questID);
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "Load",
+							color: 0xd97706,
+							hoverColor: 0xf59e0b,
+							fn: function(ev:MouseEvent):void {
+								autoQuest.load(String(questID));
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "Copy ID",
+							color: 0x334155,
+							hoverColor: 0x475569,
+							fn: function(ev:MouseEvent):void {
+								copyToClipboard(String(questID));
+								optionsMenu.visible = false;
+							}
+						}
+					], pt.x, pt.y);
 
 			e.stopImmediatePropagation();
 		}
@@ -1263,37 +1424,37 @@ package input {
 			var pt:Point = btn.localToGlobal(new Point(0, 0));
 
 			showMenuWithButtons([
-				{
-					label: "Open Shop",
-					color: 0x15803d,
-					hoverColor: 0x16a34a,
-					fn: function(ev:MouseEvent):void {
-						if (game != null && game.world != null && game.world.sendLoadShopRequest != null) {
-							game.world.sendLoadShopRequest(int(shop.ShopID));
+						{
+							label: "Open Shop",
+							color: 0x15803d,
+							hoverColor: 0x16a34a,
+							fn: function(ev:MouseEvent):void {
+								if (game != null && game.world != null && game.world.sendLoadShopRequest != null) {
+									game.world.sendLoadShopRequest(int(shop.ShopID));
+								}
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "View Items",
+							color: 0x2563eb,
+							hoverColor: 0x3b82f6,
+							fn: function(ev:MouseEvent):void {
+								selectedShop = shop;
+								refresh();
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "Copy Shop ID",
+							color: 0x334155,
+							hoverColor: 0x475569,
+							fn: function(ev:MouseEvent):void {
+								copyToClipboard(String(shop.ShopID));
+								optionsMenu.visible = false;
+							}
 						}
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "View Items",
-					color: 0x2563eb,
-					hoverColor: 0x3b82f6,
-					fn: function(ev:MouseEvent):void {
-						selectedShop = shop;
-						refresh();
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "Copy Shop ID",
-					color: 0x334155,
-					hoverColor: 0x475569,
-					fn: function(ev:MouseEvent):void {
-						copyToClipboard(String(shop.ShopID));
-						optionsMenu.visible = false;
-					}
-				}
-			], pt.x, pt.y);
+					], pt.x, pt.y);
 
 			e.stopImmediatePropagation();
 		}
@@ -1306,48 +1467,48 @@ package input {
 			var costStr:String = String(item.iCost) + (isCoins ? " AC" : " Gold");
 
 			showMenuWithButtons([
-				{
-					label: "Buy 1",
-					color: 0x15803d,
-					hoverColor: 0x16a34a,
-					fn: function(ev:MouseEvent):void {
-						optionsMenu.visible = false;
-						var buyMsg:String = "Are you sure you want to buy:\n\"" + item.sName + "\"\nPrice: " + costStr + "?";
-						showConfirmModal("CONFIRM PURCHASE", buyMsg, "Buy", function():void {
-							buyShopItem(item);
-						});
-					}
-				},
-				{
-					label: "Copy Name",
-					color: 0x2563eb,
-					hoverColor: 0x3b82f6,
-					fn: function(ev:MouseEvent):void {
-						copyToClipboard(String(item.sName));
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "Copy Item ID",
-					color: 0x334155,
-					hoverColor: 0x475569,
-					fn: function(ev:MouseEvent):void {
-						copyToClipboard(String(item.ItemID));
-						optionsMenu.visible = false;
-					}
-				},
-				{
-					label: "Open Shop",
-					color: 0xd97706,
-					hoverColor: 0xf59e0b,
-					fn: function(ev:MouseEvent):void {
-						if (selectedShop != null && game != null && game.world != null && game.world.sendLoadShopRequest != null) {
-							game.world.sendLoadShopRequest(int(selectedShop.ShopID));
+						{
+							label: "Buy 1",
+							color: 0x15803d,
+							hoverColor: 0x16a34a,
+							fn: function(ev:MouseEvent):void {
+								optionsMenu.visible = false;
+								var buyMsg:String = "Are you sure you want to buy:\n\"" + item.sName + "\"\nPrice: " + costStr + "?";
+								showConfirmModal("CONFIRM PURCHASE", buyMsg, "Buy", function():void {
+										buyShopItem(item);
+									});
+							}
+						},
+						{
+							label: "Copy Name",
+							color: 0x2563eb,
+							hoverColor: 0x3b82f6,
+							fn: function(ev:MouseEvent):void {
+								copyToClipboard(String(item.sName));
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "Copy Item ID",
+							color: 0x334155,
+							hoverColor: 0x475569,
+							fn: function(ev:MouseEvent):void {
+								copyToClipboard(String(item.ItemID));
+								optionsMenu.visible = false;
+							}
+						},
+						{
+							label: "Open Shop",
+							color: 0xd97706,
+							hoverColor: 0xf59e0b,
+							fn: function(ev:MouseEvent):void {
+								if (selectedShop != null && game != null && game.world != null && game.world.sendLoadShopRequest != null) {
+									game.world.sendLoadShopRequest(int(selectedShop.ShopID));
+								}
+								optionsMenu.visible = false;
+							}
 						}
-						optionsMenu.visible = false;
-					}
-				}
-			], pt.x, pt.y);
+					], pt.x, pt.y);
 
 			e.stopImmediatePropagation();
 		}
@@ -1441,6 +1602,7 @@ package input {
 		}
 
 		private function cleanup():void {
+			resetAcceptUI();
 			while (scrollContent.numChildren > 0) {
 				scrollContent.removeChildAt(0);
 			}
