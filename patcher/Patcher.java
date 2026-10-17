@@ -982,7 +982,7 @@ public class Patcher {
                 System.out.println("  -> Game.toggleLagKiller method prepared");
             }
 
-            String[] customPocketMethods = {"openBotManager", "openQuestTree", "openCellJump", "toggleAutoBattle"};
+            String[] customPocketMethods = {"openBotManager", "openQuestTree", "openCellJump", "toggleAutoBattle", "doHidePlayers"};
             for (String mName : customPocketMethods) {
                 // If old implementation exists, remove it so we can re-insert the pocket-based version
                 Pattern pOld = Pattern.compile("(?s)\\s*trait method QName\\(PackageNamespace\\(\"\"\\), \"" + mName + "\"\\).*?end ; trait");
@@ -1390,9 +1390,9 @@ public class Patcher {
                 + "      pushstring          \"rootClass.toggleAutoBattle\"\n"
                 + "      newobject           2\n"
                 + "      pushstring          \"txt\"\n"
-                + "      pushstring          \"Lag Killer\"\n"
+                + "      pushstring          \"Hide Players\"\n"
                 + "      pushstring          \"fct\"\n"
-                + "      pushstring          \"rootClass.toggleLagKiller\"\n"
+                + "      pushstring          \"rootClass.doHidePlayers\"\n"
                 + "      newobject           2\n"
                 + "      pushstring          \"txt\"\n"
                 + "      pushstring          \"Stats Overview\"\n"

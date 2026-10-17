@@ -991,5 +991,9 @@ package {
 		public function toggleAutoBattle():void {
 			MainMenuUI.sToggleAutoBattle();
 		}
+
+		public function doHidePlayers():void {
+			MainMenuUI.sDoHidePlayers();
+		}
 	}
 }

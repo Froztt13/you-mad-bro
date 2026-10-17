@@ -920,7 +920,7 @@ package input {
 			game.chatF.pushMsg("server", spawnMsg, "SERVER", "", 0);
 		}
 
-		private function doHidePlayers():void {
+		public function doHidePlayers():void {
 			game.litePreference.data.bHidePlayers = !game.litePreference.data.bHidePlayers;
 			game.litePreference.flush();
 			for each (var player:Object in game.world.avatars) {
@@ -930,6 +930,13 @@ package input {
 					player.pMC.shadow.visible = true;
 				}
 			}
+			if (game != null && game.chatF != null) {
+				game.chatF.pushMsg("server", "Hide Players: " + (game.litePreference.data.bHidePlayers ? "ENABLED" : "DISABLED"), "SERVER", "", 0);
+			}
+		}
+
+		public static function sDoHidePlayers():void {
+			if (instance != null) instance.doHidePlayers();
 		}
 
 		public static function sOpenBotManager():void {
