@@ -49,6 +49,10 @@ package input {
 		}
 
 		private var game:MovieClip;
+
+		public function getGame():MovieClip {
+			return game;
+		}
 		private var gearBtn:Sprite;
 		private var gearIcon:Shape;
 		private var bankBtn:Sprite;
@@ -239,7 +243,7 @@ package input {
 
 			// Initialize Logger UI
 			if (loggerUI == null) {
-				loggerUI = new PacketLoggerUI();
+				loggerUI = new PacketLoggerUI(game);
 				addChild(loggerUI);
 				loggerUI.visible = false;
 			}
@@ -1049,15 +1053,15 @@ package input {
 			}
 
 			if (loggerUI == null) {
-				loggerUI = new PacketLoggerUI();
+				loggerUI = new PacketLoggerUI(game);
 				addChild(loggerUI);
 			}
 
 			setChildIndex(loggerUI, numChildren - 1);
 			loggerUI.visible = true;
 			if (stage != null) {
-				loggerUI.x = (stage.stageWidth - 500) / 2;
-				loggerUI.y = (stage.stageHeight - 350) / 2;
+				loggerUI.x = (stage.stageWidth - PacketLoggerUI.UI_WIDTH) / 2;
+				loggerUI.y = (stage.stageHeight - PacketLoggerUI.UI_HEIGHT) / 2;
 			}
 		}
 

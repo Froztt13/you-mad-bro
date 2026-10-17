@@ -23,6 +23,7 @@ public class Patcher {
         patchServerPaths(targetDir);
         patchAssetLoaders(targetDir);
         patchYourHeroMenu(targetDir);
+        patchSmartFoxClient(targetDir);
 
         build();
 
@@ -1508,6 +1509,21 @@ public class Patcher {
             content = mInit.replaceFirst("$1" + Matcher.quoteReplacement(guard));
             Files.writeString(imFile, content);
             System.out.println("  -> interfaceMenu patched with null buttons guard");
+        }
+    }
+
+    private static void patchSmartFoxClient(Path targetDir) throws IOException {
+        Path sfcFile = targetDir.resolve("it/gotoandplay/smartfoxserver/SmartFoxClient.class.asasm");
+        if (!Files.exists(sfcFile)) return;
+
+        System.out.println("Patching SmartFoxClient.class.asasm (making handleMessage public)...");
+        String content = Files.readString(sfcFile).replace("\r\n", "\n");
+        String target = "trait method QName(PrivateNamespace(null, \"it.gotoandplay.smartfoxserver:SmartFoxClient#0\"), \"handleMessage\")";
+        String replacement = "trait method QName(PackageNamespace(\"\"), \"handleMessage\")";
+        if (content.contains(target)) {
+            content = content.replace(target, replacement);
+            Files.writeString(sfcFile, content);
+            System.out.println("  -> SmartFoxClient.handleMessage is now public.");
         }
     }
 
