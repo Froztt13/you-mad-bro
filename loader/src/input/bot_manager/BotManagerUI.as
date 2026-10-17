@@ -648,7 +648,7 @@ package input.bot_manager {
 			}
 		}
 
-		private function onStartClick(e:MouseEvent):void {
+		public function startBot():void {
 			if (botEngine.isPaused) {
 				botEngine.resume();
 			}
@@ -661,6 +661,27 @@ package input.bot_manager {
 			}
 		}
 
+		public function stopBot():void {
+			botEngine.stop();
+
+			if (AutoQuestUI.instance != null) {
+				AutoQuestUI.instance.stopAutoQuest();
+			}
+		}
+
+		public function toggleBot():void {
+			if (botEngine.isRunning || botEngine.isPaused) {
+				stopBot();
+			}
+			else {
+				startBot();
+			}
+		}
+
+		private function onStartClick(e:MouseEvent):void {
+			startBot();
+		}
+
 		private function onPauseClick(e:MouseEvent):void {
 			if (botEngine.isRunning) {
 				botEngine.pause();
@@ -668,11 +689,7 @@ package input.bot_manager {
 		}
 
 		private function onStopClick(e:MouseEvent):void {
-			botEngine.stop();
-
-			if (AutoQuestUI.instance != null) {
-				AutoQuestUI.instance.stopAutoQuest();
-			}
+			stopBot();
 		}
 
 		private function onClearClick(e:MouseEvent):void {

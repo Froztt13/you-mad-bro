@@ -21,6 +21,8 @@ package input {
 	import input.CellJumpUI;
 	import input.CustomCharUI;
 	import input.PacketLoggerUI;
+	import input.FabOverlay;
+	import input.EditFabModal;
 	import Config;
 	import com.aqw.battery.BatteryOptimizer;
 	import flash.net.SharedObject;
@@ -85,6 +87,8 @@ package input {
 		private var loggerUI:PacketLoggerUI;
 		private var botManagerUI:BotManagerUI;
 		private var customCharUI:CustomCharUI;
+		private var fabOverlay:FabOverlay;
+		private var editFabModal:EditFabModal;
 
 		private function buildGearMenu():void {
 			gearBtn = new Sprite();
@@ -143,6 +147,15 @@ package input {
 							fn: doEnterPip
 						});
 			}
+
+			items.push({
+						label: (fabOverlay != null && fabOverlay.visible) ? "Hide FAB" : "Show FAB",
+						fn: toggleFab
+					});
+			items.push({
+						label: "Edit FAB",
+						fn: openEditFab
+					});
 
 			items.push({
 						label: "App Log",
@@ -903,8 +916,10 @@ package input {
 			game.chatF.pushMsg("server", "Walkspeed: " + game.world.WALKSPEED, "SERVER", "", 0);
 		}
 
-		private function doLagKiller():void {
-			game.world.visible = !game.world.visible;
+		public function doLagKiller():void {
+			if (game != null && game.world != null) {
+				game.world.visible = !game.world.visible;
+			}
 		}
 
 		private function applyQuality():void {
@@ -940,23 +955,108 @@ package input {
 		}
 
 		public static function sDoHidePlayers():void {
-			if (instance != null) instance.doHidePlayers();
+			if (instance != null)
+				instance.doHidePlayers();
 		}
 
 		public static function sOpenBotManager():void {
-			if (instance != null) instance.openBotManager();
+			if (instance != null)
+				instance.openBotManager();
+		}
+
+		public static function sToggleBot():void {
+			if (instance != null) {
+				instance.toggleBot();
+			}
+			else if (BotManagerUI.instance != null) {
+				BotManagerUI.instance.toggleBot();
+			}
+		}
+
+		public function toggleBot():void {
+			if (botManagerUI != null) {
+				botManagerUI.toggleBot();
+			}
+			else if (BotManagerUI.instance != null) {
+				BotManagerUI.instance.toggleBot();
+			}
+		}
+
+		public static function sLeaveCombat():void {
+			if (instance != null) {
+				instance.leaveCombat();
+			}
+		}
+
+		public function leaveCombat():void {
+			try {
+				if (botManagerUI != null && botManagerUI.botEngine != null) {
+					botManagerUI.botEngine.leaveCombat();
+				}
+				else if (game != null && game.world != null) {
+					if (game.world.cancelTarget != null) {
+						game.world.cancelTarget();
+					}
+					if (game.world.cancelAutoAttack != null) {
+						game.world.cancelAutoAttack();
+					}
+					if (game.world.exitCombat != null) {
+						game.world.exitCombat();
+					}
+					if (game.world.setTarget != null) {
+						game.world.setTarget(null);
+					}
+				}
+
+				if (game != null && game.world != null && "moveToCell" in game.world) {
+					var curCell:String = String(game.world.strFrame || "");
+					var curPad:String = String(game.world.strPad || "Spawn");
+					if (curCell.length > 0) {
+						game.world.moveToCell(curCell, curPad);
+					}
+				}
+			}
+			catch (e:Error) {
+			}
 		}
 
 		public static function sOpenQuestTree():void {
-			if (instance != null) instance.openQuestTree();
+			if (instance != null)
+				instance.openQuestTree();
 		}
 
 		public static function sOpenCellJump():void {
-			if (instance != null) instance.openCellJump();
+			if (instance != null)
+				instance.openCellJump();
 		}
 
 		public static function sToggleAutoBattle():void {
-			if (instance != null) instance.toggleAutoBattle();
+			if (instance != null)
+				instance.toggleAutoBattle();
+		}
+
+		public static function sDoLagKiller():void {
+			if (instance != null) {
+				instance.doLagKiller();
+			}
+		}
+
+		public static function sToggleBank():void {
+			if (instance != null) {
+				instance.toggleBank();
+			}
+		}
+
+		public function toggleBank():void {
+			if (game != null && game.world != null && "toggleBank" in game.world) {
+				game.world.toggleBank();
+			}
+		}
+
+		public static function sOpenLogger():void {
+			if (instance != null) {
+				instance.openLogger();
+			}
 		}
 
 		public function toggleAutoBattle():void {
@@ -1046,7 +1146,7 @@ package input {
 			cellJumpUI.visible = true;
 		}
 
-		private function openLogger():void {
+		public function openLogger():void {
 			if (loggerUI != null && loggerUI.visible) {
 				loggerUI.visible = false;
 				return;
@@ -1065,6 +1165,49 @@ package input {
 			}
 		}
 
+		private function toggleFab():void {
+			closeDropdown();
+			if (fabOverlay == null) {
+				fabOverlay = new FabOverlay(game);
+				addChild(fabOverlay);
+				if (menuBar != null && menuBar.parent == this) {
+					setChildIndex(menuBar, numChildren - 1);
+				}
+			}
+			fabOverlay.visible = !fabOverlay.visible;
+			FabOverlay.saveVisibility(fabOverlay.visible);
+			rebuildGearDropdown();
+		}
+
+		private function openEditFab():void {
+			closeDropdown();
+			if (editFabModal != null && editFabModal.visible) {
+				editFabModal.visible = false;
+				return;
+			}
+
+			if (fabOverlay == null) {
+				fabOverlay = new FabOverlay(game);
+				addChild(fabOverlay);
+				if (menuBar != null && menuBar.parent == this) {
+					setChildIndex(menuBar, numChildren - 1);
+				}
+			}
+
+			if (editFabModal == null) {
+				editFabModal = new EditFabModal(game, fabOverlay);
+				addChild(editFabModal);
+			}
+
+			editFabModal.refresh();
+			setChildIndex(editFabModal, numChildren - 1);
+			editFabModal.visible = true;
+			if (stage != null) {
+				editFabModal.x = (stage.stageWidth - EditFabModal.MODAL_W) / 2;
+				editFabModal.y = (stage.stageHeight - EditFabModal.MODAL_H) / 2;
+			}
+		}
+
 		private function openAppLog():void {
 			AppLogUI.toggle(stage);
 		}
@@ -1077,7 +1220,6 @@ package input {
 				openAppLog();
 			}
 		}
-
 
 		private function makeLabel(text:String, color:uint, size:int, bold:Boolean = false):TextField {
 			const tf:TextField = new TextField();
@@ -1098,6 +1240,10 @@ package input {
 			autoQuest = new AutoQuest(game);
 			mapCommands = new MapCommands(game);
 
+			fabOverlay = new FabOverlay(game);
+			fabOverlay.visible = FabOverlay.loadVisibility();
+			addChild(fabOverlay);
+
 			menuBar = new Sprite();
 			menuBar.visible = loadMenuBarVisibility();
 			addChild(menuBar);
@@ -1114,16 +1260,34 @@ package input {
 			initRestButtonHook();
 
 			if (game != null) {
-				game.addEventListener("openBotManager", function(e:Event):void { openBotManager(); }, false, 0, true);
-				game.addEventListener("openQuestTree", function(e:Event):void { openQuestTree(); }, false, 0, true);
-				game.addEventListener("openCellJump", function(e:Event):void { openCellJump(); }, false, 0, true);
-				game.addEventListener("toggleAutoBattle", function(e:Event):void { if (autoBattle != null) autoBattle.toggle(); }, false, 0, true);
+				game.addEventListener("openBotManager", function(e:Event):void {
+						openBotManager();
+					}, false, 0, true);
+				game.addEventListener("openQuestTree", function(e:Event):void {
+						openQuestTree();
+					}, false, 0, true);
+				game.addEventListener("openCellJump", function(e:Event):void {
+						openCellJump();
+					}, false, 0, true);
+				game.addEventListener("toggleAutoBattle", function(e:Event):void {
+						if (autoBattle != null)
+							autoBattle.toggle();
+					}, false, 0, true);
 			}
 			if (stage != null) {
-				stage.addEventListener("openBotManager", function(e:Event):void { openBotManager(); }, false, 0, true);
-				stage.addEventListener("openQuestTree", function(e:Event):void { openQuestTree(); }, false, 0, true);
-				stage.addEventListener("openCellJump", function(e:Event):void { openCellJump(); }, false, 0, true);
-				stage.addEventListener("toggleAutoBattle", function(e:Event):void { if (autoBattle != null) autoBattle.toggle(); }, false, 0, true);
+				stage.addEventListener("openBotManager", function(e:Event):void {
+						openBotManager();
+					}, false, 0, true);
+				stage.addEventListener("openQuestTree", function(e:Event):void {
+						openQuestTree();
+					}, false, 0, true);
+				stage.addEventListener("openCellJump", function(e:Event):void {
+						openCellJump();
+					}, false, 0, true);
+				stage.addEventListener("toggleAutoBattle", function(e:Event):void {
+						if (autoBattle != null)
+							autoBattle.toggle();
+					}, false, 0, true);
 			}
 
 			AppUpdater.checkUpdate(stage, false);
