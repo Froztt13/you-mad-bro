@@ -1186,10 +1186,10 @@ package input {
 				autoQuest.accept(currentQuestId);
 				currentIndex++;
 
-				acceptTimerId = setTimeout(processNext, total > 1 ? 180 : 250);
+				acceptTimerId = setTimeout(processNext, total > 1 ? 1000 : 250);
 			};
 
-			acceptTimerId = setTimeout(processNext, 400);
+			acceptTimerId = setTimeout(processNext, 600);
 		}
 
 		private function updateAcceptProgress(ratio:Number):void {
