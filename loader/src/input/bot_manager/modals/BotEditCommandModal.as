@@ -66,6 +66,7 @@ package input.bot_manager.modals {
 		private var editNotifMsgInput:MyTextField;
 
 		private var editLabelInput:MyTextField;
+		private var editBlankDescriptionInput:MyTextField;
 
 		private var editCondDropdown:MyDropdown;
 		private var editCondVar1Label:TextField;
@@ -484,6 +485,17 @@ package input.bot_manager.modals {
 				infoLbl.y = 20;
 				editModalFormContainer.addChild(infoLbl);
 			}
+			else if (cmd is BlankCommand) {
+				var bcmd:BlankCommand = cmd as BlankCommand;
+				var blankLbl:TextField = UIUtils.createLabel("Spacer Note / Text (Optional):", UIUtils.TEXT_MUTED, 10.5);
+				blankLbl.y = 0;
+				editModalFormContainer.addChild(blankLbl);
+
+				editBlankDescriptionInput = new MyTextField(formW, 24);
+				editBlankDescriptionInput.y = 18;
+				editBlankDescriptionInput.text = bcmd.description;
+				editModalFormContainer.addChild(editBlankDescriptionInput);
+			}
 			else if (cmd is BaseConditionalCommand) {
 				var bccmd:BaseConditionalCommand = cmd as BaseConditionalCommand;
 
@@ -700,6 +712,12 @@ package input.bot_manager.modals {
 			}
 			else if (editingCmd is RestartBotCommand || editingCmd is StopBotCommand) {
 				// No editable parameters to update
+			}
+			else if (editingCmd is BlankCommand) {
+				var bcmdEdit:BlankCommand = editingCmd as BlankCommand;
+				if (editBlankDescriptionInput != null) {
+					bcmdEdit.description = editBlankDescriptionInput.text;
+				}
 			}
 			else if (editingCmd is BaseConditionalCommand) {
 				var bccmdEdit:BaseConditionalCommand = editingCmd as BaseConditionalCommand;

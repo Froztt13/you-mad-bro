@@ -7,6 +7,7 @@ package input.bot_manager.tabs {
 	import flash.text.TextField;
 	import flash.text.TextFormatAlign;
 
+	import commands.BlankCommand;
 	import commands.BotCommand;
 	import commands.GotoLabelCommand;
 	import commands.LabelCommand;
@@ -126,6 +127,13 @@ package input.bot_manager.tabs {
 			stopCmdBtn.x = 108;
 			stopCmdBtn.y = 86;
 			addChild(stopCmdBtn);
+
+			const blankCmdBtn:MyButton = new MyButton("Blank Cmd", 100, 24, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
+					manager.addBotCommand(new BlankCommand());
+				});
+			blankCmdBtn.x = 216;
+			blankCmdBtn.y = 86;
+			addChild(blankCmdBtn);
 
 			// Divider between Bot Controls and Conditionals
 			const div2:Shape = new Shape();

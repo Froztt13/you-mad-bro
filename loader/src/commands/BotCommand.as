@@ -23,6 +23,7 @@ package commands {
 		public static const TYPE_EQUIP_ITEM:String = "equip_item";
 		public static const TYPE_GET_MAP_ITEM:String = "get_map_item";
 		public static const TYPE_BUY_ITEM:String = "buy_item";
+		public static const TYPE_BLANK:String = "blank";
 
 		public static const TYPE_IS_ITEM_IN_INV:String = "is_item_in_inventory";
 		public static const TYPE_IS_ITEM_NOT_IN_INV:String = "is_item_not_in_inventory";
@@ -89,6 +90,8 @@ package commands {
 					return RestartBotCommand.fromJSON(data);
 				case TYPE_STOP_BOT:
 					return StopBotCommand.fromJSON(data);
+				case TYPE_BLANK:
+					return BlankCommand.fromJSON(data);
 
 				case TYPE_IS_ITEM_IN_INV:
 				case TYPE_IS_ITEM_NOT_IN_INV:

@@ -9,6 +9,7 @@ package input.bot_manager {
 	import flash.text.TextFormatAlign;
 	import flash.utils.Timer;
 
+	import commands.BlankCommand;
 	import commands.BotCommand;
 	import engine.BotEngine;
 	import input.AutoQuestUI;
@@ -521,6 +522,20 @@ package input.bot_manager {
 			badgeTf.y = 4;
 			badgeTf.width = 20;
 			row.addChild(badgeTf);
+
+			if (cmd is BlankCommand) {
+				var bcmd:BlankCommand = cmd as BlankCommand;
+				if (bcmd.description.length == 0) {
+					const divLine:Shape = new Shape();
+					divLine.graphics.lineStyle(1, isSelected ? 0x60a5fa : 0x334155, 0.7);
+					divLine.graphics.moveTo(26, int(h / 2));
+					divLine.graphics.lineTo(w - (isRunning ? 12 : 52), int(h / 2));
+					row.addChild(divLine);
+				}
+				else if (!isSelected && !isCurrent) {
+					txtCol = UIUtils.TEXT_MUTED;
+				}
+			}
 
 			const textW:Number = isRunning ? (w - 28) : (w - 70);
 			const txtTf:TextField = UIUtils.createLabel(cmd.toString(), txtCol, 9.5, false);
