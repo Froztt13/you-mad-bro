@@ -523,6 +523,7 @@ package input.bot_manager {
 			badgeTf.width = 20;
 			row.addChild(badgeTf);
 
+			var isBlankDesc:Boolean = false;
 			if (cmd is BlankCommand) {
 				var bcmd:BlankCommand = cmd as BlankCommand;
 				if (bcmd.description.length == 0) {
@@ -532,13 +533,16 @@ package input.bot_manager {
 					divLine.graphics.lineTo(w - (isRunning ? 12 : 52), int(h / 2));
 					row.addChild(divLine);
 				}
-				else if (!isSelected && !isCurrent) {
-					txtCol = UIUtils.TEXT_MUTED;
+				else {
+					isBlankDesc = true;
+					if (!isCurrent) {
+						txtCol = isSelected ? 0x93c5fd : 0x38bdf8;
+					}
 				}
 			}
 
 			const textW:Number = isRunning ? (w - 28) : (w - 70);
-			const txtTf:TextField = UIUtils.createLabel(cmd.toString(), txtCol, 9.5, false);
+			const txtTf:TextField = UIUtils.createLabel(cmd.toString(), txtCol, 9.5, isBlankDesc);
 			txtTf.x = 24;
 			txtTf.y = 4;
 			txtTf.width = textW;
