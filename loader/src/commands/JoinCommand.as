@@ -132,14 +132,9 @@ package commands {
 
 				combatExitAttempts = 0;
 
-				// Already in the correct map, just jump to cell and pad if needed
 				var currentCell:String = (game.world.strFrame != null) ? game.world.strFrame : "";
-				if (currentCell.toLowerCase() != targetCell.toLowerCase()) {
-					bot.log("[Join] Already in " + currentArea + ", moving to [" + targetCell + ", " + targetPad + "]");
-					game.world.moveToCell(targetCell, targetPad);
-				}
-				else {
-					bot.log("[Join] Already at " + currentArea + " [" + targetCell + ", " + targetPad + "]");
+				if (currentCell.toLowerCase() == targetCell.toLowerCase()) {
+					bot.log("[Join] Already at " + currentArea);
 				}
 				bot.advanceStep();
 			}
