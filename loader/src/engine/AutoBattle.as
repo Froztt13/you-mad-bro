@@ -2,8 +2,8 @@ package engine {
 
 	import flash.events.TimerEvent;
 	import flash.utils.Timer;
-	import SFSEvent;
 	import Utils;
+	import handler.PacketHandler;
 
 	public class AutoBattle {
 
@@ -26,7 +26,8 @@ package engine {
 			this.onStateChange = onStateChange;
 			instance = this;
 
-			this.game.sfc.addEventListener(SFSEvent.onDebugMessage, this.onPacketReceived);
+			PacketHandler.addAnimObserver(this.onAnimMsgs);
+			PacketHandler.addAuraObserver(this.onAuraActions);
 		}
 
 		public function get state():int {
@@ -192,6 +193,12 @@ package engine {
 					return;
 				}
 
+				// Kathool Adept combo if equipped
+				if (isUsingClass(game, "Kathool Adept")) {
+					executeKathoolAdeptCombo(game);
+					return;
+				}
+
 				// Smart skill rotation: try from current skillIndex, find next available skill
 				for (var i:int = 0; i < 5; i++) {
 					var idx:int = (skillIndex + i) % 5;
@@ -346,6 +353,10 @@ package engine {
 						if (skillIdx == 4 && getAurasValue(game, true, "Vampiric Shot") > 0)
 							return false;
 						break;
+					case "Kathool Adept":
+						if (skillIdx == 3 && getAurasValue(game, true, "Feeding") < 5)
+							return false;
+						break;
 				}
 			}
 			catch (e:Error) {
@@ -474,6 +485,28 @@ package engine {
 			}
 		}
 
+		private static function executeKathoolAdeptCombo(game:Object):void {
+			var feeding:int = getAurasValue(game, true, "Feeding");
+
+			// Prioritize Skill 3 immediately when player reaches 5 stacks of Feeding
+			if (feeding >= 5) {
+				if (useSkill(game, 3))
+					return;
+			}
+
+			// Spam remaining skills normally (skip Skill 3 if feeding < 5)
+			for (var i:int = 0; i < 5; i++) {
+				var idx:int = (skillIndex + i) % 5;
+				if (idx == 3 && feeding < 5) {
+					continue;
+				}
+				if (useSkill(game, idx)) {
+					skillIndex = (idx + 1) % 5;
+					break;
+				}
+			}
+		}
+
 		private static function executeArcanaInvokerCombo(game:Object):void {
 			var hasWorld:Boolean = getAurasValue(game, true, "XXI - The World") > 0;
 			var hasJudgement:Boolean = getAurasValue(game, true, "XX - Judgement") > 0;
@@ -549,43 +582,36 @@ package engine {
 			return null;
 		}
 
-		private function onPacketReceived(packet:*):void {
-			var msg:String = packet.params.message;
-			var serverMsg:String = Utils.normalizePacket(msg);
+		public function onAnimMsgs(animMsgs:Array, data:Object = null):void {
+			if (animMsgs == null || animMsgs.length == 0)
+				return;
 
-			if (serverMsg.indexOf("{") == 0) {
-				try {
-					var data:Object = JSON.parse(serverMsg);
-					if (data && data.b && data.b.o) {
-						var obj:Object = data.b.o;
-						var cmd:String = obj.cmd;
-
-						if (cmd == "ct") {
-							if (obj.anims != null) {
-								for each (var anim:Object in obj.anims) {
-									if (anim.msg != null && anim.msg.indexOf("prepares a counter attack") > -1) {
-										if (state == STATE_RUNNING) {
-											this.paused = true;
-											break;
-										}
-									}
-								}
-							}
-							if (obj.a != null) {
-								for each (var action:Object in obj.a) {
-									if (action.cmd.indexOf("aura-") > -1 && action.aura.nam.indexOf("Counter Attack") > -1) {
-										if (state == STATE_PAUSED) {
-											this.paused = false;
-											break;
-										}
-									}
-								}
-							}
-						}
+			for each (var animMsg:String in animMsgs) {
+				if (animMsg != null && animMsg.indexOf("prepares a counter attack") > -1) {
+					if (state == STATE_RUNNING) {
+						this.paused = true;
+						break;
 					}
 				}
-				catch (e:Error) {
-					// Ignore non-JSON or malformed
+			}
+		}
+
+		public function onAuraActions(auraActions:Array, data:Object = null):void {
+			if (auraActions == null || auraActions.length == 0)
+				return;
+
+			for each (var action:Object in auraActions) {
+				if (action == null || action.cmd == null)
+					continue;
+
+				var cmdStr:String = String(action.cmd);
+				var auraName:String = (action.aura != null && action.aura.nam != null) ? String(action.aura.nam) : "";
+
+				if (cmdStr.indexOf("aura-") > -1 && auraName.indexOf("Counter Attack") > -1) {
+					if (state == STATE_PAUSED) {
+						this.paused = false;
+						break;
+					}
 				}
 			}
 		}
