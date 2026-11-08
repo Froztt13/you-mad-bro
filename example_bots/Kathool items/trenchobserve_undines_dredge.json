@@ -1,0 +1,48 @@
+{
+  "name": "Trench Observatory - Undine's Dredge",
+  "loop": true,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [
+    "9339"
+  ],
+  "whitelist": [
+    "Dark Elf Pearl",
+    "Undine Base Scrip",
+    "Noelle's Brooch",
+    "Green Sea Jelly",
+    "Elf Adipocere"
+  ],
+  "commands": [
+    {
+      "type": "join",
+      "map": "trenchobserve",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Lady Noelle",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Noelle's Brooch",
+      "itemQty": 1
+    },
+    {
+      "type": "hunt",
+      "monster": "Sea Spirit",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Green Sea Jelly",
+      "itemQty": 2
+    },
+    {
+      "type": "hunt",
+      "monster": "Necro Adipocere",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Elf Adipocere",
+      "itemQty": 1
+    }
+  ]
+}

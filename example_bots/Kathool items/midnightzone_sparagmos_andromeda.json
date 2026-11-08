@@ -1,0 +1,47 @@
+{
+  "name": "Midnight Zone - Sparagmos Andromeda (9302)",
+  "loop": true,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [
+    "9302"
+  ],
+  "whitelist": [
+    "Water Elf Pearl",
+    "Memory Card",
+    "Fleshy Shadows",
+    "Wraith Memento"
+  ],
+  "commands": [
+    {
+      "type": "join",
+      "map": "midnightzone",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Sparagmos",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Memory Card",
+      "itemQty": 1
+    },
+    {
+      "type": "hunt",
+      "monster": "Shadow Viscera",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Fleshy Shadows",
+      "itemQty": 8
+    },
+    {
+      "type": "hunt",
+      "monster": "Venerated Wraith",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Wraith Memento",
+      "itemQty": 8
+    }
+  ]
+}

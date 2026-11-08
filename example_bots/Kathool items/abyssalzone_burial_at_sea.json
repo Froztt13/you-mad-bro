@@ -1,0 +1,48 @@
+{
+  "name": "Abyssal Zone - Burial at Sea (9316)",
+  "loop": true,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [
+    "9316"
+  ],
+  "whitelist": [
+    "Water Elf Antler",
+    "Undine Base Scrip",
+    "Ashray Artifacts",
+    "Adipocere Antler",
+    "Scavenger Foam"
+  ],
+  "commands": [
+    {
+      "type": "join",
+      "map": "abyssalzone",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "The Ashray",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Ashray Artifacts",
+      "itemQty": 3
+    },
+    {
+      "type": "hunt",
+      "monster": "Necro Adipocere",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Adipocere Antler",
+      "itemQty": 9
+    },
+    {
+      "type": "hunt",
+      "monster": "Foam Scavenger",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Scavenger Foam",
+      "itemQty": 18
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Twilight Zone - Belly-Up (9269)",
+  "loop": true,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [
+    "9269"
+  ],
+  "whitelist": [
+    "Sundered Tentacle",
+    "Leviathan Tentacle",
+    "Decay Essence",
+    "Tarnished Icicle"
+  ],
+  "commands": [
+    {
+      "type": "join",
+      "map": "twilightzone",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Leviathan",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Leviathan Tentacle",
+      "itemQty": 1
+    },
+    {
+      "type": "hunt",
+      "monster": "Decay Spirit",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Decay Essence",
+      "itemQty": 8
+    },
+    {
+      "type": "hunt",
+      "monster": "Ice Guardian",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Tarnished Icicle",
+      "itemQty": 8
+    }
+  ]
+}

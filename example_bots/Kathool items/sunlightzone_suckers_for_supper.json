@@ -1,0 +1,47 @@
+{
+  "name": "Sunlight Zone - Suckers for Supper (9252)",
+  "loop": true,
+  "leaveCombatOnStop": true,
+  "notifyItemDrops": true,
+  "quests": [
+    "9252"
+  ],
+  "whitelist": [
+    "Sun Zone Chit",
+    "Marine Sample",
+    "Infernal Sample",
+    "Seraphic Sample"
+  ],
+  "commands": [
+    {
+      "type": "join",
+      "map": "sunlightzone",
+      "cell": "Enter",
+      "pad": "Spawn"
+    },
+    {
+      "type": "hunt",
+      "monster": "Marine Snow",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Marine Sample",
+      "itemQty": 1
+    },
+    {
+      "type": "hunt",
+      "monster": "Infernal Illusion",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Infernal Sample",
+      "itemQty": 10
+    },
+    {
+      "type": "hunt",
+      "monster": "Seraphic Illusion",
+      "killMode": "item",
+      "killCount": 1,
+      "itemName": "Seraphic Sample",
+      "itemQty": 10
+    }
+  ]
+}
