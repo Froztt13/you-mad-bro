@@ -8,12 +8,16 @@ import java.util.stream.Collectors;
 
 public class Patcher {
     private static final String VERSION_API = "https://game.aq.com/game/api/data/gameversion";
+    private static final String CLIENTVARS_API = "https://game.aq.com/game/api/data/clientvars";
     private static final String GAME_FILES_URL = "https://game.aq.com/game/gamefiles/";
-    private static final String SPIDERBOOK_URL = "https://game.aq.com/game/gamefiles/news/spiderbook3.swf";
+    private static final String DEFAULT_BOOK_FILE = "Book-5Nov26.swf";
     private static final String MAP_URL = "https://game.aq.com/game/gamefiles/news/Map-UI_r38.swf";
     private static final String CHARSELECT_URL = "https://game.aq.com/game/gamefiles/interface/CharSelect/charselect.swf";
 
+    private static String currentBookFileName = DEFAULT_BOOK_FILE;
+
     public static void main(String[] args) throws Exception {
+        currentBookFileName = resolveBookFileName();
         clearAssetDir();
         downloadAsset();
         exportBytecode();
@@ -27,7 +31,7 @@ public class Patcher {
 
         build();
 
-        patchSpiderbook();
+        patchBookOfLore();
         patchWorldMap();
         patchCharSelect();
     }
@@ -44,6 +48,7 @@ public class Patcher {
                           // Preserve local SWF asset dependencies like Map-UI_r38.swf
                           return first.startsWith("Game-") || first.equals("Game.swf") || first.endsWith(".tmp")
                               || first.startsWith("spiderbook3-") || first.equals("spiderbook3.swf") || first.equals("book-of-lore.swf")
+                              || first.startsWith("Book-") || first.startsWith("Book")
                               || first.startsWith("Map-UI_r38-") || first.equals("Map-UI_r38.swf") || first.equals("world-map.swf")
                               || first.startsWith("charselect-") || first.equals("charselect.swf");
                       })
@@ -53,6 +58,28 @@ public class Patcher {
         } else {
             Files.createDirectories(assetPath);
         }
+    }
+
+    private static String resolveBookFileName() {
+        try {
+            System.out.println("Fetching active clientvars...");
+            HttpURLConnection conn = (HttpURLConnection) URI.create(CLIENTVARS_API).toURL().openConnection();
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setConnectTimeout(6000);
+            conn.setReadTimeout(6000);
+
+            String json = new BufferedReader(new InputStreamReader(conn.getInputStream())).lines().collect(Collectors.joining());
+            if (json.contains("\"sBook\":\"")) {
+                String sBook = json.split("\"sBook\":\"")[1].split("\"")[0];
+                String name = Paths.get(sBook).getFileName().toString();
+                System.out.println("Discovered active Book of Lore from clientvars: " + name);
+                return name;
+            }
+        } catch (Exception e) {
+            System.out.println("Could not query clientvars for sBook (" + e.getMessage() + "), using default: " + DEFAULT_BOOK_FILE);
+        }
+        return DEFAULT_BOOK_FILE;
     }
 
     private static void downloadAsset() throws Exception {
@@ -604,7 +631,7 @@ public class Patcher {
             }
 
             // 8d. Book of Lore (BoL) patches:
-            // 8d-1. showBook: load local app:/gamefiles/spiderbook3.swf with allowCodeImport
+            // 8d-1. showBook: load local app:/gamefiles/<currentBookFileName> with allowCodeImport
             int showBookIdx = gameContent.indexOf("refid \"Game/instance/Game/showBook\"");
             if (showBookIdx != -1) {
                 int endShowBookIdx = gameContent.indexOf("end ; trait", showBookIdx);
@@ -616,7 +643,7 @@ public class Patcher {
                     String nsGameSys = "[PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\"), PackageNamespace(\"flash.system\")]";
                     String replBookReq =
                           "findpropstrict      Multiname(\"URLRequest\", " + nsGameNet + ")\n"
-                        + "      pushstring          \"app:/gamefiles/spiderbook3.swf\"\n"
+                        + "      pushstring          \"app:/gamefiles/" + currentBookFileName + "\"\n"
                         + "      constructprop       Multiname(\"URLRequest\", " + nsGameNet + "), 1\n"
                         + "      findpropstrict      Multiname(\"LoaderContext\", " + nsGameSys + ")\n"
                         + "      pushfalse\n"
@@ -629,121 +656,11 @@ public class Patcher {
                     bookSub = mBookReq.replaceFirst(Matcher.quoteReplacement(replBookReq));
                     bookSub = Pattern.compile("(?s)(body\\s+maxstack )\\d+").matcher(bookSub).replaceFirst("$110");
                     gameContent = gameContent.substring(0, showBookIdx) + bookSub + gameContent.substring(endShowBookIdx);
-                    System.out.println("  -> Game.showBook patched to load local app:/gamefiles/spiderbook3.swf with allowCodeImport");
+                    System.out.println("  -> Game.showBook patched to load local app:/gamefiles/" + currentBookFileName + " with allowCodeImport");
                     gameModified = true;
                 } else {
                     System.err.println("  -> WARNING: showBook URLRequest pattern not found!");
                 }
-            }
-
-            // 8d-2. onBoLProgress: null-check on travelLoaderMC to prevent Error #1009
-            int bolProgIdx = gameContent.indexOf("refid \"Game/instance/Game/onBoLProgress\"");
-            if (bolProgIdx != -1) {
-                int endProgIdx = gameContent.indexOf("end ; trait", bolProgIdx);
-                String progSub = gameContent.substring(bolProgIdx, endProgIdx);
-                if (!progSub.contains("travelLoaderMC") || !progSub.contains("pushnull\n      ifeq")) {
-                    Matcher labelMatcher = Pattern.compile("(?m)^\\s*(L\\d+):\\s*\\n\\s*returnvoid").matcher(progSub);
-                    String returnLabel = labelMatcher.find() ? labelMatcher.group(1) : "L79";
-
-                    Pattern pProg = Pattern.compile("(?s)(convert_d\\s+setlocal3\\s+)(getlocal0\\s+getproperty\\s+Multiname\\(\"travelLoaderMC\")");
-                    Matcher mProg = pProg.matcher(progSub);
-                    if (mProg.find()) {
-                        String nullCheck = "$1getlocal0\n      getproperty         Multiname(\"travelLoaderMC\", [PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\")])\n      pushnull\n      ifeq                " + returnLabel + "\n\n      $2";
-                        progSub = mProg.replaceFirst(nullCheck);
-                        gameContent = gameContent.substring(0, bolProgIdx) + progSub + gameContent.substring(endProgIdx);
-                        System.out.println("  -> Game.onBoLProgress patched with null check for travelLoaderMC (label: " + returnLabel + ")");
-                        gameModified = true;
-                    }
-                }
-            }
-
-            // 8d-3. onBoLContentComplete: safe attachment and initialization to NavMenu
-            int bolContentCompIdx = gameContent.indexOf("refid \"Game/instance/onBoLContentComplete\"");
-            if (bolContentCompIdx != -1) {
-                int endContentCompIdx = gameContent.indexOf("end ; trait", bolContentCompIdx);
-                String contentCompSub = gameContent.substring(bolContentCompIdx, endContentCompIdx);
-                Pattern pContentAttach = Pattern.compile("(?s)getlocal0\\s+getproperty\\s+Multiname\\(\"ui\",.*?callpropvoid\\s+Multiname\\(\"addChild\",.*?\\), 1");
-                Matcher mContentAttach = pContentAttach.matcher(contentCompSub);
-                if (mContentAttach.find()) {
-                    String nsGame = "[PrivateNamespace(null, \"Game#0\"), PackageNamespace(\"\"), PrivateNamespace(null, \"Game#1\"), PackageInternalNs(\"\"), Namespace(\"http://adobe.com/AS3/2006/builtin\"), PackageNamespace(\"flash.text\"), PackageNamespace(\"flash.external\"), PackageNamespace(\"it.gotoandplay.smartfoxserver\"), PackageNamespace(\"liteAssets.draw\"), ProtectedNamespace(\"Game\"), StaticProtectedNs(\"Game\"), StaticProtectedNs(\"flash.display:MovieClip\"), StaticProtectedNs(\"flash.display:Sprite\"), StaticProtectedNs(\"flash.display:DisplayObjectContainer\"), StaticProtectedNs(\"flash.display:InteractiveObject\"), StaticProtectedNs(\"flash.display:DisplayObject\"), StaticProtectedNs(\"flash.events:EventDispatcher\"), PackageNamespace(\"flash.display\")]";
-                    String safeAttach =
-                          "getlocal0\n"
-                        + "      getlocal2\n"
-                        + "      getproperty         Multiname(\"content\", " + nsGame + ")\n"
-                        + "      getlex              Multiname(\"MovieClip\", " + nsGame + ")\n"
-                        + "      astypelate\n"
-                        + "      initproperty        Multiname(\"bolContent\", " + nsGame + ")\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"newInstance\", " + nsGame + ")\n"
-                        + "      iffalse             L_NO_NAV\n\n"
-                        + "      getlocal0\n"
-                        + "      pushfalse\n"
-                        + "      setproperty         Multiname(\"newInstance\", " + nsGame + ")\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"bolContent\", " + nsGame + ")\n"
-                        + "      pushnull\n"
-                        + "      ifeq                L_NO_NAV\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"bolContent\", " + nsGame + ")\n"
-                        + "      pushstring          \"NavMenu\"\n"
-                        + "      callpropvoid        Multiname(\"gotoAndStop\", " + nsGame + "), 1\n\n"
-                        + "L_NO_NAV:\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      pushnull\n"
-                        + "      ifeq                L_END\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcPopup\", " + nsGame + ")\n"
-                        + "      pushnull\n"
-                        + "      ifeq                L_END\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcPopup\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"currentLabel\", " + nsGame + ")\n"
-                        + "      pushstring          \"Book\"\n"
-                        + "      ifne                L_END\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcPopup\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcBook\", " + nsGame + ")\n"
-                        + "      pushnull\n"
-                        + "      ifeq                L_END\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcPopup\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcBook\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"numChildren\", " + nsGame + ")\n"
-                        + "      pushbyte            0\n"
-                        + "      ifle                L_DO_ADD\n\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcPopup\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcBook\", " + nsGame + ")\n"
-                        + "      pushbyte            0\n"
-                        + "      callpropvoid        Multiname(\"removeChildAt\", " + nsGame + "), 1\n\n"
-                        + "L_DO_ADD:\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"ui\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcPopup\", " + nsGame + ")\n"
-                        + "      getproperty         Multiname(\"mcBook\", " + nsGame + ")\n"
-                        + "      getlocal0\n"
-                        + "      getproperty         Multiname(\"bolContent\", " + nsGame + ")\n"
-                        + "      callpropvoid        Multiname(\"addChild\", " + nsGame + "), 1\n\n"
-                        + "L_END:";
-                    contentCompSub = mContentAttach.replaceFirst(Matcher.quoteReplacement(safeAttach));
-                    gameContent = gameContent.substring(0, bolContentCompIdx) + contentCompSub + gameContent.substring(endContentCompIdx);
-                    System.out.println("  -> Game.onBoLContentComplete patched with safe attach and nav init");
-                    gameModified = true;
-                }
-            }
-
-            Pattern pContentStack = Pattern.compile("(?s)(refid \"Game/instance/onBoLContentComplete\".*?body\\s+maxstack )\\d+");
-            Matcher mContentStack = pContentStack.matcher(gameContent);
-            if (mContentStack.find()) {
-                gameContent = mContentStack.replaceFirst("$110");
-                System.out.println("  -> Game.onBoLContentComplete maxstack patched to 10");
-                gameModified = true;
             }
 
 
@@ -1539,64 +1456,71 @@ public class Patcher {
         if (pb.start().waitFor() != 0) throw new RuntimeException("Command failed: " + Arrays.toString(args));
     }
 
-    private static void patchSpiderbook() throws Exception {
-        System.out.println("Downloading latest remote spiderbook3.swf...");
-        Path sbSwf = Paths.get("assets/spiderbook3.swf");
-        try (InputStream in = URI.create(SPIDERBOOK_URL).toURL().openStream()) {
-            Files.copy(in, sbSwf, StandardCopyOption.REPLACE_EXISTING);
+    private static void patchBookOfLore() throws Exception {
+        String bookFileName = currentBookFileName;
+        String bookUrl = GAME_FILES_URL + "news/" + bookFileName;
+        System.out.println("Downloading latest remote Book of Lore (" + bookFileName + ")...");
+        Path bookSwf = Paths.get("assets/" + bookFileName);
+        try (InputStream in = URI.create(bookUrl).toURL().openStream()) {
+            Files.copy(in, bookSwf, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        System.out.println("Disassembling spiderbook3.swf...");
-        runCommand("abcexport", "assets/spiderbook3.swf");
-        runCommand("rabcdasm", "assets/spiderbook3-0.abc");
+        String baseName = bookFileName.substring(0, bookFileName.lastIndexOf('.'));
+        System.out.println("Disassembling " + bookFileName + "...");
+        runCommand("abcexport", "assets/" + bookFileName);
+        runCommand("rabcdasm", "assets/" + baseName + "-0.abc");
 
-        Path sbDir = Paths.get("assets/spiderbook3-0");
-        sanitizeSecurity(sbDir);
+        Path bookDir = Paths.get("assets/" + baseName + "-0");
+        sanitizeSecurity(bookDir);
 
-        Path mainTimeline = sbDir.resolve("spiderbook_fla/MainTimeline.class.asasm");
-        if (Files.exists(mainTimeline)) {
-            System.out.println("Patching badge loader in spiderbook3 MainTimeline.class.asasm...");
-            String content = Files.readString(mainTimeline).replace("\r\n", "\n");
+        Path badgesAsasm = bookDir.resolve("bol/Badges.class.asasm");
+        if (Files.exists(badgesAsasm)) {
+            System.out.println("Patching badge loader in bol/Badges.class.asasm...");
+            String content = Files.readString(badgesAsasm).replace("\r\n", "\n");
 
-            Pattern pattern = Pattern.compile(
-                "(?s)getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"ldr\"\\)\\s+"
+            Pattern pBadgeLoad = Pattern.compile(
+                "(?s)getscopeobject\\s+1\\s+"
+                + "getslot\\s+6\\s+"
                 + "findpropstrict\\s+QName\\(PackageNamespace\\(\"flash\\.net\"\\),\\s*\"URLRequest\"\\)\\s+"
-                + "(getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"rootClass\"\\)\\s+"
-                + "callproperty\\s+Multiname\\(\"getFilePath\",\\s*(\\[.*?\\])\\),\\s*0\\s+"
-                + "pushstring\\s+\"news/badges/\"\\s+"
-                + "add\\s+"
-                + "getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"loadObj\"\\)\\s+"
-                + "getproperty\\s+Multiname\\(\"sFile\",\\s*\\[.*?\\]\\)\\s+"
-                + "add)\\s+"
+                + "getscopeobject\\s+1\\s+"
+                + "getslot\\s+10\\s+"
                 + "constructprop\\s+QName\\(PackageNamespace\\(\"flash\\.net\"\\),\\s*\"URLRequest\"\\),\\s*1\\s+"
-                + "(getlex\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"rootClass\"\\)\\s+"
-                + "getproperty\\s+Multiname\\(\"world\",\\s*\\[.*?\\]\\)\\s+"
-                + "getproperty\\s+Multiname\\(\"loaderC\",\\s*\\[.*?\\]\\))\\s+"
-                + "callpropvoid\\s+Multiname\\(\"load\",\\s*\\[.*?\\]\\),\\s*2"
+                + "getlocal0\\s+"
+                + "getproperty\\s+QName\\(PrivateNamespace\\(null,\\s*\"bol:Badges#0\"\\),\\s*\"book\"\\)\\s+"
+                + "getproperty\\s+Multiname\\(\"world\",\\s*(\\[.*?\\])\\)\\s+"
+                + "getproperty\\s+Multiname\\(\"loaderC\",\\s*\\[.*?\\]\\)\\s+"
+                + "callpropvoid\\s+QName\\(PackageNamespace\\(\"\"\\),\\s*\"load\"\\),\\s*2"
             );
 
-            Matcher m = pattern.matcher(content);
+            Matcher m = pBadgeLoad.matcher(content);
             if (m.find()) {
-                String ns = m.group(2);
+                String ns = m.group(1);
                 String replacement =
-                      "getlex              QName(PackageNamespace(\"\"), \"rootClass\")\n"
+                      "getlocal0\n"
+                    + "      getproperty         QName(PrivateNamespace(null, \"bol:Badges#0\"), \"book\")\n"
+                    + "      getproperty         Multiname(\"game\", " + ns + ")\n"
                     + "      getproperty         Multiname(\"pocket\", " + ns + ")\n"
-                    + "      getlex              QName(PackageNamespace(\"\"), \"ldr\")\n"
-                    + "      " + m.group(1) + "\n"
-                    + "      " + m.group(3) + "\n"
+                    + "      getscopeobject      1\n"
+                    + "      getslot             6\n"
+                    + "      getscopeobject      1\n"
+                    + "      getslot             10\n"
+                    + "      getlocal0\n"
+                    + "      getproperty         QName(PrivateNamespace(null, \"bol:Badges#0\"), \"book\")\n"
+                    + "      getproperty         Multiname(\"world\", " + ns + ")\n"
+                    + "      getproperty         Multiname(\"loaderC\", " + ns + ")\n"
                     + "      callpropvoid        Multiname(\"load\", " + ns + "), 3";
                 content = m.replaceFirst(Matcher.quoteReplacement(replacement));
-                Files.writeString(mainTimeline, content);
-                System.out.println("  -> Badge loader successfully redirected to rootClass.pocket.load");
+                Files.writeString(badgesAsasm, content);
+                System.out.println("  -> Badge loader successfully redirected to book.game.pocket.load");
             } else {
-                System.err.println("  -> WARNING: Badge loader pattern in spiderbook3 not found!");
+                System.err.println("  -> WARNING: Badge loader pattern in bol/Badges.class.asasm not found!");
             }
         }
 
-        System.out.println("Reassembling spiderbook3.swf...");
-        runCommand("rabcasm", "assets/spiderbook3-0/spiderbook3-0.main.asasm");
-        runCommand("abcreplace", "assets/spiderbook3.swf", "0", "assets/spiderbook3-0/spiderbook3-0.main.abc");
-        System.out.println("spiderbook3.swf built and patched successfully!");
+        System.out.println("Reassembling " + bookFileName + "...");
+        runCommand("rabcasm", "assets/" + baseName + "-0/" + baseName + "-0.main.asasm");
+        runCommand("abcreplace", "assets/" + bookFileName, "0", "assets/" + baseName + "-0/" + baseName + "-0.main.abc");
+        System.out.println(bookFileName + " built and patched successfully!");
     }
 
     private static void patchWorldMap() throws Exception {

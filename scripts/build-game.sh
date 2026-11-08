@@ -15,9 +15,12 @@ if [ -f "assets/Map-UI_r38.swf" ]; then
     cp assets/Map-UI_r38.swf loader/gamefiles/Map-UI_r38.swf
 fi
 rm -f loader/gamefiles/world-map.swf
-if [ -f "assets/spiderbook3.swf" ]; then
-    cp assets/spiderbook3.swf loader/gamefiles/spiderbook3.swf
-fi
+rm -f loader/gamefiles/spiderbook3.swf
+for f in assets/Book-*.swf; do
+    if [ -f "$f" ]; then
+        cp "$f" loader/gamefiles/
+    fi
+done
 if [ -f "assets/charselect.swf" ]; then
     cp assets/charselect.swf loader/gamefiles/charselect.swf
 fi
@@ -36,12 +39,12 @@ fi
 
 echo ""
 echo "========================================================"
-echo "GAME.SWF, LOADER.SWF, SPIDERBOOK3.SWF, MAP-UI_R38.SWF & CHARSELECT.SWF BUILD SUCCESSFUL!"
+echo "GAME.SWF, LOADER.SWF, BOOK OF LORE, MAP-UI_R38.SWF & CHARSELECT.SWF BUILD SUCCESSFUL!"
 echo "Output files:"
 echo "  - assets/Game.swf"
 echo "  - loader/Loader.swf"
 echo "  - loader/gamefiles/Game.swf"
 echo "  - loader/gamefiles/Map-UI_r38.swf"
-echo "  - loader/gamefiles/spiderbook3.swf"
+echo "  - loader/gamefiles/Book-*.swf"
 echo "  - loader/gamefiles/charselect.swf"
 echo "========================================================"

@@ -30,8 +30,11 @@ if exist "assets\Map-UI_r38.swf" (
 if exist "loader\gamefiles\world-map.swf" (
     del /q loader\gamefiles\world-map.swf >nul 2>&1
 )
-if exist "assets\spiderbook3.swf" (
-    copy /y assets\spiderbook3.swf loader\gamefiles\spiderbook3.swf >nul 2>&1
+if exist "loader\gamefiles\spiderbook3.swf" (
+    del /q loader\gamefiles\spiderbook3.swf >nul 2>&1
+)
+if exist "assets\Book-*.swf" (
+    copy /y assets\Book-*.swf loader\gamefiles\ >nul 2>&1
 )
 if exist "assets\charselect.swf" (
     copy /y assets\charselect.swf loader\gamefiles\charselect.swf >nul 2>&1
