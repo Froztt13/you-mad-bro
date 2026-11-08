@@ -8,7 +8,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # Configure Paths & Info
 AIR_SDK_PATH="$HOME/AIRSDK_51.3.1"
-VERSION_PREFIX="1.1"
+VERSION_PREFIX="1.2"
 RUN_NUMBER="0"
 VERSION="v${VERSION_PREFIX}.${RUN_NUMBER}"
 CERT_NAME="mac_cert.p12"

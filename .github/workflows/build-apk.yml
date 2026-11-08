@@ -6,7 +6,7 @@ on:
       version_prefix:
         description: 'Version prefix (e.g. 1.0, 1.1, 1.2, 2.0)'
         required: false
-        default: '1.1'
+        default: '1.2'
       patch_number:
         description: 'Patch number (kosongkan untuk auto: reset ke 0 jika prefix baru, atau naik +1 jika prefix sama)'
         required: false
