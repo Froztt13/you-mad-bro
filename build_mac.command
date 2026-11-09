@@ -62,11 +62,11 @@ if [ -f "loader/app.xml" ]; then
     sed -i '' "s/<height>.*<\/height>/<height>$HEIGHT<\/height>/" loader/app.xml
     sed -i '' "s/<fullScreen>.*<\/fullScreen>/<fullScreen>false<\/fullScreen>/" loader/app.xml
     
-    # Enable High DPI (Retina) support
+    # Set display resolution to standard
     if grep -q "requestedDisplayResolution" loader/app.xml; then
-        sed -i '' "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>high<\/requestedDisplayResolution>/" loader/app.xml
+        sed -i '' "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
     else
-        sed -i '' "s/<\/initialWindow>/  <requestedDisplayResolution>high<\/requestedDisplayResolution>\\
+        sed -i '' "s/<\/initialWindow>/  <requestedDisplayResolution>standard<\/requestedDisplayResolution>\\
     <\/initialWindow>/" loader/app.xml
     fi
 fi

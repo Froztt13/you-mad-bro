@@ -129,7 +129,11 @@ jobs:
           sed -i "s/<versionNumber>.*<\/versionNumber>/<versionNumber>${{ needs.version.outputs.NUM_VERSION }}<\/versionNumber>/" loader/app.xml
           sed -i "s/<versionLabel>.*<\/versionLabel>/<versionLabel>${{ needs.version.outputs.NUM_VERSION }}<\/versionLabel>/" loader/app.xml
           sed -i "s/<fullScreen>.*<\/fullScreen>/<fullScreen>true<\/fullScreen>/" loader/app.xml
-          sed -i "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
+          if grep -q "requestedDisplayResolution" loader/app.xml; then
+            sed -i "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
+          else
+            sed -i "s/<\/initialWindow>/  <requestedDisplayResolution>standard<\/requestedDisplayResolution>\n  <\/initialWindow>/" loader/app.xml
+          fi
           
           amxmlc \
             -optimize=true \
@@ -196,7 +200,7 @@ jobs:
           sed -i '' "s/<fullScreen>.*<\/fullScreen>/<fullScreen>false<\/fullScreen>/" loader/app.xml
 
           if grep -q "requestedDisplayResolution" loader/app.xml; then
-            sed -i '' "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>high<\/requestedDisplayResolution>/" loader/app.xml
+            sed -i '' "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
           fi
 
           if [ -f "loader/src/Main.as" ]; then
@@ -276,7 +280,7 @@ jobs:
 
       - name: Package Example Bots
         run: |
-          zip -j ExampleBots.zip example_bots/*
+          (cd example_bots && zip -r ../ExampleBots.zip . -x ".*" -x "*/.*")
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
