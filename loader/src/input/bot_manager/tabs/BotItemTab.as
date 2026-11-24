@@ -35,7 +35,7 @@ package input.bot_manager.tabs {
 			super();
 			this.manager = manager;
 			this.x = 10;
-			this.y = 10;
+			this.y = 6;
 
 			buildUI();
 		}

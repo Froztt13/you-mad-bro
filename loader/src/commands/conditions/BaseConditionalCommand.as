@@ -129,6 +129,7 @@ package commands.conditions {
 					{label: IsPlayerAuraGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_AURA_GREATER, category: CATEGORY_PLAYER, description: "Check if player aura value is greater than target"},
 					{label: IsPlayerAuraLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_AURA_LESS, category: CATEGORY_PLAYER, description: "Check if player aura value is less than target"},
 					{label: IsPlayerMemberCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_MEMBER, category: CATEGORY_PLAYER, description: "Check if player has an active membership / upgrade"},
+					{label: IsPlayerNotMemberCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_NOT_MEMBER, category: CATEGORY_PLAYER, description: "Check if player does NOT have an active membership / upgrade"},
 					{label: IsMapCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP, category: CATEGORY_MAP, description: "Check if current map matches specified name"},
 					{label: IsMapNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP_NOT, category: CATEGORY_MAP, description: "Check if current map does NOT match name"},
 					{label: IsCellCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL, category: CATEGORY_MAP, description: "Check if player is in specified cell"},
@@ -335,6 +336,19 @@ package commands.conditions {
 							var2Label: IsPlayerMemberCommand.VAR2_LABEL,
 							var2Restrict: IsPlayerMemberCommand.VAR2_RESTRICT,
 							var2Default: IsPlayerMemberCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_PLAYER_NOT_MEMBER:
+					return {
+							type: type,
+							label: IsPlayerNotMemberCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player does NOT have active membership / upgrade",
+							var1Label: IsPlayerNotMemberCommand.VAR1_LABEL,
+							var1Restrict: IsPlayerNotMemberCommand.VAR1_RESTRICT,
+							var1Default: IsPlayerNotMemberCommand.VAR1_DEFAULT,
+							var2Label: IsPlayerNotMemberCommand.VAR2_LABEL,
+							var2Restrict: IsPlayerNotMemberCommand.VAR2_RESTRICT,
+							var2Default: IsPlayerNotMemberCommand.VAR2_DEFAULT
 						};
 				case BotCommand.TYPE_IS_ITEM_IN_BANK:
 					return {
@@ -560,6 +574,7 @@ package commands.conditions {
 				_classRegistry[BotCommand.TYPE_IS_MONSTER_IN_ROOM] = IsMonsterInRoomCommand;
 				_classRegistry[BotCommand.TYPE_IS_MONSTER_NOT_IN_ROOM] = IsMonsterNotInRoomCommand;
 				_classRegistry[BotCommand.TYPE_IS_PLAYER_MEMBER] = IsPlayerMemberCommand;
+				_classRegistry[BotCommand.TYPE_IS_PLAYER_NOT_MEMBER] = IsPlayerNotMemberCommand;
 			}
 			return _classRegistry;
 		}

@@ -7,76 +7,125 @@ package ui {
 
 	public class InfoMessage extends Sprite {
 
-		private static const UI_WIDTH:Number = 300;
-		private static const UI_HEIGHT:Number = 150;
-		private static const PADDING:Number = 15;
+		private static const UI_WIDTH:Number = 360;
+		private static const MIN_HEIGHT:Number = 150;
+		private static const PADDING:Number = 18;
 
-		public function InfoMessage(title:String, description:String) {
+		private var boxHeight:Number = MIN_HEIGHT;
+
+		public function InfoMessage(title:String, description:String, listItems:Array = null, listTitle:String = null) {
 			addEventListener(Event.ADDED_TO_STAGE, onAdded);
+
+			const contentW:Number = UI_WIDTH - PADDING * 2;
+
+			// Title
+			const titleLabel:TextField = createLabel(title, UIUtils.TEXT_WHITE, 15, true, TextFormatAlign.CENTER);
+			titleLabel.x = PADDING;
+			titleLabel.y = PADDING;
+			titleLabel.width = contentW;
+			titleLabel.height = 24;
+
+			// Description
+			const descLabel:TextField = createLabel(description != null ? description : "", UIUtils.TEXT_MAIN, 12, false, TextFormatAlign.CENTER);
+			descLabel.x = PADDING;
+			descLabel.y = titleLabel.y + titleLabel.height + 8;
+			descLabel.width = contentW;
+			descLabel.multiline = true;
+			descLabel.wordWrap = true;
+			const descHeight:Number = Math.max(22, Math.min(180, descLabel.textHeight + 8));
+			descLabel.height = descHeight;
+
+			var currentY:Number = descLabel.y + descHeight + 12;
+
+			// Optional Recessed List Box (for warnings / errors / item lists)
+			var listHeaderLabel:TextField = null;
+			var listBoxBg:Shape = null;
+			var listScroll:ScrollContainer = null;
+
+			if (listItems != null && listItems.length > 0) {
+				if (listTitle != null && listTitle.length > 0) {
+					listHeaderLabel = createLabel(listTitle, 0xfbbf24, 11, true, TextFormatAlign.LEFT);
+					listHeaderLabel.x = PADDING;
+					listHeaderLabel.y = currentY;
+					listHeaderLabel.width = contentW;
+					listHeaderLabel.height = 18;
+					currentY += 22;
+				}
+
+				const rowH:Number = 20;
+				const listPad:Number = 6;
+				const totalRowsH:Number = listItems.length * rowH + listPad * 2;
+				const listBoxH:Number = Math.max(36, Math.min(110, totalRowsH));
+
+				listBoxBg = new Shape();
+				UIUtils.drawRoundedRect(listBoxBg.graphics, PADDING, currentY, contentW, listBoxH, 6, UIUtils.BG_RECESSED, 1.0, 0x92400e, 1);
+
+				listScroll = new ScrollContainer(contentW - 4, listBoxH - 4, 4, true);
+				listScroll.x = PADDING + 2;
+				listScroll.y = currentY + 2;
+
+				var rowY:Number = listPad - 2;
+				for (var i:int = 0; i < listItems.length; i++) {
+					var rowTxt:TextField = createLabel("• " + String(listItems[i]), UIUtils.TEXT_MAIN, 11, false, TextFormatAlign.LEFT);
+					rowTxt.x = 8;
+					rowTxt.y = rowY;
+					rowTxt.width = listScroll.contentWidth - 16;
+					rowTxt.height = rowH;
+					listScroll.addItem(rowTxt);
+					rowY += rowH;
+				}
+				listScroll.updateScroll(rowY + 4);
+
+				currentY += listBoxH + 14;
+			}
+			else {
+				currentY += 6;
+			}
+
+			boxHeight = Math.max(MIN_HEIGHT, currentY + 28 + PADDING);
 
 			// Background
 			const bg:Shape = new Shape();
-			bg.graphics.beginFill(0x1a1a1a, 0.95);
-			bg.graphics.drawRoundRect(0, 0, UI_WIDTH, UI_HEIGHT, 12);
-			bg.graphics.endFill();
-			bg.graphics.lineStyle(2, 0x444444, 1);
-			bg.graphics.drawRoundRect(0, 0, UI_WIDTH, UI_HEIGHT, 12);
+			UIUtils.drawRoundedRect(bg.graphics, 0, 0, UI_WIDTH, boxHeight, 10, UIUtils.BG_DARK, 0.98, UIUtils.BORDER_NORMAL, 1.5);
 			bg.filters = [new DropShadowFilter(8, 45, 0x000000, 0.7, 16, 16, 1, 2)];
 			addChild(bg);
-
-			// Title
-			const titleLabel:TextField = createLabel(title, 0xffffff, 16, true);
-			titleLabel.x = PADDING;
-			titleLabel.y = PADDING;
-			titleLabel.width = UI_WIDTH - PADDING * 2;
-			titleLabel.height = 25;
 			addChild(titleLabel);
-
-			// Description
-			const descLabel:TextField = createLabel(description, 0xcccccc, 12, false);
-			descLabel.x = PADDING;
-			descLabel.y = titleLabel.y + titleLabel.height + 10;
-			descLabel.width = UI_WIDTH - PADDING * 2;
-			descLabel.height = 50;
-			descLabel.multiline = true;
-			descLabel.wordWrap = true;
 			addChild(descLabel);
 
+			if (listHeaderLabel != null) {
+				addChild(listHeaderLabel);
+			}
+			if (listBoxBg != null) {
+				addChild(listBoxBg);
+			}
+			if (listScroll != null) {
+				addChild(listScroll);
+			}
+
 			// OK Button
-			const okBtn:Sprite = new Sprite();
-			okBtn.graphics.beginFill(0x333333, 1);
-			okBtn.graphics.drawRoundRect(0, 0, 80, 26, 6);
-			okBtn.graphics.endFill();
-
-			const okLabel:TextField = createLabel("OK", 0xffffff, 12, true);
-			okLabel.width = 80;
-			okLabel.height = 26;
-			okLabel.y = 3;
-			okBtn.addChild(okLabel);
-
-			okBtn.x = (UI_WIDTH - 80) / 2;
-			okBtn.y = UI_HEIGHT - PADDING - 26;
-			okBtn.buttonMode = true;
-			okBtn.useHandCursor = true;
-			okBtn.addEventListener(MouseEvent.CLICK, function(e:MouseEvent):void {
+			const self:Sprite = this;
+			const okBtn:MyButton = new MyButton("OK", 90, 28, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
 					visible = false;
-					// parent.removeChild(this);
+					if (self.parent != null) {
+						self.parent.removeChild(self);
+					}
 				});
+			okBtn.x = (UI_WIDTH - 90) / 2;
+			okBtn.y = boxHeight - PADDING - 28;
 			addChild(okBtn);
 		}
 
 		private function onAdded(e:Event):void {
 			removeEventListener(Event.ADDED_TO_STAGE, onAdded);
-			// Center on stage
 			this.x = (stage.stageWidth - UI_WIDTH) / 2;
-			this.y = (stage.stageHeight - UI_HEIGHT) / 2;
+			this.y = (stage.stageHeight - boxHeight) / 2;
 		}
 
-		private function createLabel(text:String, color:uint, size:int, bold:Boolean):TextField {
+		private function createLabel(text:String, color:uint, size:int, bold:Boolean, align:String = "center"):TextField {
 			const tf:TextField = new TextField();
 			tf.selectable = false;
 			tf.mouseEnabled = false;
-			const fmt:TextFormat = new TextFormat("_sans", size, color, bold, null, null, null, null, TextFormatAlign.CENTER);
+			const fmt:TextFormat = new TextFormat("_sans", size, color, bold, null, null, null, null, align);
 			tf.defaultTextFormat = fmt;
 			tf.text = text;
 			return tf;

@@ -81,14 +81,12 @@ package engine {
 				convertCommand(cmdName, cObj, convertedCmds, addDrop, unsupportedCounts);
 			}
 
-			if (logFn != null) {
-				var skippedList:Array = [];
-				for (var uName:String in unsupportedCounts) {
-					skippedList.push(uName + " x" + unsupportedCounts[uName]);
-				}
-				if (skippedList.length > 0) {
-					logFn("[GrimoireImporter] Unsupported .gbot commands converted to blank spacers: " + skippedList.join(", "));
-				}
+			var skippedList:Array = [];
+			for (var uName:String in unsupportedCounts) {
+				skippedList.push(uName + " (x" + unsupportedCounts[uName] + ")");
+			}
+			if (logFn != null && skippedList.length > 0) {
+				logFn("[GrimoireImporter] Unsupported .gbot commands converted to blank spacers: " + skippedList.join(", "));
 			}
 
 			return {
@@ -98,7 +96,8 @@ package engine {
 					"notifyItemDrops": true,
 					"whitelist": whitelist,
 					"quests": quests,
-					"commands": convertedCmds
+					"commands": convertedCmds,
+					"unsupportedCommands": skippedList
 				};
 		}
 
@@ -138,6 +137,38 @@ package engine {
 			return -1;
 		}
 
+		private static function pushHuntOrKill(out:Array, monsterRaw:*, itemRaw:*, qtyRaw:*):void {
+			var monster:String = monsterRaw != null ? Utils.trim(String(monsterRaw)) : "";
+			if (monster.length == 0) {
+				monster = "*";
+			}
+			var itemName:String = itemRaw != null ? Utils.trim(String(itemRaw)) : "";
+			var itemQty:int = Math.max(1, int(qtyRaw || 1));
+			var killMode:String = itemName.length > 0 ? "item" : "none";
+
+			if (monster == "*") {
+				out.push({
+						"type": BotCommand.TYPE_KILL,
+						"monster": "*",
+						"killMode": killMode,
+						"killCount": 1,
+						"itemName": itemName,
+						"itemQty": itemQty
+					});
+			}
+			else {
+				out.push({
+						"type": BotCommand.TYPE_HUNT,
+						"monster": monster,
+						"killMode": killMode,
+						"killCount": 1,
+						"itemName": itemName,
+						"itemQty": itemQty,
+						"mostMonstersOnly": true
+					});
+			}
+		}
+
 		private static function convertCommand(
 				cmdName:String,
 				cObj:Object,
@@ -159,29 +190,11 @@ package engine {
 								"pad": cObj.Pad != null && String(cObj.Pad).length > 0 ? String(cObj.Pad) : "Spawn"
 							});
 					}
-					var shItem:String = cObj.ItemName != null ? Utils.trim(String(cObj.ItemName)) : "";
-					out.push({
-							"type": BotCommand.TYPE_HUNT,
-							"monster": cObj.Monster != null && String(cObj.Monster).length > 0 ? String(cObj.Monster) : "*",
-							"killMode": shItem.length > 0 ? "item" : "none",
-							"killCount": 1,
-							"itemName": shItem,
-							"itemQty": Math.max(1, int(cObj.Quantity || 1)),
-							"mostMonstersOnly": true
-						});
+					pushHuntOrKill(out, cObj.Monster, cObj.ItemName, cObj.Quantity);
 					break;
 
 				case "CmdKillFor":
-					var kfItem:String = cObj.ItemName != null ? Utils.trim(String(cObj.ItemName)) : "";
-					out.push({
-							"type": BotCommand.TYPE_HUNT,
-							"monster": cObj.Monster != null && String(cObj.Monster).length > 0 ? String(cObj.Monster) : "*",
-							"killMode": kfItem.length > 0 ? "item" : "none",
-							"killCount": 1,
-							"itemName": kfItem,
-							"itemQty": Math.max(1, int(cObj.Quantity || 1)),
-							"mostMonstersOnly": true
-						});
+					pushHuntOrKill(out, cObj.Monster, cObj.ItemName, cObj.Quantity);
 					break;
 
 				case "CmdKill":
@@ -244,6 +257,13 @@ package engine {
 							"type": BotCommand.TYPE_QUEST_COMPLETE,
 							"questId": extractQuestId(cObj),
 							"itemId": extractQuestItemId(cObj)
+						});
+					break;
+
+				case "CmdAddQuestList":
+					out.push({
+							"type": BotCommand.TYPE_ADD_AUTO_QUEST,
+							"questId": int(cObj.Id != null ? cObj.Id : extractQuestId(cObj))
 						});
 					break;
 
@@ -346,6 +366,21 @@ package engine {
 							"type": BotCommand.TYPE_BLANK,
 							"description": cObj.Message != null ? String(cObj.Message) : (cObj.Text != null ? String(cObj.Text) : "")
 						});
+					break;
+
+				case "CmdPacket":
+					var pktStr:String = cObj.Packet != null ? String(cObj.Packet) : "";
+					var isClientPkt:Boolean = Boolean(cObj.ForClient);
+					var pktDelay:int = (cObj.Delay != null) ? int(cObj.Delay) : 1000;
+					var spamTimes:int = Math.max(1, int(cObj.SpamTimes != null ? cObj.SpamTimes : 1));
+					for (var sIdx:int = 0; sIdx < spamTimes; sIdx++) {
+						out.push({
+								"type": BotCommand.TYPE_SEND_PACKET,
+								"packet": pktStr,
+								"forClient": isClientPkt,
+								"delayMs": pktDelay
+							});
+					}
 					break;
 
 				// -------------------------------------------------------------
@@ -539,6 +574,14 @@ package engine {
 				case "CmdIsMember":
 					out.push({
 							"type": BotCommand.TYPE_IS_PLAYER_MEMBER,
+							"var1": "",
+							"var2": ""
+						});
+					break;
+
+				case "CmdIsNotMember":
+					out.push({
+							"type": BotCommand.TYPE_IS_PLAYER_NOT_MEMBER,
 							"var1": "",
 							"var2": ""
 						});

@@ -328,7 +328,7 @@ package input.bot_manager.modals {
 								onLoadedCallback(fileName);
 							}
 							close();
-							showAlert("Bot Loaded", "Successfully imported & loaded:\n" + fileName);
+							showBotLoadedAlert("Successfully imported & loaded:\n" + fileName);
 						}
 						else {
 							showAlert("Import Failed", "Invalid bot JSON configuration in file:\n" + fileName);
@@ -376,7 +376,7 @@ package input.bot_manager.modals {
 						onLoadedCallback(f.name);
 					}
 
-					showAlert("Bot Loaded", "Successfully loaded:\n" + f.name);
+					showBotLoadedAlert("Successfully loaded:\n" + f.name);
 				}
 				else {
 					showAlert("Import Failed", "Invalid bot JSON configuration in file:\n" + f.name);
@@ -387,8 +387,16 @@ package input.bot_manager.modals {
 			}
 		}
 
-		private function showAlert(title:String, desc:String):void {
-			const alert:InfoMessage = new InfoMessage(title, desc);
+		private function showBotLoadedAlert(baseMsg:String):void {
+			var warnings:Array = (botEngine != null && botEngine.lastImportWarnings != null && botEngine.lastImportWarnings.length > 0)
+				? botEngine.lastImportWarnings
+				: null;
+			var listTitle:String = warnings != null ? "Unsupported commands (converted to blank):" : null;
+			showAlert("Bot Loaded", baseMsg, warnings, listTitle);
+		}
+
+		private function showAlert(title:String, desc:String, listItems:Array = null, listTitle:String = null):void {
+			const alert:InfoMessage = new InfoMessage(title, desc, listItems, listTitle);
 			if (stage != null) {
 				stage.addChild(alert);
 			}

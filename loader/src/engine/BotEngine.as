@@ -48,6 +48,7 @@ package engine {
 		// Drop Whitelist
 		private var _whitelist:Array = [];
 		public var autoQuestList:Array = [];
+		public var lastImportWarnings:Array = [];
 		private var _autoQuest:AutoQuest;
 		// Internal engine timer & execution state
 		private var engineTimer:Timer = new Timer(500); // ticks every 500ms
@@ -821,6 +822,23 @@ package engine {
 			return 0;
 		}
 
+		public function addAutoQuest(questId:int):void {
+			if (questId <= 0) {
+				return;
+			}
+			var qStr:String = String(questId);
+			if (autoQuestList == null) {
+				autoQuestList = [];
+			}
+			if (autoQuestList.indexOf(qStr) < 0) {
+				autoQuestList.push(qStr);
+				if (AutoQuestUI.instance != null) {
+					AutoQuestUI.instance.setQuestIds(autoQuestList);
+				}
+				log("Added Quest [" + qStr + "] to AutoQuest list.");
+			}
+		}
+
 		public function isPlayerMember():Boolean {
 			try {
 				if (game == null || game.world == null || game.world.myAvatar == null)
@@ -958,6 +976,7 @@ package engine {
 		}
 
 		public function importConfigJSON(jsonStr:String):Boolean {
+			lastImportWarnings = [];
 			if (jsonStr == null || jsonStr.length == 0)
 				return false;
 			try {
@@ -969,6 +988,9 @@ package engine {
 					data = GrimoireImporter.convert(data, log);
 					if (data == null)
 						return false;
+					if (data.unsupportedCommands is Array) {
+						lastImportWarnings = data.unsupportedCommands as Array;
+					}
 				}
 
 				_loop = data.loop !== undefined ? Boolean(data.loop) : true;

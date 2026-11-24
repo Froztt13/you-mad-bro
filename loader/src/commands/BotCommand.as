@@ -11,10 +11,12 @@ package commands {
 		public static const TYPE_JUMP:String = "jump";
 		public static const TYPE_QUEST_ACCEPT:String = "quest_accept";
 		public static const TYPE_QUEST_COMPLETE:String = "quest_complete";
+		public static const TYPE_ADD_AUTO_QUEST:String = "add_auto_quest";
 		public static const TYPE_DELAY:String = "delay";
 		public static const TYPE_TRANSFER_TO_BANK:String = "transfer_to_bank";
 		public static const TYPE_TRANSFER_TO_INVENTORY:String = "transfer_to_inventory";
 		public static const TYPE_NOTIF:String = "notif";
+		public static const TYPE_SEND_PACKET:String = "send_packet";
 		public static const TYPE_LABEL:String = "label";
 		public static const TYPE_GOTO_LABEL:String = "goto_label";
 		public static const TYPE_RESTART_BOT:String = "restart_bot";
@@ -54,6 +56,7 @@ package commands {
 		public static const TYPE_IS_MONSTER_IN_ROOM:String = "is_monster_in_room";
 		public static const TYPE_IS_MONSTER_NOT_IN_ROOM:String = "is_monster_not_in_room";
 		public static const TYPE_IS_PLAYER_MEMBER:String = "is_player_member";
+		public static const TYPE_IS_PLAYER_NOT_MEMBER:String = "is_player_not_member";
 
 		public var type:String;
 
@@ -91,6 +94,8 @@ package commands {
 					return QuestAcceptCommand.fromJSON(data);
 				case TYPE_QUEST_COMPLETE:
 					return QuestCompleteCommand.fromJSON(data);
+				case TYPE_ADD_AUTO_QUEST:
+					return AddAutoQuestCommand.fromJSON(data);
 				case TYPE_DELAY:
 					return DelayCommand.fromJSON(data);
 				case TYPE_TRANSFER_TO_BANK:
@@ -99,6 +104,8 @@ package commands {
 					return TransferToInventoryCommand.fromJSON(data);
 				case TYPE_NOTIF:
 					return NotifCommand.fromJSON(data);
+				case TYPE_SEND_PACKET:
+					return SendPacketCommand.fromJSON(data);
 				case TYPE_LABEL:
 					return LabelCommand.fromJSON(data);
 				case TYPE_GOTO_LABEL:

@@ -12,10 +12,12 @@ package input.bot_manager.tabs {
 	import commands.GotoLabelCommand;
 	import commands.LabelCommand;
 	import commands.RestartBotCommand;
+	import commands.SendPacketCommand;
 	import commands.StopBotCommand;
 	import commands.conditions.BaseConditionalCommand;
 	import input.bot_manager.BotManagerUI;
 	import ui.MyButton;
+	import ui.MyCheckbox;
 	import ui.MyTextField;
 	import ui.UIUtils;
 
@@ -31,12 +33,14 @@ package input.bot_manager.tabs {
 		private var miscCondVar1Input:MyTextField;
 		private var miscCondVar2Label:TextField;
 		private var miscCondVar2Input:MyTextField;
+		private var packetInput:MyTextField;
+		private var packetForClientCheck:MyCheckbox;
 
 		public function BotMiscTab(manager:BotManagerUI) {
 			super();
 			this.manager = manager;
 			this.x = 10;
-			this.y = 10;
+			this.y = 6;
 
 			buildUI();
 		}
@@ -46,14 +50,14 @@ package input.bot_manager.tabs {
 
 			// 1. Label Section (1 input, 1 Add btn, 1 Goto btn)
 			const lblTitle:TextField = UIUtils.createLabel("Label:", UIUtils.TEXT_MUTED, 10.5);
-			lblTitle.y = 4;
+			lblTitle.y = 0;
 			addChild(lblTitle);
 
 			const currentLabelsBtn:Sprite = new Sprite();
 			currentLabelsBtn.buttonMode = true;
 			currentLabelsBtn.useHandCursor = true;
 			currentLabelsBtn.x = 42;
-			currentLabelsBtn.y = 4;
+			currentLabelsBtn.y = 0;
 
 			const currentLabelsLink:TextField = UIUtils.createLabel("[Browse Labels]", 0x38bdf8, 9.5, false);
 			currentLabelsLink.selectable = false;
@@ -73,7 +77,7 @@ package input.bot_manager.tabs {
 
 			miscLabelInput = new MyTextField(184, 24);
 			miscLabelInput.x = 0;
-			miscLabelInput.y = 22;
+			miscLabelInput.y = 17;
 			miscLabelInput.text = "";
 			miscLabelInput.addEventListener(Event.CHANGE, function(e:Event):void {
 					var sel:int = miscLabelInput.caretIndex;
@@ -89,7 +93,7 @@ package input.bot_manager.tabs {
 					}
 				});
 			addLabelBtn.x = 190;
-			addLabelBtn.y = 22;
+			addLabelBtn.y = 17;
 			addChild(addLabelBtn);
 
 			const gotoLabelBtn:MyButton = new MyButton("Goto", 66, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
@@ -99,59 +103,26 @@ package input.bot_manager.tabs {
 					}
 				});
 			gotoLabelBtn.x = 260;
-			gotoLabelBtn.y = 22;
+			gotoLabelBtn.y = 17;
 			addChild(gotoLabelBtn);
 
-			// Divider between Label and Bot Controls
+			// Divider between Label and Conditionals
 			const div1:Shape = new Shape();
 			div1.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
-			div1.graphics.moveTo(0, 58);
-			div1.graphics.lineTo(contentW, 58);
+			div1.graphics.moveTo(0, 51);
+			div1.graphics.lineTo(contentW, 51);
 			addChild(div1);
 
-			// 2. Bot Controls Section (Restart Bot, Stop Bot)
-			const ctrlTitle:TextField = UIUtils.createLabel("Bot Controls:", UIUtils.TEXT_MUTED, 10.5);
-			ctrlTitle.y = 66;
-			addChild(ctrlTitle);
-
-			const restartBtn:MyButton = new MyButton("Restart Bot", 100, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
-					manager.addBotCommand(new RestartBotCommand());
-				});
-			restartBtn.x = 0;
-			restartBtn.y = 86;
-			addChild(restartBtn);
-
-			const stopCmdBtn:MyButton = new MyButton("Stop Bot", 100, 24, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
-					manager.addBotCommand(new StopBotCommand());
-				});
-			stopCmdBtn.x = 108;
-			stopCmdBtn.y = 86;
-			addChild(stopCmdBtn);
-
-			const blankCmdBtn:MyButton = new MyButton("Blank Cmd", 100, 24, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
-					manager.addBotCommand(new BlankCommand());
-				});
-			blankCmdBtn.x = 216;
-			blankCmdBtn.y = 86;
-			addChild(blankCmdBtn);
-
-			// Divider between Bot Controls and Conditionals
-			const div2:Shape = new Shape();
-			div2.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
-			div2.graphics.moveTo(0, 122);
-			div2.graphics.lineTo(contentW, 122);
-			addChild(div2);
-
-			// 3. Conditional Command Section (Skip 1 command if false)
+			// 2. Conditional Command Section (Skip 1 command if false)
 			const condTitle:TextField = UIUtils.createLabel("Condition (Skip 1 command if false):", UIUtils.TEXT_MUTED, 10.5);
-			condTitle.y = 130;
+			condTitle.y = 61;
 			addChild(condTitle);
 
 			const browseCondBtn:Sprite = new Sprite();
 			browseCondBtn.buttonMode = true;
 			browseCondBtn.useHandCursor = true;
 			browseCondBtn.x = 188;
-			browseCondBtn.y = 130;
+			browseCondBtn.y = 61;
 
 			const browseCondLink:TextField = UIUtils.createLabel("[Browse Conditions]", 0x38bdf8, 9.5, false);
 			browseCondLink.selectable = false;
@@ -174,7 +145,7 @@ package input.bot_manager.tabs {
 			miscCondSelector.buttonMode = true;
 			miscCondSelector.useHandCursor = true;
 			miscCondSelector.x = 0;
-			miscCondSelector.y = 150;
+			miscCondSelector.y = 78;
 
 			const selectorBg:Shape = new Shape();
 			UIUtils.drawRoundedRect(selectorBg.graphics, 0, 0, 244, 24, 4, UIUtils.BG_RECESSED, 1.0, UIUtils.BORDER_NORMAL, 1);
@@ -209,31 +180,98 @@ package input.bot_manager.tabs {
 
 			const addCondBtn:MyButton = new MyButton("Add", 76, 24, MyButton.TYPE_PRIMARY, onAddConditionClick);
 			addCondBtn.x = 252;
-			addCondBtn.y = 150;
+			addCondBtn.y = 78;
 			addChild(addCondBtn);
 
 			miscCondVar1Label = UIUtils.createLabel("Name:", UIUtils.TEXT_MUTED, 10.5);
 			miscCondVar1Label.x = 0;
-			miscCondVar1Label.y = 180;
+			miscCondVar1Label.y = 107;
 			addChild(miscCondVar1Label);
 
 			miscCondVar2Label = UIUtils.createLabel("Qty:", UIUtils.TEXT_MUTED, 10.5);
 			miscCondVar2Label.x = 252;
-			miscCondVar2Label.y = 180;
+			miscCondVar2Label.y = 107;
 			addChild(miscCondVar2Label);
 
 			miscCondVar1Input = new MyTextField(244, 24);
 			miscCondVar1Input.x = 0;
-			miscCondVar1Input.y = 196;
+			miscCondVar1Input.y = 123;
 			miscCondVar1Input.text = "";
 			addChild(miscCondVar1Input);
 
 			miscCondVar2Input = new MyTextField(76, 24);
 			miscCondVar2Input.x = 252;
-			miscCondVar2Input.y = 196;
+			miscCondVar2Input.y = 123;
 			miscCondVar2Input.text = "1";
 			miscCondVar2Input.restrict = "0-9";
 			addChild(miscCondVar2Input);
+
+			// Divider between Conditionals and Send Packet
+			const div2:Shape = new Shape();
+			div2.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			div2.graphics.moveTo(0, 157);
+			div2.graphics.lineTo(contentW, 157);
+			addChild(div2);
+
+			// 3. Send Packet Section
+			const pktTitle:TextField = UIUtils.createLabel("Packet:", UIUtils.TEXT_MUTED, 10.5);
+			pktTitle.y = 167;
+			addChild(pktTitle);
+
+			packetForClientCheck = new MyCheckbox("For Client", false, null, 10);
+			packetForClientCheck.x = 252;
+			packetForClientCheck.y = 165;
+			addChild(packetForClientCheck);
+
+			packetInput = new MyTextField(244, 24);
+			packetInput.x = 0;
+			packetInput.y = 184;
+			packetInput.text = "";
+			addChild(packetInput);
+
+			const sendPktBtn:MyButton = new MyButton("Send", 76, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+					var rawPkt:String = packetInput.trimmedText;
+					if (rawPkt.length > 0) {
+						var isClient:Boolean = (packetForClientCheck != null) ? packetForClientCheck.checked : false;
+						manager.addBotCommand(new SendPacketCommand(rawPkt, isClient));
+					}
+				});
+			sendPktBtn.x = 252;
+			sendPktBtn.y = 184;
+			addChild(sendPktBtn);
+
+			// Divider between Send Packet and Bot Controls
+			const div3:Shape = new Shape();
+			div3.graphics.lineStyle(1, UIUtils.BORDER_SUBTLE, 0.7);
+			div3.graphics.moveTo(0, 218);
+			div3.graphics.lineTo(contentW, 218);
+			addChild(div3);
+
+			// 4. Bot Controls Section (Bottom)
+			const ctrlTitle:TextField = UIUtils.createLabel("Bot Controls:", UIUtils.TEXT_MUTED, 10.5);
+			ctrlTitle.y = 228;
+			addChild(ctrlTitle);
+
+			const restartBtn:MyButton = new MyButton("Restart Bot", 100, 24, MyButton.TYPE_PRIMARY, function(e:MouseEvent):void {
+					manager.addBotCommand(new RestartBotCommand());
+				});
+			restartBtn.x = 0;
+			restartBtn.y = 245;
+			addChild(restartBtn);
+
+			const stopCmdBtn:MyButton = new MyButton("Stop Bot", 100, 24, MyButton.TYPE_DANGER, function(e:MouseEvent):void {
+					manager.addBotCommand(new StopBotCommand());
+				});
+			stopCmdBtn.x = 108;
+			stopCmdBtn.y = 245;
+			addChild(stopCmdBtn);
+
+			const blankCmdBtn:MyButton = new MyButton("Blank Cmd", 100, 24, MyButton.TYPE_SECONDARY, function(e:MouseEvent):void {
+					manager.addBotCommand(new BlankCommand());
+				});
+			blankCmdBtn.x = 216;
+			blankCmdBtn.y = 245;
+			addChild(blankCmdBtn);
 
 			setSelectedCondition(BotCommand.TYPE_IS_ITEM_IN_INV);
 		}

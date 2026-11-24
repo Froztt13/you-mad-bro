@@ -200,7 +200,7 @@ jobs:
           sed -i '' "s/<fullScreen>.*<\/fullScreen>/<fullScreen>false<\/fullScreen>/" loader/app.xml
 
           if grep -q "requestedDisplayResolution" loader/app.xml; then
-            sed -i '' "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>standard<\/requestedDisplayResolution>/" loader/app.xml
+            sed -i '' "s/<requestedDisplayResolution>.*<\/requestedDisplayResolution>/<requestedDisplayResolution>high<\/requestedDisplayResolution>/" loader/app.xml
           fi
 
           if [ -f "loader/src/Main.as" ]; then

@@ -21,7 +21,7 @@
     <maximizable>true</maximizable>
     <minimizable>true</minimizable>
     <resizable>true</resizable>
-    <requestedDisplayResolution>standard</requestedDisplayResolution>
+    <requestedDisplayResolution>high</requestedDisplayResolution>
   </initialWindow>
   <icon>
     <image36x36>icons/android-icon-36x36.png</image36x36>
