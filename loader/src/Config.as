@@ -11,7 +11,7 @@ package {
 
 		public static const GAME_SWF_PATH:String = "app:/gamefiles/Game.swf";
 
-		public static const APP_VERSION:String = "v1.1.0";
+		public static const APP_VERSION:String = "v1.2.0";
 
 		public static const GITHUB_REPO:String = "Froztt13/you-mad-bro";
 		public static const GITHUB_API_LATEST_RELEASE:String = "https://api.github.com/repos/" + GITHUB_REPO + "/releases/latest";
