@@ -21,23 +21,38 @@ package commands {
 		public static const TYPE_STOP_BOT:String = "stop_bot";
 		public static const TYPE_WALK:String = "walk";
 		public static const TYPE_EQUIP_ITEM:String = "equip_item";
+		public static const TYPE_SELL_ITEM:String = "sell_item";
 		public static const TYPE_GET_MAP_ITEM:String = "get_map_item";
 		public static const TYPE_BUY_ITEM:String = "buy_item";
 		public static const TYPE_BLANK:String = "blank";
 
 		public static const TYPE_IS_ITEM_IN_INV:String = "is_item_in_inventory";
 		public static const TYPE_IS_ITEM_NOT_IN_INV:String = "is_item_not_in_inventory";
+		public static const TYPE_IS_ITEM_IN_BANK:String = "is_item_in_bank";
+		public static const TYPE_IS_ITEM_NOT_IN_BANK:String = "is_item_not_in_bank";
 		public static const TYPE_IS_ITEM_EQUIPED:String = "is_item_equiped";
 		public static const TYPE_IS_ITEM_NOT_EQUIPED:String = "is_item_not_equiped";
 		public static const TYPE_IS_QUEST_AVAILABLE:String = "is_quest_available";
 		public static const TYPE_IS_QUEST_NOT_AVAILABLE:String = "is_quest_not_available";
+		public static const TYPE_IS_QUEST_IN_PROGRESS:String = "is_quest_in_progress";
+		public static const TYPE_IS_QUEST_NOT_IN_PROGRESS:String = "is_quest_not_in_progress";
 		public static const TYPE_IS_QUEST_CAN_BE_TURNED_IN:String = "is_quest_can_be_turned_in";
 		public static const TYPE_IS_GOLD_GREATER:String = "is_gold_greater";
 		public static const TYPE_IS_GOLD_LESS:String = "is_gold_less";
+		public static const TYPE_IS_HEALTH_GREATER:String = "is_health_greater";
+		public static const TYPE_IS_HEALTH_LESS:String = "is_health_less";
+		public static const TYPE_IS_MANA_GREATER:String = "is_mana_greater";
+		public static const TYPE_IS_MANA_LESS:String = "is_mana_less";
+		public static const TYPE_IS_LEVEL_GREATER:String = "is_level_greater";
+		public static const TYPE_IS_LEVEL_LESS:String = "is_level_less";
+		public static const TYPE_IS_PLAYER_AURA_GREATER:String = "is_player_aura_greater";
+		public static const TYPE_IS_PLAYER_AURA_LESS:String = "is_player_aura_less";
 		public static const TYPE_IS_MAP:String = "is_map";
 		public static const TYPE_IS_MAP_NOT:String = "is_map_not";
 		public static const TYPE_IS_CELL:String = "is_cell";
 		public static const TYPE_IS_CELL_NOT:String = "is_cell_not";
+		public static const TYPE_IS_MONSTER_IN_ROOM:String = "is_monster_in_room";
+		public static const TYPE_IS_MONSTER_NOT_IN_ROOM:String = "is_monster_not_in_room";
 		public static const TYPE_IS_PLAYER_MEMBER:String = "is_player_member";
 
 		public var type:String;
@@ -66,6 +81,8 @@ package commands {
 					return WalkCommand.fromJSON(data);
 				case TYPE_EQUIP_ITEM:
 					return EquipItemCommand.fromJSON(data);
+				case TYPE_SELL_ITEM:
+					return SellItemCommand.fromJSON(data);
 				case TYPE_GET_MAP_ITEM:
 					return GetMapItemCommand.fromJSON(data);
 				case TYPE_BUY_ITEM:

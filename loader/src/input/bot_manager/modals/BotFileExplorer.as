@@ -58,7 +58,7 @@ package input.bot_manager.modals {
 			addChild(loadListScroll);
 
 			loadEmptyLabel = UIUtils.createLabel(
-					"No bot files (.json) found.",
+					"No bot files (.json / .gbot) found.",
 					UIUtils.TEXT_DIM,
 					11,
 					false,
@@ -230,9 +230,9 @@ package input.bot_manager.modals {
 							else {
 								var nameLower:String = fn.toLowerCase();
 								var extLower:String = f.extension != null ? f.extension.toLowerCase() : "";
-								var isBot:Boolean = (extLower == "json" || extLower == "txt");
+								var isBot:Boolean = (extLower == "json" || extLower == "gbot" || extLower == "txt");
 								if (!isBot && nameLower.length > 5) {
-									isBot = (nameLower.substr(nameLower.length - 5) == ".json" || nameLower.substr(nameLower.length - 4) == ".txt");
+									isBot = (nameLower.substr(nameLower.length - 5) == ".json" || nameLower.substr(nameLower.length - 5) == ".gbot" || nameLower.substr(nameLower.length - 4) == ".txt");
 								}
 
 								if (isBot && !seenFileNames[nameLower]) {
@@ -264,7 +264,7 @@ package input.bot_manager.modals {
 
 			if (currentFolders.length == 0 && currentFiles.length == 0) {
 				if (canGoUp()) {
-					loadEmptyLabel.text = "This folder is empty.\nNo bot files (.json) found.";
+					loadEmptyLabel.text = "This folder is empty.\nNo bot files (.json / .gbot) found.";
 					loadEmptyLabel.y = rowIndex * (rowH + gap) + 30;
 					loadListScroll.addItem(loadEmptyLabel);
 					loadEmptyLabel.visible = true;
@@ -277,8 +277,8 @@ package input.bot_manager.modals {
 					if (displayDir.indexOf("/storage/emulated/0/") == 0) {
 						displayDir = displayDir.replace("/storage/emulated/0/", "Internal Storage > ");
 					}
-					loadEmptyLabel.text = "No bot files (.json) found.\n\n" +
-						"Place .json files in:\n" + displayDir + "\n\n" +
+					loadEmptyLabel.text = "No bot files (.json / .gbot) found.\n\n" +
+						"Place .json or .gbot files in:\n" + displayDir + "\n\n" +
 						"(Ensure Storage / Documents permission is allowed in Settings)";
 					loadEmptyLabel.y = 50;
 					loadListScroll.addItem(loadEmptyLabel);

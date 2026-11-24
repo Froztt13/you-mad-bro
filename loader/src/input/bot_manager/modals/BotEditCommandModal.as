@@ -335,10 +335,13 @@ package input.bot_manager.modals {
 				editDelayInput.restrict = "0-9.";
 				editModalFormContainer.addChild(editDelayInput);
 			}
-			else if (cmd is TransferToBankCommand || cmd is TransferToInventoryCommand || cmd is EquipItemCommand) {
+			else if (cmd is TransferToBankCommand || cmd is TransferToInventoryCommand || cmd is EquipItemCommand || cmd is SellItemCommand) {
 				var itmName:String = "";
 				if (cmd is EquipItemCommand) {
 					itmName = (cmd as EquipItemCommand).itemName;
+				}
+				else if (cmd is SellItemCommand) {
+					itmName = (cmd as SellItemCommand).itemName;
 				}
 				else if (cmd is TransferToBankCommand) {
 					itmName = (cmd as TransferToBankCommand).itemName;
@@ -645,6 +648,13 @@ package input.bot_manager.modals {
 				var iname3:String = editItemTransferInput.trimmedText;
 				if (iname3.length > 0) {
 					eqcmd.itemName = iname3;
+				}
+			}
+			else if (editingCmd is SellItemCommand) {
+				var slcmd:SellItemCommand = editingCmd as SellItemCommand;
+				var iname4:String = editItemTransferInput.trimmedText;
+				if (iname4.length > 0) {
+					slcmd.itemName = iname4;
 				}
 			}
 			else if (editingCmd is WalkCommand) {

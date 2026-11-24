@@ -739,6 +739,88 @@ package engine {
 			return null;
 		}
 
+		public function getBankItemQuantity(itemName:String):int {
+			var item:Object = getBankItemByName(itemName);
+			if (item != null) {
+				return int(item.iQty != null ? item.iQty : 1);
+			}
+			return 0;
+		}
+
+		public function isQuestInProgress(questId:int):Boolean {
+			try {
+				if (game == null || game.world == null || game.world.isQuestInProgress == null) {
+					return false;
+				}
+				return Boolean(game.world.isQuestInProgress(questId));
+			}
+			catch (e:Error) {
+			}
+			return false;
+		}
+
+		public function isMonsterInRoom(monsterName:String):Boolean {
+			try {
+				if (game == null || game.world == null || game.world.getMonstersByCell == null) {
+					return false;
+				}
+				var target:String = (monsterName != null && monsterName.length > 0) ? Utils.trim(monsterName).toLowerCase() : "*";
+				var monsters:Array = game.world.getMonstersByCell(game.world.strFrame);
+				if (monsters == null) {
+					return false;
+				}
+				for each (var mon:Object in monsters) {
+					if (mon != null && mon.dataLeaf != null && int(mon.dataLeaf.intState) > 0) {
+						if (target == "*") {
+							return true;
+						}
+						if (mon.pMC != null && mon.pMC.pname != null && mon.pMC.pname.ti != null) {
+							var mName:String = String(mon.pMC.pname.ti.text).toLowerCase();
+							if (mName.indexOf(target) > -1) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+			catch (e:Error) {
+			}
+			return false;
+		}
+
+		public function getHealth():int {
+			try {
+				if (game != null && game.world != null && game.world.myAvatar != null && game.world.myAvatar.dataLeaf != null) {
+					return int(game.world.myAvatar.dataLeaf.intHP);
+				}
+			}
+			catch (e:Error) {
+			}
+			return 0;
+		}
+
+		public function getMana():int {
+			try {
+				if (game != null && game.world != null && game.world.myAvatar != null && game.world.myAvatar.dataLeaf != null) {
+					return int(game.world.myAvatar.dataLeaf.intMP);
+				}
+			}
+			catch (e:Error) {
+			}
+			return 0;
+		}
+
+		public function getLevel():int {
+			try {
+				if (game != null && game.world != null && game.world.myAvatar != null && game.world.myAvatar.dataLeaf != null) {
+					return int(game.world.myAvatar.dataLeaf.intLevel);
+				}
+			}
+			catch (e:Error) {
+			}
+			return 0;
+		}
+
 		public function isPlayerMember():Boolean {
 			try {
 				if (game == null || game.world == null || game.world.myAvatar == null)
@@ -882,6 +964,12 @@ package engine {
 				var data:Object = JSON.parse(jsonStr);
 				if (data == null)
 					return false;
+
+				if (GrimoireImporter.isGrimoireConfig(data)) {
+					data = GrimoireImporter.convert(data, log);
+					if (data == null)
+						return false;
+				}
 
 				_loop = data.loop !== undefined ? Boolean(data.loop) : true;
 				_leaveCombatOnStop = data.leaveCombatOnStop !== undefined ? Boolean(data.leaveCombatOnStop) : true;

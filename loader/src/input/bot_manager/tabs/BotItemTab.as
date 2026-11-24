@@ -7,6 +7,7 @@ package input.bot_manager.tabs {
 
 	import commands.BuyItemCommand;
 	import commands.EquipItemCommand;
+	import commands.SellItemCommand;
 	import commands.TransferToBankCommand;
 	import commands.TransferToInventoryCommand;
 	import input.bot_manager.BotManagerUI;
@@ -55,6 +56,7 @@ package input.bot_manager.tabs {
 
 			const actionItems:Array = [
 					{label: "Equip", value: "equip"},
+					{label: "Sell", value: "sell"},
 					{label: "Transfer to Bank", value: "bank"},
 					{label: "Transfer to Invent", value: "inv"}
 				];
@@ -72,6 +74,9 @@ package input.bot_manager.tabs {
 					var act:String = String(actionDropdown.selectedValue);
 					if (act == "equip") {
 						manager.addBotCommand(new EquipItemCommand(name));
+					}
+					else if (act == "sell") {
+						manager.addBotCommand(new SellItemCommand(name));
 					}
 					else if (act == "bank") {
 						manager.addBotCommand(new TransferToBankCommand(name));

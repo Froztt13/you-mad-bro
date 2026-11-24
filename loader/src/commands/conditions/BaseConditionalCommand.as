@@ -109,18 +109,32 @@ package commands.conditions {
 			return [
 					{label: IsItemInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_IN_INV, category: CATEGORY_ITEM, description: "Check if item is in inventory (optional count)"},
 					{label: IsItemNotInInventoryCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_IN_INV, category: CATEGORY_ITEM, description: "Check if item is NOT in inventory (or below count)"},
+					{label: IsItemInBankCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_IN_BANK, category: CATEGORY_ITEM, description: "Check if item is in bank (optional count)"},
+					{label: IsItemNotInBankCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_IN_BANK, category: CATEGORY_ITEM, description: "Check if item is NOT in bank (or below count)"},
 					{label: IsItemEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_EQUIPED, category: CATEGORY_ITEM, description: "Check if item is currently equipped"},
 					{label: IsItemNotEquipedCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_ITEM_NOT_EQUIPED, category: CATEGORY_ITEM, description: "Check if item is NOT currently equipped"},
 					{label: IsQuestAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_AVAILABLE, category: CATEGORY_QUEST, description: "Check if quest is available to accept"},
 					{label: IsQuestNotAvailableCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE, category: CATEGORY_QUEST, description: "Check if quest is NOT available to accept"},
+					{label: IsQuestInProgressCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_IN_PROGRESS, category: CATEGORY_QUEST, description: "Check if quest is currently in progress"},
+					{label: IsQuestNotInProgressCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_NOT_IN_PROGRESS, category: CATEGORY_QUEST, description: "Check if quest is NOT currently in progress"},
 					{label: IsQuestCanBeTurnedInCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN, category: CATEGORY_QUEST, description: "Check if quest requirements are met & ready to turn in"},
 					{label: IsGoldGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_GREATER, category: CATEGORY_PLAYER, description: "Check if player gold is greater than amount"},
 					{label: IsGoldLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_GOLD_LESS, category: CATEGORY_PLAYER, description: "Check if player gold is less than amount"},
+					{label: IsHealthGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_HEALTH_GREATER, category: CATEGORY_PLAYER, description: "Check if player HP is greater than amount"},
+					{label: IsHealthLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_HEALTH_LESS, category: CATEGORY_PLAYER, description: "Check if player HP is less than amount"},
+					{label: IsManaGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MANA_GREATER, category: CATEGORY_PLAYER, description: "Check if player MP is greater than amount"},
+					{label: IsManaLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MANA_LESS, category: CATEGORY_PLAYER, description: "Check if player MP is less than amount"},
+					{label: IsLevelGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_LEVEL_GREATER, category: CATEGORY_PLAYER, description: "Check if player level is greater than value"},
+					{label: IsLevelLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_LEVEL_LESS, category: CATEGORY_PLAYER, description: "Check if player level is less than value"},
+					{label: IsPlayerAuraGreaterThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_AURA_GREATER, category: CATEGORY_PLAYER, description: "Check if player aura value is greater than target"},
+					{label: IsPlayerAuraLessThanCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_AURA_LESS, category: CATEGORY_PLAYER, description: "Check if player aura value is less than target"},
 					{label: IsPlayerMemberCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_PLAYER_MEMBER, category: CATEGORY_PLAYER, description: "Check if player has an active membership / upgrade"},
 					{label: IsMapCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP, category: CATEGORY_MAP, description: "Check if current map matches specified name"},
 					{label: IsMapNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MAP_NOT, category: CATEGORY_MAP, description: "Check if current map does NOT match name"},
 					{label: IsCellCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL, category: CATEGORY_MAP, description: "Check if player is in specified cell"},
-					{label: IsCellNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL_NOT, category: CATEGORY_MAP, description: "Check if player is NOT in specified cell"}
+					{label: IsCellNotCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_CELL_NOT, category: CATEGORY_MAP, description: "Check if player is NOT in specified cell"},
+					{label: IsMonsterInRoomCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MONSTER_IN_ROOM, category: CATEGORY_MAP, description: "Check if monster is alive in current cell"},
+					{label: IsMonsterNotInRoomCommand.COMMAND_LABEL, value: BotCommand.TYPE_IS_MONSTER_NOT_IN_ROOM, category: CATEGORY_MAP, description: "Check if monster is NOT alive in current cell"}
 				];
 		}
 
@@ -322,6 +336,188 @@ package commands.conditions {
 							var2Restrict: IsPlayerMemberCommand.VAR2_RESTRICT,
 							var2Default: IsPlayerMemberCommand.VAR2_DEFAULT
 						};
+				case BotCommand.TYPE_IS_ITEM_IN_BANK:
+					return {
+							type: type,
+							label: IsItemInBankCommand.COMMAND_LABEL,
+							category: CATEGORY_ITEM,
+							description: "Check if item is in bank (optional count)",
+							var1Label: IsItemInBankCommand.VAR1_LABEL,
+							var1Restrict: IsItemInBankCommand.VAR1_RESTRICT,
+							var1Default: IsItemInBankCommand.VAR1_DEFAULT,
+							var2Label: IsItemInBankCommand.VAR2_LABEL,
+							var2Restrict: IsItemInBankCommand.VAR2_RESTRICT,
+							var2Default: IsItemInBankCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_ITEM_NOT_IN_BANK:
+					return {
+							type: type,
+							label: IsItemNotInBankCommand.COMMAND_LABEL,
+							category: CATEGORY_ITEM,
+							description: "Check if item is NOT in bank (or below count)",
+							var1Label: IsItemNotInBankCommand.VAR1_LABEL,
+							var1Restrict: IsItemNotInBankCommand.VAR1_RESTRICT,
+							var1Default: IsItemNotInBankCommand.VAR1_DEFAULT,
+							var2Label: IsItemNotInBankCommand.VAR2_LABEL,
+							var2Restrict: IsItemNotInBankCommand.VAR2_RESTRICT,
+							var2Default: IsItemNotInBankCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_QUEST_IN_PROGRESS:
+					return {
+							type: type,
+							label: IsQuestInProgressCommand.COMMAND_LABEL,
+							category: CATEGORY_QUEST,
+							description: "Check if quest is currently in progress",
+							var1Label: IsQuestInProgressCommand.VAR1_LABEL,
+							var1Restrict: IsQuestInProgressCommand.VAR1_RESTRICT,
+							var1Default: IsQuestInProgressCommand.VAR1_DEFAULT,
+							var2Label: IsQuestInProgressCommand.VAR2_LABEL,
+							var2Restrict: IsQuestInProgressCommand.VAR2_RESTRICT,
+							var2Default: IsQuestInProgressCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_QUEST_NOT_IN_PROGRESS:
+					return {
+							type: type,
+							label: IsQuestNotInProgressCommand.COMMAND_LABEL,
+							category: CATEGORY_QUEST,
+							description: "Check if quest is NOT currently in progress",
+							var1Label: IsQuestNotInProgressCommand.VAR1_LABEL,
+							var1Restrict: IsQuestNotInProgressCommand.VAR1_RESTRICT,
+							var1Default: IsQuestNotInProgressCommand.VAR1_DEFAULT,
+							var2Label: IsQuestNotInProgressCommand.VAR2_LABEL,
+							var2Restrict: IsQuestNotInProgressCommand.VAR2_RESTRICT,
+							var2Default: IsQuestNotInProgressCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_HEALTH_GREATER:
+					return {
+							type: type,
+							label: IsHealthGreaterThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player HP is greater than amount",
+							var1Label: IsHealthGreaterThanCommand.VAR1_LABEL,
+							var1Restrict: IsHealthGreaterThanCommand.VAR1_RESTRICT,
+							var1Default: IsHealthGreaterThanCommand.VAR1_DEFAULT,
+							var2Label: IsHealthGreaterThanCommand.VAR2_LABEL,
+							var2Restrict: IsHealthGreaterThanCommand.VAR2_RESTRICT,
+							var2Default: IsHealthGreaterThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_HEALTH_LESS:
+					return {
+							type: type,
+							label: IsHealthLessThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player HP is less than amount",
+							var1Label: IsHealthLessThanCommand.VAR1_LABEL,
+							var1Restrict: IsHealthLessThanCommand.VAR1_RESTRICT,
+							var1Default: IsHealthLessThanCommand.VAR1_DEFAULT,
+							var2Label: IsHealthLessThanCommand.VAR2_LABEL,
+							var2Restrict: IsHealthLessThanCommand.VAR2_RESTRICT,
+							var2Default: IsHealthLessThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_MANA_GREATER:
+					return {
+							type: type,
+							label: IsManaGreaterThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player MP is greater than amount",
+							var1Label: IsManaGreaterThanCommand.VAR1_LABEL,
+							var1Restrict: IsManaGreaterThanCommand.VAR1_RESTRICT,
+							var1Default: IsManaGreaterThanCommand.VAR1_DEFAULT,
+							var2Label: IsManaGreaterThanCommand.VAR2_LABEL,
+							var2Restrict: IsManaGreaterThanCommand.VAR2_RESTRICT,
+							var2Default: IsManaGreaterThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_MANA_LESS:
+					return {
+							type: type,
+							label: IsManaLessThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player MP is less than amount",
+							var1Label: IsManaLessThanCommand.VAR1_LABEL,
+							var1Restrict: IsManaLessThanCommand.VAR1_RESTRICT,
+							var1Default: IsManaLessThanCommand.VAR1_DEFAULT,
+							var2Label: IsManaLessThanCommand.VAR2_LABEL,
+							var2Restrict: IsManaLessThanCommand.VAR2_RESTRICT,
+							var2Default: IsManaLessThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_LEVEL_GREATER:
+					return {
+							type: type,
+							label: IsLevelGreaterThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player level is greater than value",
+							var1Label: IsLevelGreaterThanCommand.VAR1_LABEL,
+							var1Restrict: IsLevelGreaterThanCommand.VAR1_RESTRICT,
+							var1Default: IsLevelGreaterThanCommand.VAR1_DEFAULT,
+							var2Label: IsLevelGreaterThanCommand.VAR2_LABEL,
+							var2Restrict: IsLevelGreaterThanCommand.VAR2_RESTRICT,
+							var2Default: IsLevelGreaterThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_LEVEL_LESS:
+					return {
+							type: type,
+							label: IsLevelLessThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player level is less than value",
+							var1Label: IsLevelLessThanCommand.VAR1_LABEL,
+							var1Restrict: IsLevelLessThanCommand.VAR1_RESTRICT,
+							var1Default: IsLevelLessThanCommand.VAR1_DEFAULT,
+							var2Label: IsLevelLessThanCommand.VAR2_LABEL,
+							var2Restrict: IsLevelLessThanCommand.VAR2_RESTRICT,
+							var2Default: IsLevelLessThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_PLAYER_AURA_GREATER:
+					return {
+							type: type,
+							label: IsPlayerAuraGreaterThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player aura value is greater than target",
+							var1Label: IsPlayerAuraGreaterThanCommand.VAR1_LABEL,
+							var1Restrict: IsPlayerAuraGreaterThanCommand.VAR1_RESTRICT,
+							var1Default: IsPlayerAuraGreaterThanCommand.VAR1_DEFAULT,
+							var2Label: IsPlayerAuraGreaterThanCommand.VAR2_LABEL,
+							var2Restrict: IsPlayerAuraGreaterThanCommand.VAR2_RESTRICT,
+							var2Default: IsPlayerAuraGreaterThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_PLAYER_AURA_LESS:
+					return {
+							type: type,
+							label: IsPlayerAuraLessThanCommand.COMMAND_LABEL,
+							category: CATEGORY_PLAYER,
+							description: "Check if player aura value is less than target",
+							var1Label: IsPlayerAuraLessThanCommand.VAR1_LABEL,
+							var1Restrict: IsPlayerAuraLessThanCommand.VAR1_RESTRICT,
+							var1Default: IsPlayerAuraLessThanCommand.VAR1_DEFAULT,
+							var2Label: IsPlayerAuraLessThanCommand.VAR2_LABEL,
+							var2Restrict: IsPlayerAuraLessThanCommand.VAR2_RESTRICT,
+							var2Default: IsPlayerAuraLessThanCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_MONSTER_IN_ROOM:
+					return {
+							type: type,
+							label: IsMonsterInRoomCommand.COMMAND_LABEL,
+							category: CATEGORY_MAP,
+							description: "Check if monster is alive in current cell",
+							var1Label: IsMonsterInRoomCommand.VAR1_LABEL,
+							var1Restrict: IsMonsterInRoomCommand.VAR1_RESTRICT,
+							var1Default: IsMonsterInRoomCommand.VAR1_DEFAULT,
+							var2Label: IsMonsterInRoomCommand.VAR2_LABEL,
+							var2Restrict: IsMonsterInRoomCommand.VAR2_RESTRICT,
+							var2Default: IsMonsterInRoomCommand.VAR2_DEFAULT
+						};
+				case BotCommand.TYPE_IS_MONSTER_NOT_IN_ROOM:
+					return {
+							type: type,
+							label: IsMonsterNotInRoomCommand.COMMAND_LABEL,
+							category: CATEGORY_MAP,
+							description: "Check if monster is NOT alive in current cell",
+							var1Label: IsMonsterNotInRoomCommand.VAR1_LABEL,
+							var1Restrict: IsMonsterNotInRoomCommand.VAR1_RESTRICT,
+							var1Default: IsMonsterNotInRoomCommand.VAR1_DEFAULT,
+							var2Label: IsMonsterNotInRoomCommand.VAR2_LABEL,
+							var2Restrict: IsMonsterNotInRoomCommand.VAR2_RESTRICT,
+							var2Default: IsMonsterNotInRoomCommand.VAR2_DEFAULT
+						};
 				default:
 					return null;
 			}
@@ -338,17 +534,31 @@ package commands.conditions {
 				_classRegistry = {};
 				_classRegistry[BotCommand.TYPE_IS_ITEM_IN_INV] = IsItemInInventoryCommand;
 				_classRegistry[BotCommand.TYPE_IS_ITEM_NOT_IN_INV] = IsItemNotInInventoryCommand;
+				_classRegistry[BotCommand.TYPE_IS_ITEM_IN_BANK] = IsItemInBankCommand;
+				_classRegistry[BotCommand.TYPE_IS_ITEM_NOT_IN_BANK] = IsItemNotInBankCommand;
 				_classRegistry[BotCommand.TYPE_IS_ITEM_EQUIPED] = IsItemEquipedCommand;
 				_classRegistry[BotCommand.TYPE_IS_ITEM_NOT_EQUIPED] = IsItemNotEquipedCommand;
 				_classRegistry[BotCommand.TYPE_IS_QUEST_AVAILABLE] = IsQuestAvailableCommand;
 				_classRegistry[BotCommand.TYPE_IS_QUEST_NOT_AVAILABLE] = IsQuestNotAvailableCommand;
+				_classRegistry[BotCommand.TYPE_IS_QUEST_IN_PROGRESS] = IsQuestInProgressCommand;
+				_classRegistry[BotCommand.TYPE_IS_QUEST_NOT_IN_PROGRESS] = IsQuestNotInProgressCommand;
 				_classRegistry[BotCommand.TYPE_IS_QUEST_CAN_BE_TURNED_IN] = IsQuestCanBeTurnedInCommand;
 				_classRegistry[BotCommand.TYPE_IS_GOLD_GREATER] = IsGoldGreaterThanCommand;
 				_classRegistry[BotCommand.TYPE_IS_GOLD_LESS] = IsGoldLessThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_HEALTH_GREATER] = IsHealthGreaterThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_HEALTH_LESS] = IsHealthLessThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_MANA_GREATER] = IsManaGreaterThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_MANA_LESS] = IsManaLessThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_LEVEL_GREATER] = IsLevelGreaterThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_LEVEL_LESS] = IsLevelLessThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_PLAYER_AURA_GREATER] = IsPlayerAuraGreaterThanCommand;
+				_classRegistry[BotCommand.TYPE_IS_PLAYER_AURA_LESS] = IsPlayerAuraLessThanCommand;
 				_classRegistry[BotCommand.TYPE_IS_MAP] = IsMapCommand;
 				_classRegistry[BotCommand.TYPE_IS_MAP_NOT] = IsMapNotCommand;
 				_classRegistry[BotCommand.TYPE_IS_CELL] = IsCellCommand;
 				_classRegistry[BotCommand.TYPE_IS_CELL_NOT] = IsCellNotCommand;
+				_classRegistry[BotCommand.TYPE_IS_MONSTER_IN_ROOM] = IsMonsterInRoomCommand;
+				_classRegistry[BotCommand.TYPE_IS_MONSTER_NOT_IN_ROOM] = IsMonsterNotInRoomCommand;
 				_classRegistry[BotCommand.TYPE_IS_PLAYER_MEMBER] = IsPlayerMemberCommand;
 			}
 			return _classRegistry;
