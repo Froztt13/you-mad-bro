@@ -28,8 +28,8 @@ Full user guides, tab-by-tab Bot Manager references, class combat rotations, and
 | Documentation Section | Description |
 | :--- | :--- |
 | **[Bot Manager UI Guide](https://froztt13.github.io/you-mad-bro/#bot-manager-overview)** | In-depth breakdown of all 6 tabs (Combat, Quest, Map, Item, Misc, Settings) and modals. |
-| **[14 Conditional Logics](https://froztt13.github.io/you-mad-bro/#conditionals)** | Flow control guards (Inventory, Equipment, Quests, Gold, Map, Cell, Membership). |
-| **[Subfolder Script Explorer](https://froztt13.github.io/you-mad-bro/#file-explorer)** | Nested directory browser, breadcrumb navigation, and 1-click overwrite detection. |
+| **[28 Conditional Logics](https://froztt13.github.io/you-mad-bro/#conditionals)** | Flow control guards (Inventory, Bank, Equipment, Quests, Gold, HP/MP, Level, Aura, Map, Cell, Monster, Membership). |
+| **[Subfolder Script Explorer](https://froztt13.github.io/you-mad-bro/#file-explorer)** | Nested directory browser (`.json` & Grimlite `.gbot`), breadcrumb navigation, and 1-click overwrite detection. |
 | **[Dedicated Class Combos](https://froztt13.github.io/you-mad-bro/#class-combos)** | Optimized combat rotations for CSH, Arcana Invoker, Master Ranger, VHL, DoT, and more. |
 | **[Background Service (ANE)](https://froztt13.github.io/you-mad-bro/#background-botting)** | Partial WakeLock, WifiLock, and Picture-in-Picture (PiP) multitasking setup. |
 
@@ -40,6 +40,7 @@ Full user guides, tab-by-tab Bot Manager references, class combat rotations, and
 * **24/7 Background Farming**: Native Java Android ANE (`BatteryOptimizer`) maintains CPU WakeLock, WifiLock, and Foreground Service to prevent OS suspension when the screen turns off.
 * **Picture-in-Picture (PiP)**: Keep a live floating game viewport over other applications while multitasking (Auto-enters PiP on Android 12+).
 * **Exact-Match Smart Hunt**: Intelligent cross-cell jumping that verifies exact monster names, preventing unintended target lock-on (e.g. distinguishing *"Luxuria"* from *"Luxuria Guard"*).
+* **Direct Grimlite `.gbot` Import**: Load native `.json` scripts as well as Grimoire/Grimlite `.gbot` configurations directly from the Bot Load Modal or Android SAF picker.
 * **Mobile Touch Ergonomics**: Responsive 360-degree virtual analog joystick with custom drag-and-drop repositioning (*Edit Layout* mode) and a floating non-obstructive chat preview bar.
 * **Account Vault**: Secure on-device credential storage for multiple characters with 1-tap quick switching and password auto-fill.
 * **Aggressive Memory Reclamation**: Independent map `ApplicationDomain` sandboxing and stage cleanup routines to eliminate memory bloat during multi-hour farming runs.

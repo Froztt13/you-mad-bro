@@ -79,7 +79,7 @@
         <ul class="nav-list">
           <li><a href="#hunt-command" class="nav-link">Smart Hunt & Cell Locking</a></li>
           <li><a href="#bot-commands" class="nav-link">Command Reference Table</a></li>
-          <li><a href="#conditionals" class="nav-link">14 Conditional Logics</a></li>
+          <li><a href="#conditionals" class="nav-link">28 Conditional Logics</a></li>
         </ul>
       </div>
 
@@ -448,13 +448,13 @@ cd you-mad-bro
             <div class="ui-element-box">
               <div class="ui-element-label">Item Actions Dropdown</div>
               <div class="ui-element-desc">
-                Options for <strong>Equip</strong> (weapons, armors, helms, capes), <strong>Transfer to Bank</strong>, and <strong>Transfer to Invent</strong> for fluid inventory management.
+                Options for <strong>Equip</strong> (weapons, armors, helms, capes), <strong>Sell</strong>, <strong>Transfer to Bank</strong>, and <strong>Transfer to Invent</strong> for fluid inventory management.
               </div>
             </div>
             <div class="ui-element-box">
               <div class="ui-element-label">Item Name Input & Add Command</div>
               <div class="ui-element-desc">
-                Enter target item name and click <strong>Add Command</strong> to generate an <code>EquipItemCommand</code> or <code>TransferItemCommand</code>.
+                Enter target item name and click <strong>Add Command</strong> to generate an <code>EquipItemCommand</code>, <code>SellItemCommand</code>, or <code>TransferItemCommand</code>.
               </div>
             </div>
             <div class="ui-element-box">
@@ -521,7 +521,7 @@ cd you-mad-bro
               </div>
             </div>
             <div class="ui-element-box">
-              <div class="ui-element-label">14 Conditional Check Dropdown</div>
+              <div class="ui-element-label">28 Conditional Check Dropdown</div>
               <div class="ui-element-desc">
                 Evaluates a game state condition. If true, execution continues sequentially; <strong>if false, the bot skips 1 command immediately below</strong>.
               </div>
@@ -748,6 +748,11 @@ cd you-mad-bro
                 <td>Pauses script execution for specified duration in seconds.</td>
               </tr>
               <tr>
+                <td><code>sell_item</code></td>
+                <td><code>itemName</code></td>
+                <td>Sells the specified item from player inventory.</td>
+              </tr>
+              <tr>
                 <td><code>transfer</code></td>
                 <td><code>itemName</code>, <code>direction</code></td>
                 <td>Moves item between Inventory and Bank.</td>
@@ -774,9 +779,9 @@ cd you-mad-bro
 
       <!-- Section: Conditionals -->
       <section id="conditionals" class="doc-section">
-        <h2>Control Flow & 14 Conditional Logics</h2>
+        <h2>Control Flow & 28 Conditional Logics</h2>
         <p>
-          YouMadBro provides 14 built-in condition checks in the <strong>Misc Tab</strong>. If the evaluated condition is met (true), execution proceeds to the next command. If the condition is false, <strong>the bot skips exactly 1 command immediately below</strong>.
+          YouMadBro provides 28 built-in condition checks in the <strong>Misc Tab</strong>. If the evaluated condition is met (true), execution proceeds to the next command. If the condition is false, <strong>the bot skips exactly 1 command immediately below</strong>.
         </p>
 
         <div class="table-responsive">
@@ -874,6 +879,90 @@ cd you-mad-bro
                 <td>—</td>
                 <td>True if player account has an active Membership upgrade.</td>
               </tr>
+              <tr>
+                <td><code>is_item_in_bank</code></td>
+                <td>Item Name</td>
+                <td>Quantity (Default: 1)</td>
+                <td>True if player has at least Var 2 quantity of Var 1 in bank.</td>
+              </tr>
+              <tr>
+                <td><code>is_item_not_in_bank</code></td>
+                <td>Item Name</td>
+                <td>Quantity (Default: 1)</td>
+                <td>True if quantity of Var 1 in bank is less than Var 2.</td>
+              </tr>
+              <tr>
+                <td><code>is_quest_in_progress</code></td>
+                <td>Quest ID</td>
+                <td>—</td>
+                <td>True if quest ID is currently accepted and in progress.</td>
+              </tr>
+              <tr>
+                <td><code>is_quest_not_in_progress</code></td>
+                <td>Quest ID</td>
+                <td>—</td>
+                <td>True if quest ID is not currently in progress.</td>
+              </tr>
+              <tr>
+                <td><code>is_health_greater</code></td>
+                <td>HP Amount</td>
+                <td>—</td>
+                <td>True if player current HP is greater than Var 1.</td>
+              </tr>
+              <tr>
+                <td><code>is_health_less</code></td>
+                <td>HP Amount</td>
+                <td>—</td>
+                <td>True if player current HP is less than Var 1.</td>
+              </tr>
+              <tr>
+                <td><code>is_mana_greater</code></td>
+                <td>MP Amount</td>
+                <td>—</td>
+                <td>True if player current MP is greater than Var 1.</td>
+              </tr>
+              <tr>
+                <td><code>is_mana_less</code></td>
+                <td>MP Amount</td>
+                <td>—</td>
+                <td>True if player current MP is less than Var 1.</td>
+              </tr>
+              <tr>
+                <td><code>is_level_greater</code></td>
+                <td>Level</td>
+                <td>—</td>
+                <td>True if player level is greater than Var 1.</td>
+              </tr>
+              <tr>
+                <td><code>is_level_less</code></td>
+                <td>Level</td>
+                <td>—</td>
+                <td>True if player level is less than Var 1.</td>
+              </tr>
+              <tr>
+                <td><code>is_player_aura_greater</code></td>
+                <td>Aura Name</td>
+                <td>Value (Default: 0)</td>
+                <td>True if player aura stack/value is greater than Var 2.</td>
+              </tr>
+              <tr>
+                <td><code>is_player_aura_less</code></td>
+                <td>Aura Name</td>
+                <td>Value (Default: 1)</td>
+                <td>True if player aura stack/value is less than Var 2.</td>
+              </tr>
+              <tr>
+                <td><code>is_monster_in_room</code></td>
+                <td>Monster Name (or <code>*</code>)</td>
+                <td>—</td>
+                <td>True if a matching alive monster is present in the current cell.</td>
+              </tr>
+              <tr>
+                <td><code>is_monster_not_in_room</code></td>
+                <td>Monster Name (or <code>*</code>)</td>
+                <td>—</td>
+                <td>True if no matching alive monster is present in the current cell.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -905,6 +994,7 @@ cd you-mad-bro
         <h3>Key Explorer Capabilities</h3>
         <ul>
           <li><strong>Nested Subdirectories</strong>: Create and browse folders like <code>Bots/Nulgath/</code>, <code>Bots/Forge/</code>, or <code>Bots/Dailies/</code>.</li>
+          <li><strong>Grimlite <code>.gbot</code> Support</strong>: Load both native <code>.json</code> scripts and Grimoire/Grimlite <code>.gbot</code> files directly with automatic command &amp; whitelist conversion.</li>
           <li><strong>Real-Time Breadcrumbs</strong>: Header subtitle updates dynamically showing your current path.</li>
           <li><strong>Safe Boundary Protection</strong>: Navigation up (<code>.. Back/Up</code>) stops strictly at your bot root folder, preventing accidental escapes.</li>
           <li><strong>1-Tap Replace (Overwrite)</strong>: In the Save dialog, clicking any existing file in the list automatically fills the input name and highlights the row. The button dynamically switches to <strong>Replace</strong> with an amber overwrite warning.</li>
@@ -1100,9 +1190,9 @@ cd you-mad-bro
           Go to Android Settings &gt; Apps &gt; YouMadBro &gt; Battery &gt; Set to <strong>Unrestricted</strong>. Also verify that you haven't enabled battery saver mode.
         </p>
 
-        <h3>No bot files (.json) appear in Bot Load Modal?</h3>
+        <h3>No bot files (.json / .gbot) appear in Bot Load Modal?</h3>
         <p>
-          Make sure your bot JSON files are located in <code>Documents/YouMadBro/Bots/</code>. Alternatively, click <strong>Import File (SAF)</strong> in the Load Modal to pick the file directly from Downloads or Google Drive.
+          Make sure your bot <code>.json</code> or <code>.gbot</code> files are located in <code>Documents/YouMadBro/Bots/</code>. Alternatively, click <strong>Import File (SAF)</strong> in the Load Modal to pick the file directly from Downloads or Google Drive.
         </p>
 
         <h3>Game FPS drops in crowded maps?</h3>
